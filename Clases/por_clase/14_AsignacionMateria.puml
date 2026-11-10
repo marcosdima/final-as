@@ -1,0 +1,31 @@
+@startuml 14_asignacion_materia
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class AsignacionMateria #E3F2FD {
+    - cicloLectivo : int
+    - cargo : TITULAR | OBSERVADOR
+}
+
+class Docente
+class Materia
+class CicloLectivo
+
+AsignacionMateria "*" -- "1" Docente : asignada a <
+AsignacionMateria "*" -- "1" Materia : de <
+AsignacionMateria ..> CicloLectivo : corre dentro del ciclo\n(RF-013) >
+
+note bottom of AsignacionMateria
+    Responsabilidad : registrar que docente
+    dicta cada materia, en que ciclo lectivo y
+    con que cargo; permite al Docente consultar
+    sus materias (RF-014) y nominas (RF-015),
+    y al Preceptor/a las nominas generales
+    (RF-016).
+end note
+
+@enduml

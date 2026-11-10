@@ -1,0 +1,40 @@
+@startuml 22_chatbot
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Chatbot #E3F2FD {
+    + recibirConsulta(texto) : Mensaje
+    + validarPermiso(usuario) : boolean
+    + consultarBD(entidad, filtros) : datos
+    + generarRespuesta(datos) : Mensaje
+}
+
+class Conversacion
+class ControladorAcceso
+class GeneradorRespuesta
+class Materia
+class InscripcionCursada
+
+Chatbot "1" -- "*" Conversacion : atiende >
+Chatbot ..> ControladorAcceso : valida rol del usuario >
+Chatbot ..> GeneradorRespuesta : delega la redaccion >
+Chatbot ..> Materia : lee correlatividades >
+Chatbot ..> InscripcionCursada : lee historia, asistencias\ny notas >
+
+note bottom of Chatbot
+    Responsabilidad : punto de entrada del
+    asistente. Recibe la consulta (RF-045),
+    valida el rol (RF-046), consulta la base
+    de datos (RF-047) y responde solo con
+    los datos recuperados; cada interaccion
+    queda registrada (RF-048 / RNF-009).
+
+    RNF-003 : la respuesta debe respetarse
+    en menos de 3 seg (P95).
+end note
+
+@enduml

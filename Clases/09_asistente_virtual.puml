@@ -1,0 +1,61 @@
+@startuml 09_asistente_virtual_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+' ============ Clases del chatbot (PK-CHAT) ============
+
+class Chatbot #E3F2FD {
+    + recibirConsulta(texto) : Mensaje
+    + validarPermiso(usuario) : boolean
+    + consultarBD(entidad, filtros) : datos
+    + generarRespuesta(datos) : Mensaje
+}
+
+class Conversacion {
+    - id : int
+    - fechaInicio : datetime
+    - estado : ACTIVA | CERRADA
+}
+
+class Mensaje {
+    - emisor : USUARIO | CHATBOT
+    - texto : string
+    - fechaHora : datetime
+}
+
+class ControladorAcceso {
+    + verificarRol(usuario, recurso) : PERMITIDO | DENEGADO
+}
+
+class GeneradorRespuesta {
+    + componer(consulta, datos) : string
+}
+
+Chatbot "1" -- "*" Conversacion : atiende >
+Conversacion "1" *-- "*" Mensaje
+Conversacion "*" -- "1" Usuario : abre >
+Chatbot ..> ControladorAcceso : valida rol\n(RNF-007) >
+Chatbot ..> GeneradorRespuesta : delega >
+GeneradorRespuesta ..> Mensaje : compone respuesta >
+
+' ============ Acoplamiento con el dominio (se lee de la BD) ============
+
+Chatbot ..> Materia : consulta correlatividades\npara cursar y rendir\n(RF-021 / RF-026) >
+Chatbot ..> InscripcionCursada : consulta historia, asistencias\ny notas del alumno (RF-038) >
+Chatbot ..> PeriodoInscripcion : consulta plazos vigentes >
+Chatbot ..> MesaExamen : consulta mesas e inscriptos >
+
+note bottom of Chatbot
+    RF-045 : recibe la consulta en lenguaje natural
+    RF-046 : ControladorAcceso verifica el rol y
+    limita los datos a los autorizados (RBAC)
+    RF-047 : consulta la BD y responde SOLO
+    con datos recuperados
+    RF-048 / RNF-009 : la conversacion queda registrada
+end note
+
+@enduml

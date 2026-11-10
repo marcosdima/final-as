@@ -1,0 +1,34 @@
+@startuml 23_conversacion
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Conversacion #E3F2FD {
+    - id : int
+    - fechaInicio : datetime
+    - estado : ACTIVA | CERRADA
+    + cerrar()
+}
+
+class Usuario
+class Mensaje
+class Chatbot
+
+Conversacion "*" -- "1" Usuario : abierta por <
+Conversacion "1" *-- "*" Mensaje
+Conversacion "*" -- "1" Chatbot : atendida por <
+note bottom of Conversacion
+    Responsabilidad : agrupar la sesion de
+    intercambio entre el usuario y el asistente;
+    historial completo para auditar que
+    informacion se entrego a cada rol.
+
+    RF-045 : conversacion entre Usuario y Chatbot
+    RF-048 / RNF-009 : registro auditable
+    e inmutable de las operaciones sensibles
+end note
+
+@enduml

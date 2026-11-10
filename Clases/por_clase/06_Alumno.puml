@@ -1,0 +1,39 @@
+@startuml 06_alumno
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Alumno #E3F2FD {
+    - legajo : int
+    - nombre : string
+    - apellido : string
+    - dni : string
+    - fechaNacimiento : date
+    - email : string
+    - telefono : string
+    - estado : ACTIVO | BAJA
+    + consultarHistoriaAcademica() : HistoriaAcademica
+}
+
+class Usuario
+class InscripcionCarrera
+class InscripcionCursada
+class InscripcionExamen
+
+Alumno --|> Usuario
+
+Alumno "1" -- "*" InscripcionCarrera : formaliza >
+Alumno "1" -- "*" InscripcionCursada : cursa >
+Alumno "1" -- "*" InscripcionExamen : rinde >
+
+note bottom of Alumno
+    Responsabilidad : representar a la persona
+    que estudia y actuar en inscripciones,
+    anulaciones y consulta de su historia
+    academica (RF-038).
+end note
+
+@enduml

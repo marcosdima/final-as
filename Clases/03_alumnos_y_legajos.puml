@@ -1,0 +1,38 @@
+@startuml 03_alumnos_y_legajos_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Alumno {
+    - legajo : int
+    - nombre : string
+    - apellido : string
+    - dni : string
+    - fechaNacimiento : date
+    - email : string
+    - telefono : string
+    - estado : ACTIVO | BAJA
+    + consultarHistoriaAcademica()
+}
+
+class InscripcionCarrera {
+    - fechaInscripcion : date
+    - estado : ACTIVA | BAJA
+}
+
+Alumno "1" -- "*" InscripcionCarrera : formaliza >
+
+note bottom of Alumno
+    RF-001 a RF-004 : el Preceptor/a gestiona datos y baja
+    RF-038 : historia academica (derivada de
+    InscripcionCursada e InscripcionExamen)
+
+    En el diagrama general : InscripcionCarrera
+    se conecta con Carrera (PK-CUR) y Alumno
+    hereda de Usuario (PK-SEC).
+end note
+
+@enduml

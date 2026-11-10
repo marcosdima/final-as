@@ -1,0 +1,33 @@
+@startuml 11_ciclo_lectivo
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class CicloLectivo #E3F2FD {
+    - id : int
+    - anio : int
+    - estado : ABIERTO | CERRADO
+    + aperturar()
+    + cerrar()
+}
+
+class PeriodoInscripcion
+class AsignacionMateria
+
+CicloLectivo "1" *-- "*" PeriodoInscripcion : define >
+CicloLectivo ..> AsignacionMateria : habilita asignaciones\nde docentes y cursadas >
+
+note bottom of CicloLectivo
+    Responsabilidad : envoltura temporal del
+    sistema; todas las inscripciones y
+    nombramientos ocurren dentro de un ciclo.
+
+    RF-010 : aperturar ciclo y definir
+    periodos ordinarios de inscripcion
+    a cursadas y examenes
+end note
+
+@enduml

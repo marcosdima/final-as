@@ -1,0 +1,30 @@
+@startuml 08_carrera
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Carrera #E3F2FD {
+    - id : int
+    - nombre : string
+    - tituloOtorgado : string
+}
+
+class PlanDeEstudios
+class InscripcionCarrera
+
+Carrera "1" *-- "*" PlanDeEstudios : tiene >
+Carrera "1" -- "*" InscripcionCarrera : recibe >
+
+note bottom of Carrera
+    Responsabilidad : representar a cada
+    carrera terciaria del ISFT 189.
+
+    RF-005 / RF-006 : registrar y modificar
+    RF-007 : cada carrera tiene sus planes
+    RF-018 : el Preceptor/a inscribe alumnos/as
+end note
+
+@enduml

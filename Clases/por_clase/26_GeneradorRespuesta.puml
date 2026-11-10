@@ -1,0 +1,31 @@
+@startuml 26_generador_respuesta
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class GeneradorRespuesta #E3F2FD {
+    + componer(consulta, datos) : string
+}
+
+class Chatbot
+class Mensaje
+
+GeneradorRespuesta ..> Mensaje : produce la respuesta >
+Chatbot ..> GeneradorRespuesta : delega >
+
+note bottom of GeneradorRespuesta
+    Responsabilidad : recibir los datos
+    extraidos de la base y redactar la
+    respuesta en lenguaje natural; nunca
+    inventa datos: solo interpreta lo que
+    la BD le devolvio (fuente unica de verdad).
+
+    RF-047 : respuesta a partir de los datos
+    RNF-011 : lógica de negocio con cobertura
+    de pruebas (validaciones y datos)
+end note
+
+@enduml

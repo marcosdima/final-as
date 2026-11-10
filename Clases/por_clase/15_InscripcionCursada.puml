@@ -1,0 +1,43 @@
+@startuml 15_inscripcion_cursada
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class InscripcionCursada #E3F2FD {
+    - fecha : date
+    - condicion : CURSANDO | REGULAR | PROMOCIONADO | LIBRE
+    - fueraDeTermino : boolean
+    + anular()
+    + validarCorrelativas() : boolean
+    + calcularPorcentajeAsistencia() : float
+}
+
+class Alumno
+class Materia
+class Asistencia
+class CalificacionParcial
+class PeriodoInscripcion
+
+InscripcionCursada "*" -- "1" Alumno : de <
+InscripcionCursada "*" -- "1" Materia : a <
+InscripcionCursada "1" *-- "*" Asistencia
+InscripcionCursada "1" *-- "*" CalificacionParcial
+PeriodoInscripcion ..> InscripcionCursada : controla fechas >
+Materia ..> InscripcionCursada : valida correlativas >
+
+note bottom of InscripcionCursada
+    Responsabilidad : representar el vínculo
+    del alumno con una materia en el aula,
+    incluyendo asistencias y notas parciales,
+    terminar en una condición (RF-032).
+
+    RF-019 / RF-020 : inscripcion ordinaria y fuera de termino
+    RF-021 : validar correlatividades
+    RF-022 : anular dentro de los plazos
+    RF-029 : porcentaje de asistencia
+end note
+
+@enduml

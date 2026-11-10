@@ -48,6 +48,10 @@
 | RF-042 | Recuperar contraseña | El sistema deberá permitir a los/as usuarios/as solicitar el restablecimiento de su contraseña de acceso. |
 | RF-043 | Asignar roles a usuarios/as | El sistema deberá permitir al/a la administrador/a asignar roles a las cuentas de usuario (Alumno/a, Docente, Preceptor/a, Administrador/a). |
 | RF-044 | Publicar avisos institucionales | El sistema deberá permitir al/a la administrador/a emitir y publicar comunicados dirigidos a los miembros de la institución. |
+| RF-045 | Realizar consultas al asistente virtual | El sistema deberá permitir a los/as usuarios/as plantear consultas en lenguaje natural a un asistente virtual (chatbot) integrado en la plataforma. |
+| RF-046 | Validar rol y permisos de consulta | El asistente virtual deberá verificar el rol del/de la usuario/a y aplicar el control de acceso por roles antes de responder, restringiendo la información entregada a la autorizada para su perfil (Alumno/a, Docente, Preceptor/a, Administrador/a). |
+| RF-047 | Consultar información académica en la base de datos | El asistente virtual deberá responder las consultas accediendo a la información almacenada en la base de datos (correlatividades, historial académico, nóminas, inscripciones, plazos vigentes, etc.) y generar la respuesta únicamente a partir de los datos recuperados. |
+| RF-048 | Registrar conversaciones del asistente | El sistema deberá almacenar las consultas recibidas, las respuestas generadas, el usuario y su fecha/hora, a los efectos de auditoría y trazabilidad. |
 
 ---
 

@@ -1,0 +1,39 @@
+@startuml 07_docente
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Docente #E3F2FD {
+    - legajo : int
+    - nombre : string
+    - cuil : string
+    - email : string
+    + consultarMateriasAsignadas()
+    + consultarNominaAlumnos(materia)
+    + consultarMesasAsignadas()
+}
+
+class Usuario
+class AsignacionMateria
+class InscripcionCursada
+class ActaExamen
+
+Docente --|> Usuario
+
+Docente "1" -- "*" AsignacionMateria : se asigna a >
+Docente ..> InscripcionCursada : registra asistencias,\nnotas y condicion final\n(RF-028 / RF-030 a RF-032) >
+Docente ..> ActaExamen : carga calificaciones\n(RF-035) >
+
+note bottom of Docente
+    Responsabilidad : registrar asistencias y
+    calificaciones parciales (RF-028..RF-031),
+    la condicion final de cursada (RF-032)
+    y las notas del acta (RF-035); tambien
+    consulta sus materias (RF-014), nominas
+    (RF-015) y mesas de examen (RF-017).
+end note
+
+@enduml

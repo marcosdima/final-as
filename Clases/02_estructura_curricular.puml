@@ -1,0 +1,52 @@
+@startuml 02_estructura_curricular_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Carrera {
+    - id : int
+    - nombre : string
+    - tituloOtorgado : string
+}
+
+class PlanDeEstudios {
+    - id : int
+    - anio : int
+    - vigente : boolean
+}
+
+class Materia {
+    - id : int
+    - nombre : string
+    - anioEnPlan : int
+    - cargaHoraria : int
+}
+
+class CicloLectivo {
+    - id : int
+    - anio : int
+    - estado : ABIERTO | CERRADO
+}
+
+class PeriodoInscripcion {
+    - tipo : CURSADA | EXAMEN
+    - fechaInicio : date
+    - fechaFin : date
+}
+
+Carrera "1" *-- "*" PlanDeEstudios : tiene >
+PlanDeEstudios "1" *-- "*" Materia : contiene >
+CicloLectivo "1" *-- "*" PeriodoInscripcion : define >
+
+Materia --> Materia : correlativa para cursar\n(RF-021) >
+Materia --> Materia : correlativa para rendir\n(RF-026) >
+
+note bottom of PeriodoInscripcion
+    RF-010 : fechas de los periodos
+    ordinarios de inscripcion
+end note
+
+@enduml

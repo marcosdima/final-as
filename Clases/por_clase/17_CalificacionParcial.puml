@@ -1,0 +1,29 @@
+@startuml 17_calificacion_parcial
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class CalificacionParcial #E3F2FD {
+    - instancia : PARCIAL | TRABAJO_PRACTICO
+    - nota : float
+    - fechaCarga : date
+    + modificar(nota)
+}
+
+class InscripcionCursada
+class Docente
+
+CalificacionParcial "*" -- "1" InscripcionCursada : de <
+Docente ..> CalificacionParcial : registra y corrige\n(RF-030 / RF-031) >
+
+note bottom of CalificacionParcial
+    Responsabilidad : nota de una evaluacion
+    parcial o trabajo practico dentro de la
+    cursada; alimenta la planilla consolidada
+    (RF-033) y la historia academica (RF-038).
+end note
+
+@enduml

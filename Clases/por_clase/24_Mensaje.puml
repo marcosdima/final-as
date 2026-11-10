@@ -1,0 +1,32 @@
+@startuml 24_mensaje
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Mensaje #E3F2FD {
+    - id : int
+    - emisor : USUARIO | CHATBOT
+    - texto : string
+    - fechaHora : datetime
+}
+
+class Conversacion
+class GeneradorRespuesta
+
+Mensaje "*" -- "1" Conversacion : pertenece a <
+GeneradorRespuesta ..> Mensaje : compone la respuesta >
+
+note bottom of Mensaje
+    Responsabilidad : cada pregunta y cada
+    respuesta dentro de la conversacion.
+
+    RF-045 : envio de la consulta
+    RF-047 : la respuesta del Chatbot se
+    compone SOLO con datos recuperados de la BD
+    RF-048 : persistencia para auditoria
+end note
+
+@enduml

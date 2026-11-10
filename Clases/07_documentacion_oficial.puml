@@ -1,0 +1,26 @@
+@startuml 07_documentacion_oficial_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class PlantillaDocumento {
+    - id : int
+    - nombre : string
+    - tipoActa : string
+    - archivo : path
+    - version : int
+    - fechaCarga : date
+}
+
+note bottom of PlantillaDocumento
+    RF-039 : el Preceptor/a carga plantillas
+    RF-040 : todos los/as usuarios/as las consultan
+
+    En el diagrama general : PlantillaDocumento
+    se conecta con Usuario (cargada por) (PK-SEC).
+end note
+
+@enduml

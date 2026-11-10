@@ -1,0 +1,42 @@
+@startuml 01_seguridad_y_acceso_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Usuario {
+    - id : int
+    - nombre : string
+    - email : string
+    - passwordHash : string
+    - rol : Rol
+    + iniciarSesion(email, clave) : boolean
+    + recuperarContrasenia(email)
+}
+
+enum Rol {
+    ALUMNO
+    DOCENTE
+    PRECEPTOR
+    ADMINISTRADOR
+}
+
+class Aviso {
+    - id : int
+    - titulo : string
+    - cuerpo : string
+    - fechaPublicacion : datetime
+    - dirigidoA : Rol
+}
+
+Usuario "1" -- "*" Aviso : publica >
+
+note bottom of Usuario
+    RF-041 : iniciar sesion
+    RF-042 : recuperar contrasenia
+    RF-043 : el Administrador/a asigna el rol
+end note
+
+@enduml

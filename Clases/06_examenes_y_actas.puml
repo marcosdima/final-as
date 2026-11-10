@@ -1,0 +1,45 @@
+@startuml 06_examenes_y_actas_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class MesaExamen {
+    - id : int
+    - fecha : date
+    - hora : time
+}
+
+class InscripcionExamen {
+    - fecha : date
+    - fueraDeTermino : boolean
+    - notaFinal : float
+    - estado : INSCRIPTO | ANULADO
+    + validarCondiciones() : boolean
+    + anular()
+}
+
+class ActaExamen {
+    - numero : int
+    - estado : ABIERTA | CERRADA
+    + cerrar()
+}
+
+MesaExamen "1" *-- "*" InscripcionExamen : incluye >
+MesaExamen "1" -- "0..1" ActaExamen : genera >
+ActaExamen "1" o-- "*" InscripcionExamen : registra nota >
+
+note bottom of InscripcionExamen
+    RF-024 / RF-025 : inscripcion ordinaria y fuera de termino
+    RF-026 : validarCondiciones() exige condicion de
+    REGULAR (o PROMOCIONADO) y correlativas
+    de aprobacion de la Materia (PK-CUR)
+    RF-027 : anular() dentro del plazo
+
+    En el diagrama general : InscripcionExamen
+    se conecta con Alumno (PK-ALU).
+end note
+
+@enduml

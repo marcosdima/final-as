@@ -1,0 +1,31 @@
+@startuml 25_controlador_acceso
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class ControladorAcceso #E3F2FD {
+    + verificarRol(usuario, recurso) : PERMITIDO | DENEGADO
+}
+
+class Usuario
+class Chatbot
+
+ControladorAcceso ..> Usuario : consulta su rol >
+Chatbot ..> ControladorAcceso : delega la validacion >
+
+note bottom of ControladorAcceso
+    Responsabilidad : decidir si el rol
+    del usuario habilita el dato consultado;
+    si devuelve DENEGADO, el Chatbot responde
+    con un aviso de falta de permisos y
+    registra la consulta (auditoria).
+
+    RF-046 : validar rol y permisos de consulta
+    RNF-007 : RBAC (Mismo mecanismo del resto del sistema)
+    RNF-009 : registro de lo rechazado
+end note
+
+@enduml

@@ -1,0 +1,37 @@
+@startuml 10_materia
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Materia #E3F2FD {
+    - id : int
+    - nombre : string
+    - anioEnPlan : int
+    - cargaHoraria : int
+}
+
+class PlanDeEstudios
+class AsignacionMateria
+class InscripcionCursada
+class MesaExamen
+
+Materia "*" -- "1" PlanDeEstudios : pertenece a <
+Materia --> Materia : correlativa para cursar\n(RF-021) >
+Materia --> Materia : correlativa para rendir\n(RF-026) >
+Materia "1" -- "*" AsignacionMateria : docente >
+Materia "1" -- "*" InscripcionCursada : cursada por >
+Materia "1" -- "*" MesaExamen : examen >
+
+note bottom of Materia
+    Responsabilidad : unidad curricular, con
+    su regimen de correlatividades
+    (RF-009) para cursar (RF-021)
+    y para rendir (RF-026).
+    Las inscriptas (RF-019) y mesas
+    (RF-023) salen de cada materia.
+end note
+
+@enduml

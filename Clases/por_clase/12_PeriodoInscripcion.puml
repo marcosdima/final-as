@@ -1,0 +1,32 @@
+@startuml 12_periodo_inscripcion
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class PeriodoInscripcion #E3F2FD {
+    - tipo : CURSADA | EXAMEN
+    - fechaInicio : date
+    - fechaFin : date
+    + estaActivo() : boolean
+}
+
+class CicloLectivo
+class InscripcionCursada
+class InscripcionExamen
+
+PeriodoInscripcion "*" -- "1" CicloLectivo : del ciclo <
+PeriodoInscripcion ..> InscripcionCursada : controla fechas\n(RF-019/RF-020/RF-022) >
+PeriodoInscripcion ..> InscripcionExamen : controla fechas\n(RF-024/RF-025/RF-027) >
+
+note bottom of PeriodoInscripcion
+    Responsabilidad : ventanas habilitadas
+    (RF-010) para inscribirse a cursadas
+    o examenes; fuera de ellas, solo el
+    Preceptor/a puede inscribir
+    excepcionalmente (RF-020 / RF-025).
+end note
+
+@enduml

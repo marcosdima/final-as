@@ -1,0 +1,29 @@
+@startuml 08_asistente_virtual
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+}
+
+actor "Usuario" as user
+actor "Alumno/a" as alumno
+
+rectangle "Asistente Virtual / Chatbot" {
+    usecase "CU-45: Realizar consulta al asistente virtual" as CU45
+    usecase "CU-46: Validar rol y permisos de consulta" as CU46
+    usecase "CU-47: Consultar información en la base de datos" as CU47
+    usecase "CU-48: Consultar correlatividades de una materia (ejemplo)" as CU48
+    usecase "CU-49: Registrar la conversación" as CU49
+}
+
+user --> CU45
+alumno --> CU48
+
+CU45 .down.> CU46 : <<include>>
+CU45 .down.> CU47 : <<include>>
+CU45 .down.> CU49 : <<include>>
+
+CU48 .> CU47 : <<extend>>
+
+@enduml

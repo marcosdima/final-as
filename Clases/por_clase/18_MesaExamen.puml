@@ -1,0 +1,34 @@
+@startuml 18_mesa_examen
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class MesaExamen #E3F2FD {
+    - id : int
+    - fecha : date
+    - hora : time
+}
+
+class Materia
+class InscripcionExamen
+class ActaExamen
+class Docente
+
+MesaExamen "*" -- "1" Materia : de <
+MesaExamen "1" *-- "*" InscripcionExamen : incluye >
+MesaExamen "1" -- "0..1" ActaExamen : genera >
+MesaExamen ..> Docente : titular y observador/a\n(RF-017 / RF-023) >
+
+note bottom of MesaExamen
+    Responsabilidad : instancia de evaluacion
+    final estructurada en el cronograma.
+
+    RF-023 : la programa el Preceptor/a,
+    con docente a cargo y observador/a
+    RF-034 : generacion del acta
+end note
+
+@enduml

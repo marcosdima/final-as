@@ -1,0 +1,33 @@
+@startuml 04_administrador
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Administrador <<rol>> #E3F2FD
+
+class Usuario
+class CicloLectivo
+class Carrera
+class Docente
+class Aviso
+
+Administrador --|> Usuario
+
+Administrador ..> Carrera : registra y modifica\n(RF-005/RF-006..RF-009) >
+Administrador ..> CicloLectivo : aperturas y periodos\n(RF-010) >
+Administrador ..> Docente : registra y modifica\n(RF-011/RF-012) >
+Administrador ..> Aviso : publica\n(RF-044) >
+
+note bottom of Administrador
+    Responsabilidad : configurar la estructura
+    curricular, el ciclo lectivo, la planta
+    docente, los roles (RF-043) y los avisos.
+
+    RF-005 a RF-010, RF-011,
+    RF-012, RF-043, RF-044
+end note
+
+@enduml

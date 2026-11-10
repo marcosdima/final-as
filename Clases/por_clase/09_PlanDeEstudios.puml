@@ -1,0 +1,30 @@
+@startuml 09_plan_de_estudios
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class PlanDeEstudios #E3F2FD {
+    - id : int
+    - anio : int
+    - vigente : boolean
+}
+
+class Carrera
+class Materia
+
+PlanDeEstudios "*" -- "1" Carrera : de <
+PlanDeEstudios "1" *-- "*" Materia : contiene >
+
+note bottom of PlanDeEstudios
+    Responsabilidad : agrupar las materias
+    con sus anios y correlatividades
+    que forman la currícula.
+
+    RF-007 : registrar plan
+    RF-008 : registrar materia en el plan
+end note
+
+@enduml

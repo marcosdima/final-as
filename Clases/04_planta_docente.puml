@@ -1,0 +1,31 @@
+@startuml 04_planta_docente_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Docente {
+    - legajo : int
+    - nombre : string
+    - cuil : string
+    - email : string
+}
+
+class AsignacionMateria {
+    - cicloLectivo : int
+    - cargo : TITULAR | OBSERVADOR
+}
+
+Docente "1" -- "*" AsignacionMateria : se asigna a >
+
+note bottom of AsignacionMateria
+    RF-013 : el Preceptor/a asigna al Docente
+    titular por ciclo lectivo
+
+    En el diagrama general : AsignacionMateria
+    se conecta con Materia (PK-CUR).
+end note
+
+@enduml

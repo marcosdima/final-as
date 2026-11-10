@@ -1,0 +1,31 @@
+@startuml 03_aviso
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Aviso #E3F2FD {
+    - id : int
+    - titulo : string
+    - cuerpo : string
+    - fechaPublicacion : datetime
+    - dirigidoA : Rol
+}
+
+class Usuario
+class Rol
+
+Aviso "*" -- "1" Usuario : publicada por <
+Aviso "*" -- "0..1" Rol : dirigida a >
+
+note bottom of Aviso
+    Responsabilidad : comunicados
+    institucionales del Administrador/a,
+    dirigidos a un rol o a toda la comunidad.
+
+    RF-044 : publicar avisos institucionales
+end note
+
+@enduml

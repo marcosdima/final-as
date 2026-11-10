@@ -1,0 +1,33 @@
+@startuml 05_preceptor
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Preceptor <<rol>> #E3F2FD
+
+class Usuario
+class Alumno
+class AsignacionMateria
+class MesaExamen
+class ActaExamen
+class PlantillaDocumento
+
+Preceptor --|> Usuario
+
+Preceptor ..> Alumno : registra, consulta\ny da de baja\n(RF-001 a RF-004 / RF-018) >
+Preceptor ..> AsignacionMateria : asigna docente\n(RF-013) >
+Preceptor ..> MesaExamen : programa e inscribe\nfuera de termino\n(RF-023 / RF-025) >
+Preceptor ..> ActaExamen : genera y cierra\n(RF-034 / RF-036) >
+Preceptor ..> PlantillaDocumento : carga plantillas\n(RF-039) >
+
+note bottom of Preceptor
+    Responsabilidad : gestionar legajos de
+    alumnos, nóminas e inscriptos generales
+    (RF-016), mesas, actas, plantillas y
+    planillas consolidadas (RF-033 / RF-037).
+end note
+
+@enduml

@@ -1,0 +1,45 @@
+@startuml 01_usuario
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Usuario #E3F2FD {
+    - id : int
+    - nombre : string
+    - email : string
+    - passwordHash : string
+    - rol : Rol
+    + iniciarSesion(email, clave) : boolean
+    + recuperarContrasenia(email)
+}
+
+class Rol
+class Aviso
+class PlantillaDocumento
+class Alumno
+class Docente
+class Preceptor
+class Administrador
+
+Usuario <|-- Alumno
+Usuario <|-- Docente
+Usuario <|-- Preceptor
+Usuario <|-- Administrador
+
+Usuario "1" -- "*" Aviso : publica >
+Usuario "1" -- "*" PlantillaDocumento : cargada por >
+
+note bottom of Usuario
+    Responsabilidad : identidad, autenticacion
+    y rol de acceso de cada persona del sistema.
+
+    RF-041 : iniciar sesion
+    RF-042 : recuperar contrasenia
+    RF-043 : el rol lo asigna el Administrador/a
+    RF-044 : publica avisos institucionales
+end note
+
+@enduml

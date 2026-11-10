@@ -1,0 +1,35 @@
+@startuml 21_plantilla_documento
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class PlantillaDocumento #E3F2FD {
+    - id : int
+    - nombre : string
+    - tipoActa : string
+    - archivo : path
+    - version : int
+    - fechaCarga : date
+}
+
+class Usuario
+class Preceptor
+
+PlantillaDocumento "*" -- "1" Usuario : cargada por <
+PlantillaDocumento ..> Preceptor : carga (RF-039) >
+PlantillaDocumento ..> Usuario : consulta (RF-040) >
+
+note bottom of PlantillaDocumento
+    Responsabilidad : repositorio de las
+    plantillas en blanco de actas, notas,
+    constancias y documentos institucionales
+    para completado manual e impresion.
+
+    RF-039 : carga por el Preceptor/a
+    RF-040 : consulta por los usuarios
+end note
+
+@enduml

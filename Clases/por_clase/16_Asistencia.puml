@@ -1,0 +1,28 @@
+@startuml 16_asistencia
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class Asistencia #E3F2FD {
+    - fechaClase : date
+    - presente : boolean
+}
+
+class InscripcionCursada
+class Docente
+
+Asistencia "*" -- "1" InscripcionCursada : de <
+Docente ..> Asistencia : registra presentismo\n(RF-028) >
+
+note bottom of Asistencia
+    Responsabilidad : registrar el
+    presentismo de cada clase; el
+    acumulado da el porcentaje
+    consultable por Alumno, Docente y
+    Preceptor (RF-029).
+end note
+
+@enduml

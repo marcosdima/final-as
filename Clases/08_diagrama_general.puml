@@ -1,0 +1,210 @@
+@startuml 08_diagrama_general_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+' ============ PK-SEC : Seguridad y Acceso ============
+
+class Usuario {
+    - id : int
+    - nombre : string
+    - email : string
+    - passwordHash : string
+    - rol : Rol
+}
+
+enum Rol {
+    ALUMNO
+    DOCENTE
+    PRECEPTOR
+    ADMINISTRADOR
+}
+
+class Aviso {
+    - id : int
+    - titulo : string
+    - fechaPublicacion : datetime
+    - dirigidoA : Rol
+}
+
+Usuario <|-- Administrador
+Usuario <|-- Preceptor
+Usuario <|-- Docente
+Usuario <|-- Alumno
+
+Aviso "*" -- "1" Usuario : publica >
+
+PlantillaDocumento "*" -- "1" Usuario : cargada por >
+
+' ============ PK-CUR : Estructura Curricular ============
+
+class Carrera {
+    - id : int
+    - nombre : string
+    - tituloOtorgado : string
+}
+
+class PlanDeEstudios {
+    - id : int
+    - anio : int
+    - vigente : boolean
+}
+
+class Materia {
+    - id : int
+    - nombre : string
+    - anioEnPlan : int
+    - cargaHoraria : int
+}
+
+class CicloLectivo {
+    - id : int
+    - anio : int
+    - estado : ABIERTO | CERRADO
+}
+
+class PeriodoInscripcion {
+    - tipo : CURSADA | EXAMEN
+    - fechaInicio : date
+    - fechaFin : date
+}
+
+Carrera "1" *-- "*" PlanDeEstudios : tiene >
+PlanDeEstudios "1" *-- "*" Materia : contiene >
+CicloLectivo "1" *-- "*" PeriodoInscripcion : define >
+
+Materia --> Materia : correlativa para cursar\n(RF-021) >
+Materia --> Materia : correlativa para rendir\n(RF-026) >
+
+' ============ PK-ALU : Alumnos y Legajos ============
+
+class InscripcionCarrera {
+    - fechaInscripcion : date
+    - estado : ACTIVA | BAJA
+}
+
+InscripcionCarrera "*" -- "1" Carrera : a >
+Alumno "1" -- "*" InscripcionCarrera : formaliza >
+
+' ============ PK-DOC : Planta Docente ============
+
+class AsignacionMateria {
+    - cicloLectivo : int
+    - cargo : TITULAR | OBSERVADOR
+}
+
+AsignacionMateria "*" -- "1" Materia
+AsignacionMateria "*" -- "1" Docente
+
+' ============ PK-CURS : Cursadas y Asistencias ============
+
+class InscripcionCursada {
+    - fecha : date
+    - condicion : CURSANDO | REGULAR | PROMOCIONADO | LIBRE
+    - fueraDeTermino : boolean
+}
+
+class Asistencia {
+    - fechaClase : date
+    - presente : boolean
+}
+
+class CalificacionParcial {
+    - instancia : PARCIAL | TRABAJO_PRACTICO
+    - nota : float
+    - fechaCarga : date
+}
+
+InscripcionCursada "*" -- "1" Materia : de >
+InscripcionCursada "*" -- "1" Alumno : de >
+InscripcionCursada "1" *-- "*" Asistencia
+InscripcionCursada "1" *-- "*" CalificacionParcial
+
+PeriodoInscripcion .. InscripcionCursada : controla fechas\n(RF-019/RF-020/RF-022) >
+
+' ============ PK-EXAM : Examenes y Actas ============
+
+class MesaExamen {
+    - id : int
+    - fecha : date
+    - hora : time
+}
+
+class InscripcionExamen {
+    - fecha : date
+    - fueraDeTermino : boolean
+    - notaFinal : float
+    - estado : INSCRIPTO | ANULADO
+}
+
+class ActaExamen {
+    - numero : int
+    - estado : ABIERTA | CERRADA
+}
+
+MesaExamen "*" -- "1" Materia : de >
+MesaExamen "1" *-- "*" InscripcionExamen : incluye >
+MesaExamen "1" -- "0..1" ActaExamen : genera >
+ActaExamen "1" o-- "*" InscripcionExamen : registra nota >
+InscripcionExamen "*" -- "1" Alumno : de >
+
+PeriodoInscripcion .. InscripcionExamen : controla fechas\n(RF-024/RF-025/RF-027) >
+
+note bottom of InscripcionCursada
+    RF-021 / RF-026 : al inscribirse se validan
+    las correlatividades de la Materia,
+    la condicion regular y las fechas
+    de PeriodoInscripcion
+end note
+
+' ============ PK-CHAT : Asistente Virtual / Chatbot ============
+
+class Conversacion {
+    - id : int
+    - fechaInicio : datetime
+    - estado : ACTIVA | CERRADA
+}
+
+class Mensaje {
+    - emisor : USUARIO | CHATBOT
+    - texto : string
+    - fechaHora : datetime
+}
+
+class Chatbot {
+    + recibirConsulta(texto) : Mensaje
+    + consultarBD(entidad, filtros) : datos
+    + generarRespuesta(datos) : Mensaje
+}
+
+class ControladorAcceso {
+    + verificarRol(usuario, recurso) : PERMITIDO | DENEGADO
+}
+
+class GeneradorRespuesta {
+    + componer(consulta, datos) : string
+}
+
+Conversacion "1" *-- "*" Mensaje
+Conversacion "*" -- "1" Usuario : abre >
+Chatbot "1" -- "*" Conversacion : atiende >
+Chatbot ..> ControladorAcceso : valida rol\n(RNF-007) >
+Chatbot ..> GeneradorRespuesta : delega >
+GeneradorRespuesta ..> Mensaje : compone respuesta >
+Chatbot ..> Materia : consulta correlatividades\n(RF-021/RF-026) >
+Chatbot ..> InscripcionCursada : consulta historia y notas\n(RF-038) >
+Chatbot ..> PeriodoInscripcion : consulta plazos >
+Chatbot ..> MesaExamen : consulta mesas >
+
+note bottom of Chatbot
+    RF-045 / RF-046 / RF-047 / RF-048 :
+    recibe la consulta, valida el rol (RBAC),
+    lee de la base de datos y responde
+    solo con datos recuperados;
+    la conversacion queda auditada
+end note
+
+@enduml

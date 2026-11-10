@@ -1,0 +1,44 @@
+@startuml 05_cursadas_y_asistencias_clases
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class InscripcionCursada {
+    - fecha : date
+    - condicion : CURSANDO | REGULAR | PROMOCIONADO | LIBRE
+    - fueraDeTermino : boolean
+    + anular()
+    + validarCorrelativas() : boolean
+    + calcularPorcentajeAsistencia() : float
+}
+
+class Asistencia {
+    - fechaClase : date
+    - presente : boolean
+}
+
+class CalificacionParcial {
+    - instancia : PARCIAL | TRABAJO_PRACTICO
+    - nota : float
+    - fechaCarga : date
+    + modificar(nota)
+}
+
+InscripcionCursada "1" *-- "*" Asistencia
+InscripcionCursada "1" *-- "*" CalificacionParcial
+
+note bottom of InscripcionCursada
+    RF-019 / RF-020 : inscripcion ordinaria y fuera de termino
+    RF-021 : validarCorrelativas() consulta las
+    correlatividades de la Materia (PK-CUR)
+    RF-022 : anular() dentro de los plazos
+    RF-032 : la condicion final se asienta al cierre
+
+    En el diagrama general : se conecta con
+    Materia (PK-CUR) y Alumno (PK-ALU).
+end note
+
+@enduml

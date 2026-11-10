@@ -1,0 +1,31 @@
+@startuml 13_inscripcion_carrera
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class InscripcionCarrera #E3F2FD {
+    - fechaInscripcion : date
+    - estado : ACTIVA | BAJA
+    + darDeBaja()
+}
+
+class Alumno
+class Carrera
+
+InscripcionCarrera "*" -- "1" Alumno : formalizada por <
+InscripcionCarrera "*" -- "1" Carrera : a >
+
+note bottom of InscripcionCarrera
+    Responsabilidad : formalizar el vinculo
+    del alumno con una carrera y registrar
+    su baja correspondiente.
+
+    RF-018 : inscribir alumno/a a carrera
+    RF-004 / RF-002 : baja relacionada
+    con el estado del Alumno
+end note
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml 02_rol
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+enum Rol #E3F2FD {
+    ALUMNO
+    DOCENTE
+    PRECEPTOR
+    ADMINISTRADOR
+}
+
+class Usuario
+class Aviso
+
+Usuario "1" -- "1" Rol : rol >
+Aviso "*" -- "0..1" Rol : dirigidoA >
+
+note bottom of Rol
+    Responsabilidad : codifica los cuatro
+    roles de la institucion; determina a
+    que funcionalidades accede cada Usuario.
+
+    RNF-007 : autorizacion basada
+    en roles (RBAC)
+end note
+
+@enduml

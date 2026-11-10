@@ -1,0 +1,39 @@
+@startuml 19_inscripcion_examen
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #FFFFFF
+}
+
+class InscripcionExamen #E3F2FD {
+    - fecha : date
+    - fueraDeTermino : boolean
+    - notaFinal : float
+    - estado : INSCRIPTO | ANULADO
+    + validarCondiciones() : boolean
+    + anular()
+}
+
+class Alumno
+class MesaExamen
+class ActaExamen
+class PeriodoInscripcion
+
+InscripcionExamen "*" -- "1" Alumno : de <
+InscripcionExamen "*" -- "1" MesaExamen : a <
+InscripcionExamen "*" -- "1" ActaExamen : nota registrada en <
+PeriodoInscripcion ..> InscripcionExamen : controla fechas >
+MesaExamen ..> InscripcionExamen : exige ser REGULAR y\ncorrelativas aprobadas >
+
+note bottom of InscripcionExamen
+    Responsabilidad : llamado a examen final
+    del alumno en una mesa.
+
+    RF-024 / RF-025 : inscripcion ordinaria y fuera de termino
+    RF-026 : validar condición regular y correlativas de aprobacion
+    RF-027 : anular dentro del plazo
+    RF-035 : la nota se registra en el acta
+end note
+
+@enduml
