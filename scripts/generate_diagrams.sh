@@ -14,8 +14,9 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Directorio raíz del proyecto (donde reside este script)
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Directorio del script y raíz del proyecto
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Configuración por defecto
 DEFAULT_OUTPUT_DIR="output"
@@ -48,16 +49,16 @@ OPCIONES:
 
 EJEMPLOS:
     # Genera todos los .puml del proyecto en sus respectivas carpetas output/ (ej. CU/output/):
-    ./$(basename "$0")
+    ./scripts/generate_diagrams.sh
 
     # Genera únicamente los .puml de la carpeta CU/:
-    ./$(basename "$0") CU/
+    ./scripts/generate_diagrams.sh CU/
 
     # Genera un archivo específico:
-    ./$(basename "$0") CU/01_seguridad_y_acceso.puml
+    ./scripts/generate_diagrams.sh CU/01_seguridad_y_acceso.puml
 
     # Genera en formato SVG en una carpeta de salida global:
-    ./$(basename "$0") -f svg -o ./diagramas_generados
+    ./scripts/generate_diagrams.sh -f svg -o ./diagramas_generados
 
 EOF
 }
@@ -123,6 +124,7 @@ detect_plantuml_runner() {
     # 3. Búsqueda de plantuml.jar en extensiones de VS Code / Cursor / sistema
     local candidate_jars=(
         "$PROJECT_ROOT/plantuml.jar"
+        "$SCRIPT_DIR/plantuml.jar"
         "$HOME/.local/share/plantuml/plantuml.jar"
         /usr/share/plantuml/plantuml.jar
         /usr/local/share/plantuml/plantuml.jar
