@@ -1,0 +1,29 @@
+@startuml 03_alumnos_y_legajos
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+}
+
+actor "Preceptor/a" as preceptor
+actor "Alumno/a" as alumno
+
+rectangle "Gestión de Alumnos y Legajos" {
+    usecase "CU-11: Registrar alumno/a" as CU11
+    usecase "CU-12: Modificar datos de alumno/a" as CU12
+    usecase "CU-13: Consultar datos de alumno/a" as CU13
+    usecase "CU-14: Dar de baja alumno/a" as CU14
+    usecase "CU-15: Inscribir alumno/a a carrera" as CU15
+    usecase "CU-16: Consultar historia académica" as CU16
+}
+
+preceptor --> CU11
+preceptor --> CU12
+preceptor --> CU13
+preceptor --> CU14
+preceptor --> CU15
+
+alumno --> CU16
+
+@enduml

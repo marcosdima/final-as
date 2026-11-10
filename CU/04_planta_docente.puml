@@ -1,0 +1,33 @@
+@startuml 04_planta_docente
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+}
+
+actor "Administrador/a" as admin
+actor "Preceptor/a" as preceptor
+actor "Docente" as docente
+
+rectangle "Gestión de Planta Docente" {
+    usecase "CU-17: Registrar docente" as CU17
+    usecase "CU-18: Modificar datos de docente" as CU18
+    usecase "CU-19: Asignar docente a materia" as CU19
+    usecase "CU-20: Consultar materias asignadas" as CU20
+    usecase "CU-21: Consultar nómina de alumnos/as por materia" as CU21
+    usecase "CU-22: Consultar nómina general de alumnos/as inscriptos/as" as CU22
+    usecase "CU-23: Consultar mesas de examen asignadas" as CU23
+}
+
+admin --> CU17
+admin --> CU18
+
+preceptor --> CU19
+preceptor --> CU22
+
+docente --> CU20
+docente --> CU21
+docente --> CU23
+
+@enduml

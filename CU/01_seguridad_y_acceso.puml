@@ -1,0 +1,25 @@
+@startuml 01_seguridad_y_acceso
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+}
+
+actor "Usuario" as user
+actor "Administrador/a" as admin
+
+rectangle "Seguridad y Acceso" {
+    usecase "CU-01: Iniciar sesión" as CU01
+    usecase "CU-02: Recuperar contraseña" as CU02
+    usecase "CU-03: Asignar roles a usuarios/as" as CU03
+    usecase "CU-04: Publicar avisos institucionales" as CU04
+}
+
+user --> CU01
+user --> CU02
+
+admin --> CU03
+admin --> CU04
+
+@enduml

@@ -1,0 +1,20 @@
+@startuml 07_documentacion_oficial
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+}
+
+actor "Preceptor/a" as preceptor
+actor "Usuario" as usuario
+
+rectangle "Gestión Documental Institucional" {
+    usecase "CU-43: Cargar plantilla de documento oficial" as CU43
+    usecase "CU-44: Consultar plantillas de documentos oficiales" as CU44
+}
+
+preceptor --> CU43
+usuario --> CU44
+
+@enduml

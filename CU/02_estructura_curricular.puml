@@ -1,0 +1,27 @@
+@startuml 02_estructura_curricular
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+}
+
+actor "Administrador/a" as admin
+
+rectangle "Estructura Curricular y Ciclo Lectivo" {
+    usecase "CU-05: Registrar carrera" as CU05
+    usecase "CU-06: Modificar carrera" as CU06
+    usecase "CU-07: Registrar plan de estudios" as CU07
+    usecase "CU-08: Registrar materia" as CU08
+    usecase "CU-09: Configurar régimen de correlatividades" as CU09
+    usecase "CU-10: Configurar ciclo lectivo y períodos de inscripción" as CU10
+}
+
+admin --> CU05
+admin --> CU06
+admin --> CU07
+admin --> CU08
+admin --> CU09
+admin --> CU10
+
+@enduml
