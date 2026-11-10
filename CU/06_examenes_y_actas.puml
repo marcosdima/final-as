@@ -11,29 +11,29 @@ actor "Preceptor/a" as preceptor
 actor "Docente" as docente
 
 rectangle "Exámenes Finales y Actas Oficiales" {
-    usecase "CU-35: Programar mesa de examen final" as CU35
-    usecase "CU-36: Inscribirse a examen final" as CU36
-    usecase "CU-38: Validar condiciones para examen final" as CU38
-    usecase "CU-37: Inscribir alumno/a a examen final fuera de término" as CU37
-    usecase "CU-38: Validar condiciones para examen final" as CU38b
-    usecase "CU-39: Anular inscripción a examen final" as CU39
-    usecase "CU-40: Generar acta de examen" as CU40
-    usecase "CU-41: Cargar calificaciones en acta de examen" as CU41
-    usecase "CU-42: Cerrar acta de examen" as CU42
+    usecase "CU-36: Programar mesa de examen final" as CU36
+    usecase "CU-37: Inscribirse a examen final" as CU37
+    usecase "CU-39: Validar condiciones para examen final" as CU39
+    usecase "CU-38: Inscribir alumno/a a examen final fuera de término" as CU38
+    usecase "CU-39: Validar condiciones para examen final" as CU39b
+    usecase "CU-40: Anular inscripción a examen final" as CU40
+    usecase "CU-41: Generar acta de examen" as CU41
+    usecase "CU-42: Cargar calificaciones en acta de examen" as CU42
+    usecase "CU-43: Cerrar acta de examen" as CU43
 }
 
-alumno --> CU36
-alumno --> CU39
+alumno --> CU37
+alumno --> CU40
 
-CU36 .> CU38 : <<include>>
+CU37 .> CU39 : <<include>>
 
-preceptor --> CU35
-preceptor --> CU37
-preceptor --> CU40
-preceptor --> CU42
+preceptor --> CU36
+preceptor --> CU38
+preceptor --> CU41
+preceptor --> CU43
 
-CU37 .> CU38b : <<include>>
+CU38 .> CU39b : <<include>>
 
-docente --> CU41
+docente --> CU42
 
 @enduml

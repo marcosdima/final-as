@@ -64,12 +64,13 @@ En este documento se detallan los Casos de Uso del Sistema de Gestión Académic
 | CU-26 | Validar correlatividades de cursada | Inclusión (CU-24, CU-25) | RF-021 |
 | CU-27 | Anular inscripción a cursada | Alumno/a | RF-022 |
 | CU-28 | Registrar asistencia de alumnos/as | Docente | RF-028 |
-| CU-29 | Consultar porcentaje de asistencia | Alumno/a, Docente, Preceptor/a | RF-029 |
-| CU-30 | Registrar calificaciones parciales | Docente | RF-030 |
-| CU-31 | Modificar calificaciones parciales | Docente | RF-031 |
-| CU-32 | Registrar condición final de cursada | Docente | RF-032 |
-| CU-33 | Consultar y exportar planillas de cursada consolidadas | Preceptor/a | RF-033 |
-| CU-34 | Generar nómina de inscriptos y planilla de asistencia | Preceptor/a | RF-037 |
+| CU-29 | Consultar porcentaje de asistencia personal | Alumno/a | RF-029 |
+| CU-30 | Consultar porcentaje de asistencia del curso | Docente, Preceptor/a | RF-029 |
+| CU-31 | Registrar calificaciones parciales | Docente | RF-030 |
+| CU-32 | Modificar calificaciones parciales | Docente | RF-031 |
+| CU-33 | Registrar condición final de cursada | Docente | RF-032 |
+| CU-34 | Consultar y exportar planillas de cursada consolidadas | Preceptor/a | RF-033 |
+| CU-35 | Generar nómina de inscriptos y planilla de asistencia | Preceptor/a | RF-037 |
 
 ---
 
@@ -77,14 +78,14 @@ En este documento se detallan los Casos de Uso del Sistema de Gestión Académic
 
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Nombre del Caso de Uso | Actor Primario | RF Referencia |
 |---|---|---|---|
-| CU-35 | Programar mesa de examen final | Preceptor/a | RF-023 |
-| CU-36 | Inscribirse a examen final | Alumno/a | RF-024, RF-026 |
-| CU-37 | Inscribir alumno/a a examen final fuera de término | Preceptor/a | RF-025, RF-026 |
-| CU-38 | Validar condiciones para examen final | Inclusión (CU-36, CU-37) | RF-026 |
-| CU-39 | Anular inscripción a examen final | Alumno/a | RF-027 |
-| CU-40 | Generar acta de examen | Preceptor/a | RF-034 |
-| CU-41 | Cargar calificaciones en acta de examen | Docente | RF-035 |
-| CU-42 | Cerrar acta de examen | Preceptor/a | RF-036 |
+| CU-36 | Programar mesa de examen final | Preceptor/a | RF-023 |
+| CU-37 | Inscribirse a examen final | Alumno/a | RF-024, RF-026 |
+| CU-38 | Inscribir alumno/a a examen final fuera de término | Preceptor/a | RF-025, RF-026 |
+| CU-39 | Validar condiciones para examen final | Inclusión (CU-37, CU-38) | RF-026 |
+| CU-40 | Anular inscripción a examen final | Alumno/a | RF-027 |
+| CU-41 | Generar acta de examen | Preceptor/a | RF-034 |
+| CU-42 | Cargar calificaciones en acta de examen | Docente | RF-035 |
+| CU-43 | Cerrar acta de examen | Preceptor/a | RF-036 |
 
 ---
 
@@ -92,5 +93,5 @@ En este documento se detallan los Casos de Uso del Sistema de Gestión Académic
 
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Nombre del Caso de Uso | Actor Primario | RF Referencia |
 |---|---|---|---|
-| CU-43 | Cargar plantilla de documento oficial | Preceptor/a | RF-039 |
-| CU-44 | Consultar plantillas de documentos oficiales | Usuario | RF-040 |
+| CU-44 | Cargar plantilla de documento oficial | Preceptor/a | RF-039 |
+| CU-45 | Consultar plantillas de documentos oficiales | Usuario | RF-040 |

@@ -10,11 +10,11 @@ actor "Preceptor/a" as preceptor
 actor "Usuario" as usuario
 
 rectangle "Gestión Documental Institucional" {
-    usecase "CU-43: Cargar plantilla de documento oficial" as CU43
-    usecase "CU-44: Consultar plantillas de documentos oficiales" as CU44
+    usecase "CU-44: Cargar plantilla de documento oficial" as CU44
+    usecase "CU-45: Consultar plantillas de documentos oficiales" as CU45
 }
 
-preceptor --> CU43
-usuario --> CU44
+preceptor --> CU44
+usuario --> CU45
 
 @enduml

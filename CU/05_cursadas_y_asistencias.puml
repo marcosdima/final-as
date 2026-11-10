@@ -12,34 +12,37 @@ actor "Docente" as docente
 
 rectangle "Cursadas, Asistencias y Calificaciones Parciales" {
     usecase "CU-24: Inscribirse a cursada de materia" as CU24
-    usecase "CU-25: Inscribir alumno/a a cursada fuera de término" as CU25
     usecase "CU-26: Validar correlatividades de cursada" as CU26
+    usecase "CU-25: Inscribir alumno/a a cursada fuera de término" as CU25
+    usecase "CU-26: Validar correlatividades de cursada" as CU26b
     usecase "CU-27: Anular inscripción a cursada" as CU27
     usecase "CU-28: Registrar asistencia de alumnos/as" as CU28
-    usecase "CU-29: Consultar porcentaje de asistencia" as CU29
-    usecase "CU-30: Registrar calificaciones parciales" as CU30
-    usecase "CU-31: Modificar calificaciones parciales" as CU31
-    usecase "CU-32: Registrar condición final de cursada" as CU32
-    usecase "CU-33: Consultar y exportar planillas de cursada consolidadas" as CU33
-    usecase "CU-34: Generar nómina de inscriptos y planilla de asistencia" as CU34
-
-    CU24 .down.> CU26 : <<include>>
-    CU25 .up.> CU26 : <<include>>
+    usecase "CU-29: Consultar porcentaje de asistencia personal" as CU29
+    usecase "CU-30: Consultar porcentaje de asistencia del curso" as CU30
+    usecase "CU-31: Registrar calificaciones parciales" as CU31
+    usecase "CU-32: Modificar calificaciones parciales" as CU32
+    usecase "CU-33: Registrar condición final de cursada" as CU33
+    usecase "CU-34: Consultar y exportar planillas de cursada consolidadas" as CU34
+    usecase "CU-35: Generar nómina de inscriptos y planilla de asistencia" as CU35
 }
 
 alumno --> CU24
 alumno --> CU27
 alumno --> CU29
 
+CU24 .> CU26 : <<include>>
+
 preceptor --> CU25
-preceptor --> CU29
-preceptor --> CU33
+preceptor --> CU30
 preceptor --> CU34
+preceptor --> CU35
+
+CU25 .> CU26b : <<include>>
 
 docente --> CU28
-docente --> CU29
 docente --> CU30
 docente --> CU31
 docente --> CU32
+docente --> CU33
 
 @enduml
