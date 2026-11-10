@@ -1,7 +1,7 @@
 # TPI Base de Datos — ISFT 189
 
 **Proyecto:** Asistente Virtual Inteligente (RAG) para el ISFT 189
-**Iteración 1:** modelo relacional (usuarios, documentos, historial de consultas)
+**Iteración 1:** modelo relacional (carreras, usuarios, documentos, historial de consultas)
 
 > **Alcance:** esta iteración cubre el modelo E-R, el modelo físico (DBML) y los
 > scripts DDL/DML con datos de prueba. La **vectorización** (pgvector, embeddings,
@@ -28,7 +28,7 @@ Diagrama en **`er.drawio`** (notación Chen):
 
 | Símbolo | Significado |
 |---|---|
-| Rectángulo | Entidad — nombres en singular: Usuario, Consulta, Documento, Fragmento |
+| Rectángulo | Entidad — nombres en singular: Usuario, Consulta, Carrera, Documento, Fragmento |
 | Rombo | Relación — Realiza, Se divide en |
 | Elipse | Atributo — la clave primaria se muestra subrayada |
 | Línea con `1` / `N` | Cardinalidad de la relación |
@@ -38,6 +38,9 @@ Cardinalidades:
 
 - **Usuario 1 → N Consulta** (relación *Realiza*): cada consulta pertenece a un
   usuario.
+- **Carrera 1 → N Documento** (relación *Pertenece a*): cada documento referencial
+  de una carrera o es institucional (sin carrera, `NULL`). Deja de existir el
+  varchar libre `carrera` en `documentos_metadata`.
 - **Documento 1 → N Fragmento** (relación *Se divide en*): un documento origina
   muchos fragmentos; la entidad *Fragmento* queda prevista para la próxima
   iteración (vectorización).
@@ -59,8 +62,8 @@ Cardinalidades:
 | `email` con `UNIQUE` + `CHECK` de formato | Evita duplicados y basura en el campo de contacto/identificación. |
 | `fecha_alta` / `fecha_subida` / `fecha_consulta` como `TIMESTAMPTZ` | El instituto opera con horario local (Argentina); con zona horaria explícita no hay ambigüedad al migrar o consultar desde otra zona. |
 | FK `historial_consultas → usuarios` con `ON DELETE RESTRICT` | El historial es auditoría: no debe perderse por un borrado de usuario. `ON UPDATE CASCADE` para renumeraciones de PK. |
-| `carrera` nullable en `documentos_metadata` | Reglamentos y resoluciones son institucionales (no pertenecen a una carrera); `NULL` lo expresa sin inventar un valor mágico. |
-| Índices: `rol`, `tipo_documento`, `carrera`, `usuario_id`, `fecha_consulta DESC` | Cubren los filtros de las consultas de validación (Q2–Q8) y el orden del historial. |
+| `carrera_id` nullable en `documentos_metadata` (FK a `carreras`, `RESTRICT`) | Reglamentos y resoluciones son institucionales (no pertenecen a una carrera); `NULL` lo expresa sin inventar un valor mágico. La FK impide borrar una carrera con documentos asociados. |
+| Índices: `rol`, `tipo_documento`, `carrera_id`, `usuario_id`, `fecha_consulta DESC` | Cubren los filtros de las consultas de validación (Q2–Q8) y el orden del historial. |
 | CHECK `length(btrim(...)) > 0` en `pregunta`/`respuesta`/`titulo` | Impide strings vacío o solo espacios, que romperían la búsqueda RAG posterior. |
 | IDs explícitos en el DML + `setval(...)` | Hace deterministas los datos de prueba (las FK del historial referencian usuarios conocidos) y sincroniza las secuencias para que los INSERT futuros sin `id` no choquen. |
 

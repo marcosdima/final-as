@@ -8,6 +8,7 @@ Project isft189 {
 Enum rol_usuario {
   admin
   docente
+  preceptor
   alumno
 }
 
@@ -28,12 +29,19 @@ Table usuarios {
   activo boolean [not null, default: true]
 }
 
+Table carreras {
+  id bigint [pk, increment]
+  nombre varchar(100) [not null, unique]
+  titulo_otorgado varchar(200) [not null]
+  activo boolean [not null, default: true]
+}
+
 Table documentos_metadata {
   id bigint [pk, increment]
   titulo varchar(200) [not null]
   tipo_documento tipo_documento [not null]
   fecha_subida timestamptz [not null, default: `now()`]
-  carrera varchar(100)  // NULL si el documento es institucional
+  carrera_id bigint  // NULL si el documento es institucional (FK a carreras)
   activo boolean [not null, default: true]
 }
 
@@ -66,6 +74,9 @@ Table consulta_fragmentos {
 
 // 1 usuario genera N consultas; una consulta pertenece obligatoriamente a 1 usuario
 Ref: historial_consultas.usuario_id > usuarios.id
+
+// N documentos pertenecen a 1 carrera; los institucionales no pertenecen a ninguna (NULL)
+Ref: documentos_metadata.carrera_id > carreras.id [delete: restrict]
 
 // 1 documento origina N fragmentos; un fragmento pertenece obligatoriamente a 1 documento
 Ref: documentos_vectoriales.documento_id > documentos_metadata.id [delete: cascade]

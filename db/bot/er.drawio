@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="er-isft189" name="E-R ISFT 189">
-        <mxGraphModel dx="1522" dy="1146" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
+        <mxGraphModel dx="1522" dy="1146" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -67,11 +67,8 @@
                 <mxCell id="attr-d-fecha" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="fecha_subida" vertex="1">
                     <mxGeometry height="36" width="115" x="115" y="630" as="geometry"/>
                 </mxCell>
-                <mxCell id="attr-d-carrera" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="carrera" vertex="1">
-                    <mxGeometry height="36" width="115" x="230" y="695" as="geometry"/>
-                </mxCell>
                 <mxCell id="attr-d-activo" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="activo" vertex="1">
-                    <mxGeometry height="36" width="115" x="395" y="695" as="geometry"/>
+                    <mxGeometry height="36" width="115" x="530" y="695" as="geometry"/>
                 </mxCell>
                 <mxCell id="attr-f-contenido" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="contenido" vertex="1">
                     <mxGeometry height="36" width="120" x="1080" y="575" as="geometry"/>
@@ -127,9 +124,6 @@
                 <mxCell id="ln-d-fecha" edge="1" parent="1" source="attr-d-fecha" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" target="ent-documento">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="ln-d-carrera" edge="1" parent="1" source="attr-d-carrera" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="ent-documento">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
                 <mxCell id="ln-d-activo" edge="1" parent="1" source="attr-d-activo" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="ent-documento">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
@@ -180,6 +174,48 @@
                 </mxCell>
                 <mxCell id="card-m-c" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="M" vertex="1">
                     <mxGeometry height="24" width="20" x="955" y="560" as="geometry"/>
+                </mxCell>
+                <mxCell id="ent-carrera" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" value="Carrera" vertex="1">
+                    <mxGeometry height="40" width="140" x="300" y="820" as="geometry"/>
+                </mxCell>
+                <mxCell id="rel-pertenece" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="Pertenece a" vertex="1">
+                    <mxGeometry height="60" width="120" x="310" y="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="attr-cr-id" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="&lt;u&gt;id&lt;/u&gt;" vertex="1">
+                    <mxGeometry height="36" width="115" x="230" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="attr-cr-nombre" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="nombre" vertex="1">
+                    <mxGeometry height="36" width="115" x="435" y="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="attr-cr-titulo" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="titulo_otorgado" vertex="1">
+                    <mxGeometry height="36" width="115" x="230" y="905" as="geometry"/>
+                </mxCell>
+                <mxCell id="attr-cr-activo" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="activo" vertex="1">
+                    <mxGeometry height="36" width="115" x="435" y="905" as="geometry"/>
+                </mxCell>
+                <mxCell id="ln-cr-id" edge="1" parent="1" source="attr-cr-id" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="ent-carrera">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ln-cr-nombre" edge="1" parent="1" source="attr-cr-nombre" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="ent-carrera">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ln-cr-titulo" edge="1" parent="1" source="attr-cr-titulo" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="ent-carrera">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ln-cr-activo" edge="1" parent="1" source="attr-cr-activo" style="edgeStyle=none;html=1;endArrow=none;strokeColor=#666666;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="ent-carrera">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ln-pertenece-1" edge="1" parent="1" source="ent-documento" style="edgeStyle=none;html=1;endArrow=none;strokeWidth=2;strokeColor=#333333;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="rel-pertenece">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ln-pertenece-2" edge="1" parent="1" source="rel-pertenece" style="edgeStyle=none;html=1;endArrow=none;strokeWidth=2;strokeColor=#333333;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ent-carrera">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="card-n-doc" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="N" vertex="1">
+                    <mxGeometry height="24" width="20" x="380" y="648" as="geometry"/>
+                </mxCell>
+                <mxCell id="card-1-carr" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;" value="1" vertex="1">
+                    <mxGeometry height="24" width="20" x="380" y="770" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

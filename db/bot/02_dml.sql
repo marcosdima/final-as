@@ -14,36 +14,40 @@ INSERT INTO isft189.usuarios (id, nombre, email, rol, fecha_alta, activo) VALUES
     (4, 'Ana Torres',      'ana.torres@isft189.edu.ar',      'alumno',  '2024-08-01 14:00:00-03', TRUE),
     (5, 'Diego Ramirez',   'diego.ramirez@isft189.edu.ar',   'alumno',  '2024-08-02 14:20:00-03', TRUE),
     (6, 'Sofia Beltran',   'sofia.beltran@isft189.edu.ar',   'alumno',  '2024-08-03 15:45:00-03', TRUE),
-    (7, 'Lucas Pereira',   'lucas.pereira@isft189.edu.ar',   'alumno',  '2024-08-05 16:00:00-03', FALSE);
+    (7, 'Lucas Pereira',   'lucas.pereira@isft189.edu.ar',   'alumno',    '2024-08-05 16:00:00-03', FALSE),
+    (8, 'Gabriel Diaz',    'gabriel.diaz@isft189.edu.ar',   'preceptor', '2024-08-01 13:00:00-03', TRUE);
 
 -- Sincroniza la secuencia tras la carga con IDs explícitos
 SELECT setval(pg_get_serial_sequence('isft189.usuarios', 'id'),
               (SELECT MAX(id) FROM isft189.usuarios));
 
+-- carreras
+INSERT INTO isft189.carreras (id, nombre, titulo_otorgado, activo) VALUES
+    (1, 'Analista Programador Universitario',
+        'Analista Programador Universitario', TRUE),
+    (2, 'Tecnico Superior en Desarrollo de Software',
+        'Tecnico Superior en Desarrollo de Software', TRUE);
+
+SELECT setval(pg_get_serial_sequence('isft189.carreras', 'id'),
+              (SELECT MAX(id) FROM isft189.carreras));
+
 -- documentos_metadata
 INSERT INTO isft189.documentos_metadata
-    (id, titulo, tipo_documento, fecha_subida, carrera, activo) VALUES
+    (id, titulo, tipo_documento, fecha_subida, carrera_id, activo) VALUES
     (1, 'Plan de Estudio 2024 - Analista Programador Universitario',
-        'plan_estudio',     '2024-02-15 09:00:00-03',
-        'Analista Programador Universitario', TRUE),
+        'plan_estudio',     '2024-02-15 09:00:00-03', 1, TRUE),
     (2, 'Plan de Estudio 2024 - Tecnico Superior en Desarrollo de Software',
-        'plan_estudio',     '2024-02-15 09:30:00-03',
-        'Tecnico Superior en Desarrollo de Software', TRUE),
+        'plan_estudio',     '2024-02-15 09:30:00-03', 2, TRUE),
     (3, 'Reglamento General del Estudiante',
-        'reglamento',       '2024-02-20 11:00:00-03',
-        NULL, TRUE),
+        'reglamento',       '2024-02-20 11:00:00-03', NULL, TRUE),
     (4, 'Correlatividades - Analista Programador Universitario',
-        'correlatividades', '2024-03-01 10:00:00-03',
-        'Analista Programador Universitario', TRUE),
+        'correlatividades', '2024-03-01 10:00:00-03', 1, TRUE),
     (5, 'Correlatividades - Tecnico Superior en Desarrollo de Software',
-        'correlatividades', '2024-03-01 10:20:00-03',
-        'Tecnico Superior en Desarrollo de Software', TRUE),
+        'correlatividades', '2024-03-01 10:20:00-03', 2, TRUE),
     (6, 'Resolucion 123/2024 - Regimen de Asistencia',
-        'resolucion',       '2024-04-10 08:45:00-03',
-        NULL, TRUE),
+        'resolucion',       '2024-04-10 08:45:00-03', NULL, TRUE),
     (7, 'Reglamento de Examenes Finales',
-        'reglamento',       '2024-05-20 12:00:00-03',
-        NULL, FALSE);
+        'reglamento',       '2024-05-20 12:00:00-03', NULL, FALSE);
 
 SELECT setval(pg_get_serial_sequence('isft189.documentos_metadata', 'id'),
               (SELECT MAX(id) FROM isft189.documentos_metadata));
@@ -115,14 +119,15 @@ WHERE  h.id IS NULL
 ORDER  BY u.nombre;
 
 -- Q3: documentos vigentes por carrera, filtrados por tipo
-SELECT d.carrera,
+SELECT c.nombre AS carrera,
        d.tipo_documento,
        d.titulo,
        d.fecha_subida
 FROM   isft189.documentos_metadata d
+       LEFT JOIN isft189.carreras c ON c.id = d.carrera_id
 WHERE  d.activo = TRUE
        AND d.tipo_documento IN ('plan_estudio', 'correlatividades')
-ORDER  BY d.carrera, d.tipo_documento, d.titulo;
+ORDER  BY c.nombre, d.tipo_documento, d.titulo;
 
 -- Q4: cantidad de consultas por rol (agrupación)
 SELECT u.rol,
@@ -160,7 +165,7 @@ ORDER  BY total_consultas DESC;
 SELECT d.tipo_documento,
        COUNT(*) AS total_documentos
 FROM   isft189.documentos_metadata d
-WHERE  d.carrera IS NULL
+WHERE  d.carrera_id IS NULL
 GROUP  BY d.tipo_documento
 ORDER  BY total_documentos DESC;
 
