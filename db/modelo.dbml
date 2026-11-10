@@ -1,0 +1,75 @@
+// Modelo — ISFT 189 (iteración 1)
+// Diagrama E-R con simbología Chen: ver er.drawio
+
+Project isft189 {
+  database_type: 'PostgreSQL'
+}
+
+Enum rol_usuario {
+  admin
+  docente
+  alumno
+}
+
+Enum tipo_documento {
+  plan_estudio
+  reglamento
+  correlatividades
+  resolucion
+  otro
+}
+
+Table usuarios {
+  id bigint [pk, increment]
+  nombre varchar(100) [not null]
+  email varchar(150) [not null, unique]
+  rol rol_usuario [not null]
+  fecha_alta timestamptz [not null, default: `now()`]
+  activo boolean [not null, default: true]
+}
+
+Table documentos_metadata {
+  id bigint [pk, increment]
+  titulo varchar(200) [not null]
+  tipo_documento tipo_documento [not null]
+  fecha_subida timestamptz [not null, default: `now()`]
+  carrera varchar(100)  // NULL si el documento es institucional
+  activo boolean [not null, default: true]
+}
+
+Table historial_consultas {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  pregunta text [not null]
+  respuesta text [not null]
+  fecha_consulta timestamptz [not null, default: `now()`]
+}
+
+// Próxima iteración: fragmentos vectorizados (pgvector)
+Table documentos_vectoriales {
+  id bigint [pk, increment]
+  documento_id bigint [not null]
+  contenido text [not null]
+  metadata jsonb
+  embedding vector
+}
+
+// Próxima iteración: relación N:M entre consultas y fragmentos utilizados como contexto (a validar con el docente)
+Table consulta_fragmentos {
+  consulta_id bigint [not null]
+  fragmento_id bigint [not null]
+
+  indexes {
+    (consulta_id, fragmento_id) [pk]
+  }
+}
+
+// 1 usuario genera N consultas; una consulta pertenece obligatoriamente a 1 usuario
+Ref: historial_consultas.usuario_id > usuarios.id
+
+// 1 documento origina N fragmentos; un fragmento pertenece obligatoriamente a 1 documento
+Ref: documentos_vectoriales.documento_id > documentos_metadata.id [delete: cascade]
+
+// 1 consulta recupera N fragmentos; 1 fragmento puede ser recuperado en M consultas
+Ref: consulta_fragmentos.consulta_id > historial_consultas.id [delete: cascade]
+Ref: consulta_fragmentos.fragmento_id > documentos_vectoriales.id [delete: cascade]

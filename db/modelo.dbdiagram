@@ -1,0 +1,107 @@
+{
+  "version": "3.0.0",
+  "darkMode": true,
+  "gridEnabling": false,
+  "currentViewName": null,
+  "defaultView": {
+    "detailLevel": "All",
+    "relationshipMode": "All",
+    "tablePositions": [
+      {
+        "name": "usuarios",
+        "schemaName": "public",
+        "x": 12,
+        "y": 12
+      },
+      {
+        "name": "documentos_metadata",
+        "schemaName": "public",
+        "x": -25.73095703125,
+        "y": 311.9588853990708
+      },
+      {
+        "name": "historial_consultas",
+        "schemaName": "public",
+        "x": 485.16845703125,
+        "y": 12
+      },
+      {
+        "name": "documentos_vectoriales",
+        "schemaName": "public",
+        "x": 503.998779296875,
+        "y": 311.9588853990708
+      },
+      {
+        "name": "consulta_fragmentos",
+        "schemaName": "public",
+        "x": 963.0369972022804,
+        "y": 158.49429238809114
+      }
+    ],
+    "tableGroupCollapseStates": [],
+    "stickyNoteLayouts": [],
+    "referencePaths": [
+      {
+        "firstFieldNames": [
+          "usuario_id"
+        ],
+        "firstTableName": "historial_consultas",
+        "firstSchemaName": "public",
+        "firstRelation": "*",
+        "secondFieldNames": [
+          "id"
+        ],
+        "secondTableName": "usuarios",
+        "secondSchemaName": "public",
+        "secondRelation": "1",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "documento_id"
+        ],
+        "firstTableName": "documentos_vectoriales",
+        "firstSchemaName": "public",
+        "firstRelation": "*",
+        "secondFieldNames": [
+          "id"
+        ],
+        "secondTableName": "documentos_metadata",
+        "secondSchemaName": "public",
+        "secondRelation": "1",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "consulta_id"
+        ],
+        "firstTableName": "consulta_fragmentos",
+        "firstSchemaName": "public",
+        "firstRelation": "*",
+        "secondFieldNames": [
+          "id"
+        ],
+        "secondTableName": "historial_consultas",
+        "secondSchemaName": "public",
+        "secondRelation": "1",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "fragmento_id"
+        ],
+        "firstTableName": "consulta_fragmentos",
+        "firstSchemaName": "public",
+        "firstRelation": "*",
+        "secondFieldNames": [
+          "id"
+        ],
+        "secondTableName": "documentos_vectoriales",
+        "secondSchemaName": "public",
+        "secondRelation": "1",
+        "checkPoints": []
+      }
+    ]
+  },
+  "views": {}
+}

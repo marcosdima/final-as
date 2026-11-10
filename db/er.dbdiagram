@@ -1,0 +1,40 @@
+{
+  "version": "3.0.0",
+  "darkMode": true,
+  "gridEnabling": false,
+  "currentViewName": null,
+  "defaultView": {
+    "detailLevel": "All",
+    "relationshipMode": "All",
+    "tablePositions": [
+      {
+        "name": "usuarios",
+        "schemaName": "public",
+        "x": 12,
+        "y": 0.327470527000429
+      },
+      {
+        "name": "documentos_metadata",
+        "schemaName": "public",
+        "x": -65.83964843749999,
+        "y": 326.1687605260712
+      },
+      {
+        "name": "historial_consultas",
+        "schemaName": "public",
+        "x": 508.79267578125,
+        "y": 12
+      },
+      {
+        "name": "documentos_vectoriales",
+        "schemaName": "public",
+        "x": 508.79267578125,
+        "y": 322
+      }
+    ],
+    "tableGroupCollapseStates": [],
+    "stickyNoteLayouts": [],
+    "referencePaths": []
+  },
+  "views": {}
+}
