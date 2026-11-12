@@ -1,11 +1,12 @@
 // Modelo — ISFT 189: Asistente Virtual Inteligente (Bot / RAG)
-// Referencia al modelo institucional: la tabla de usuarios se comparte desde db/instituto
+// Base de datos vectorial y relacional para el servicio de asistencia académica
 
 Project isft189_bot {
-  database_type: 'PostgreSQL'
+  database_type: 'PostgreSQL 16 (pgvector)'
   Note: '''
     Módulo del Asistente Virtual Inteligente (RAG) para el ISFT 189.
-    La autenticación y gestión de usuarios se delega al módulo institucional (instituto.usuario).
+    Almacena metadatos documentales, fragmentos vectorizados con pgvector (384 dimensiones)
+    e historial de consultas realizadas por los usuarios.
   '''
 }
 
@@ -17,15 +18,14 @@ Enum tipo_documento {
   otro
 }
 
-// Tabla institucional compartida (esquema instituto)
-Table usuario {
+Table usuarios {
   id bigint [pk, increment]
   nombre varchar(100) [not null]
-  email varchar(150) [not null, unique]
-  rol varchar(50) [not null]
-  activo boolean [not null, default: true]
+  email varchar(100) [not null, unique]
+  rol varchar(20) [not null, default: 'ALUMNO']
+  fecha_registro timestamptz [not null, default: `now()`]
 
-  Note: 'Referencia a la tabla `instituto.usuario` de la base institucional (ver db/instituto).'
+  Note: 'Usuarios identificados para auditoría y personalización de consultas.'
 }
 
 Table documentos_metadata {
@@ -33,43 +33,49 @@ Table documentos_metadata {
   titulo varchar(200) [not null]
   tipo_documento tipo_documento [not null]
   fecha_subida timestamptz [not null, default: `now()`]
-  carrera varchar(100)  // NULL si el documento es institucional
+  carrera varchar(100)
   activo boolean [not null, default: true]
+
+  indexes {
+    tipo_documento [name: 'idx_documentos_tipo']
+    carrera [name: 'idx_documentos_carrera']
+  }
+
+  Note: 'Registro de documentos oficiales cargados e indexados.'
 }
 
-Table historial_consultas {
-  id bigint [pk, increment]
-  usuario_id bigint [not null]
-  pregunta text [not null]
-  respuesta text [not null]
-  fecha_consulta timestamptz [not null, default: `now()`]
-}
-
-// Próxima iteración: fragmentos vectorizados (pgvector)
 Table documentos_vectoriales {
   id bigint [pk, increment]
   documento_id bigint [not null]
   contenido text [not null]
-  metadata jsonb
-  embedding vector
-}
-
-// Próxima iteración: relación N:M entre consultas y fragmentos utilizados como contexto
-Table consulta_fragmentos {
-  consulta_id bigint [not null]
-  fragmento_id bigint [not null]
+  metadata jsonb [not null, default: "'{}'::jsonb"]
+  embedding "vector(384)" [not null]
+  fecha_creacion timestamptz [not null, default: `now()`]
 
   indexes {
-    (consulta_id, fragmento_id) [pk]
+    documento_id [name: 'idx_vectoriales_documento_id']
+    metadata [type: gin, name: 'idx_vectoriales_metadata_gin']
+    embedding [type: 'hnsw (vector_cosine_ops)', name: 'idx_vectoriales_hnsw']
   }
+
+  Note: 'Fragmentos de texto con embeddings semánticos e índice HNSW para similitud de coseno (<=>).'
 }
 
-// 1 usuario institucional genera N consultas en el asistente virtual
-Ref: historial_consultas.usuario_id > usuario.id [delete: restrict, update: cascade]
+Table historial_consultas {
+  id bigint [pk, increment]
+  usuario_id bigint [null]
+  pregunta text [not null]
+  respuesta text [not null]
+  fecha_consulta timestamptz [not null, default: `now()`]
 
-// 1 documento origina N fragmentos
-Ref: documentos_vectoriales.documento_id > documentos_metadata.id [delete: cascade]
+  indexes {
+    usuario_id [name: 'idx_historial_usuario']
+    fecha_consulta [name: 'idx_historial_fecha_consulta']
+  }
 
-// 1 consulta recupera N fragmentos
-Ref: consulta_fragmentos.consulta_id > historial_consultas.id [delete: cascade]
-Ref: consulta_fragmentos.fragmento_id > documentos_vectoriales.id [delete: cascade]
+  Note: 'Registro de preguntas de usuarios y respuestas generadas por el modelo de lenguaje.'
+}
+
+// Relaciones
+Ref: documentos_vectoriales.documento_id > documentos_metadata.id [delete: cascade, update: cascade]
+Ref: historial_consultas.usuario_id > usuarios.id [delete: set null, update: cascade]
