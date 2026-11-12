@@ -1,0 +1,130 @@
+{
+  "version": "3.0.0",
+  "darkMode": true,
+  "gridEnabling": false,
+  "currentViewName": null,
+  "defaultView": {
+    "detailLevel": "All",
+    "relationshipMode": "All",
+    "tablePositions": [
+      {
+        "name": "usuario",
+        "schemaName": "public",
+        "x": -1965.0816020781062,
+        "y": 628.4878963831113
+      },
+      {
+        "name": "aviso",
+        "schemaName": "public",
+        "x": -2662.7897798530407,
+        "y": 446.0166925960522
+      },
+      {
+        "name": "carrera",
+        "schemaName": "public",
+        "x": -3985.7782167008763,
+        "y": 501.79357062022405
+      },
+      {
+        "name": "plan_estudio",
+        "schemaName": "public",
+        "x": -3440.9631532544654,
+        "y": 955.2111547538044
+      },
+      {
+        "name": "materia",
+        "schemaName": "public",
+        "x": -3034.509050347703,
+        "y": 1844.7129784347649
+      },
+      {
+        "name": "correlatividad",
+        "schemaName": "public",
+        "x": -2621.922881479832,
+        "y": 2177.2170235625917
+      },
+      {
+        "name": "ciclo_lectivo",
+        "schemaName": "public",
+        "x": -753.6384666109595,
+        "y": 778.7528290177897
+      },
+      {
+        "name": "periodo_inscripcion",
+        "schemaName": "public",
+        "x": -399.70008318707016,
+        "y": 887.7610368967178
+      },
+      {
+        "name": "alumno",
+        "schemaName": "public",
+        "x": -2628.1641900216036,
+        "y": -771.5794608416229
+      },
+      {
+        "name": "inscripcion_carrera",
+        "schemaName": "public",
+        "x": -4145.554472702077,
+        "y": 132.70839370606626
+      },
+      {
+        "name": "docente",
+        "schemaName": "public",
+        "x": -1104.1956126505472,
+        "y": 258.67610835994606
+      },
+      {
+        "name": "asignacion_materia",
+        "schemaName": "public",
+        "x": -1391.9284677001078,
+        "y": 1911.3570278341015
+      },
+      {
+        "name": "inscripcion_cursada",
+        "schemaName": "public",
+        "x": -329.3564573426395,
+        "y": -787.8005184347977
+      },
+      {
+        "name": "asistencia",
+        "schemaName": "public",
+        "x": 120.51415834610407,
+        "y": -770.4937010818356
+      },
+      {
+        "name": "calificacion_parcial",
+        "schemaName": "public",
+        "x": -1084.2133686853435,
+        "y": -994.4940054071665
+      },
+      {
+        "name": "mesa_examen",
+        "schemaName": "public",
+        "x": -3243.197985136014,
+        "y": 316.0726425533773
+      },
+      {
+        "name": "acta_examen",
+        "schemaName": "public",
+        "x": -3844.092936422432,
+        "y": -1101.7555409077393
+      },
+      {
+        "name": "inscripcion_examen",
+        "schemaName": "public",
+        "x": -4468.904459957794,
+        "y": -500.33976882481943
+      },
+      {
+        "name": "plantilla_documento",
+        "schemaName": "public",
+        "x": -2658.131601822849,
+        "y": 842.8197708265566
+      }
+    ],
+    "tableGroupCollapseStates": [],
+    "stickyNoteLayouts": [],
+    "referencePaths": []
+  },
+  "views": {}
+}

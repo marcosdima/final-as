@@ -1,0 +1,436 @@
+// ============================================================================
+// Modelo Relacional — ISFT 189 (Estructura Global del Instituto)
+// Basado en Casos de Uso (CU) y Diagrama de Clases
+// Convención: Todas las entidades y tablas en SINGULAR
+// Nota: La gestión de consultas/conversaciones del Asistente Virtual
+// se desacopla en el submódulo db/bot referenciando a instituto.usuario.
+// ============================================================================
+
+Project isft189_instituto {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # ISFT 189 - Sistema de Gestión Académica Global
+    Estructura integral del instituto basada en CU-01 a CU-44 y Clases PK-SEC a PK-DOCUM.
+    Convención de nombres normalizada: todas las tablas y referencias en SINGULAR.
+    El subsistema del chatbot (consultas y vectorización) se ubica en db/bot
+    y referencia a la tabla institucional `usuario`.
+  '''
+}
+
+// ============================================================================
+// 1. ENUMS (Dominios de valores cerrados)
+// ============================================================================
+
+Enum rol_usuario {
+  ALUMNO
+  DOCENTE
+  PRECEPTOR
+  ADMINISTRADOR
+}
+
+Enum tipo_correlatividad {
+  PARA_CURSAR
+  PARA_RENDIR
+}
+
+Enum estado_ciclo {
+  ABIERTO
+  CERRADO
+}
+
+Enum tipo_periodo {
+  CURSADA
+  EXAMEN
+}
+
+Enum estado_alumno {
+  ACTIVO
+  BAJA
+}
+
+Enum estado_inscripcion_carrera {
+  ACTIVA
+  BAJA
+}
+
+Enum cargo_docente {
+  TITULAR
+  OBSERVADOR
+}
+
+Enum condicion_cursada {
+  CURSANDO
+  REGULAR
+  PROMOCIONADO
+  LIBRE
+}
+
+Enum instancia_evaluacion {
+  PARCIAL
+  TRABAJO_PRACTICO
+}
+
+Enum estado_acta {
+  ABIERTA
+  CERRADA
+}
+
+Enum estado_inscripcion_examen {
+  INSCRIPTO
+  ANULADO
+}
+
+// ============================================================================
+// 2. PK-SEC: SEGURIDAD, ACCESOS Y AVISOS
+// ============================================================================
+
+Table usuario {
+  id bigint [pk, increment]
+  nombre varchar(100) [not null]
+  email varchar(150) [not null, unique]
+  password_hash varchar(255) [not null]
+  rol rol_usuario [not null]
+  fecha_alta timestamptz [not null, default: `now()`]
+  activo boolean [not null, default: true]
+
+  Note: 'Cuenta de acceso al sistema con autenticación y rol RBAC (RF-041 a RF-043).'
+}
+
+Table aviso {
+  id bigint [pk, increment]
+  publicado_por_id bigint [not null]
+  titulo varchar(200) [not null]
+  cuerpo text [not null]
+  fecha_publicacion timestamptz [not null, default: `now()`]
+  dirigido_a rol_usuario [null] // NULL = comunicado general para toda la institución
+
+  Note: 'Aviso o comunicado oficial publicado por la administración (RF-044).'
+}
+
+// ============================================================================
+// 3. PK-CUR: ESTRUCTURA CURRICULAR Y CICLO LECTIVO
+// ============================================================================
+
+Table carrera {
+  id bigint [pk, increment]
+  nombre varchar(150) [not null, unique]
+  titulo_otorgado varchar(200) [not null]
+  activa boolean [not null, default: true]
+
+  Note: 'Carrera terciaria dictada en la institución (RF-005, RF-006).'
+}
+
+Table plan_estudio {
+  id bigint [pk, increment]
+  carrera_id bigint [not null]
+  anio int [not null]
+  resolucion varchar(100)
+  vigente boolean [not null, default: true]
+
+  indexes {
+    (carrera_id, anio) [unique]
+  }
+
+  Note: 'Plan de estudios formal asociado a una carrera (RF-007).'
+}
+
+Table materia {
+  id bigint [pk, increment]
+  plan_estudio_id bigint [not null]
+  nombre varchar(150) [not null]
+  anio_en_plan int [not null]
+  carga_horaria int [not null]
+
+  indexes {
+    (plan_estudio_id, nombre) [unique]
+  }
+
+  Note: 'Materia o unidad curricular perteneciente a un plan de estudio (RF-008).'
+}
+
+Table correlatividad {
+  id bigint [pk, increment]
+  materia_id bigint [not null]
+  materia_correlativa_id bigint [not null]
+  tipo tipo_correlatividad [not null]
+
+  indexes {
+    (materia_id, materia_correlativa_id, tipo) [unique]
+  }
+
+  Note: 'Régimen de correlatividades para cursar (RF-021) o rendir final (RF-009, RF-026).'
+}
+
+Table ciclo_lectivo {
+  id bigint [pk, increment]
+  anio int [not null, unique]
+  estado estado_ciclo [not null, default: 'ABIERTO']
+
+  Note: 'Año lectivo institucional (RF-010).'
+}
+
+Table periodo_inscripcion {
+  id bigint [pk, increment]
+  ciclo_lectivo_id bigint [not null]
+  tipo tipo_periodo [not null]
+  fecha_inicio date [not null]
+  fecha_fin date [not null]
+
+  Note: 'Ventana temporal habilitada para inscripciones ordinarias (RF-010).'
+}
+
+// ============================================================================
+// 4. PK-ALU: GESTIÓN DE ALUMNOS Y LEGAJOS
+// ============================================================================
+
+Table alumno {
+  id bigint [pk, increment]
+  usuario_id bigint [not null, unique]
+  legajo int [not null, unique]
+  nombre varchar(100) [not null]
+  apellido varchar(100) [not null]
+  dni varchar(20) [not null, unique]
+  fecha_nacimiento date [not null]
+  email varchar(150) [not null]
+  telefono varchar(50)
+  estado estado_alumno [not null, default: 'ACTIVO']
+
+  Note: 'Legajo y datos personales del estudiante (RF-001 a RF-004).'
+}
+
+Table inscripcion_carrera {
+  id bigint [pk, increment]
+  alumno_id bigint [not null]
+  carrera_id bigint [not null]
+  fecha_inscripcion date [not null, default: `CURRENT_DATE`]
+  estado estado_inscripcion_carrera [not null, default: 'ACTIVA']
+
+  indexes {
+    (alumno_id, carrera_id) [unique]
+  }
+
+  Note: 'Matriculación formal del alumno en una carrera (RF-018).'
+}
+
+// ============================================================================
+// 5. PK-DOC: PLANTA DOCENTE Y ASIGNACIONES
+// ============================================================================
+
+Table docente {
+  id bigint [pk, increment]
+  usuario_id bigint [not null, unique]
+  legajo int [not null, unique]
+  nombre varchar(150) [not null]
+  cuil varchar(20) [not null, unique]
+  email varchar(150) [not null]
+  activo boolean [not null, default: true]
+
+  Note: 'Legajo de profesor/a de la institución (RF-011, RF-012).'
+}
+
+Table asignacion_materia {
+  id bigint [pk, increment]
+  docente_id bigint [not null]
+  materia_id bigint [not null]
+  ciclo_lectivo_id bigint [not null]
+  cargo cargo_docente [not null, default: 'TITULAR']
+
+  indexes {
+    (docente_id, materia_id, ciclo_lectivo_id, cargo) [unique]
+  }
+
+  Note: 'Nombramiento docente en una materia para un ciclo lectivo (RF-013 a RF-016).'
+}
+
+// ============================================================================
+// 6. PK-CURS: CURSADAS, ASISTENCIAS Y PARCIALES
+// ============================================================================
+
+Table inscripcion_cursada {
+  id bigint [pk, increment]
+  materia_id bigint [not null]
+  alumno_id bigint [not null]
+  ciclo_lectivo_id bigint [not null]
+  fecha date [not null, default: `CURRENT_DATE`]
+  condicion condicion_cursada [not null, default: 'CURSANDO']
+  fuera_de_termino boolean [not null, default: false]
+
+  indexes {
+    (alumno_id, materia_id, ciclo_lectivo_id) [unique]
+  }
+
+  Note: 'Inscripción a materia y condición final alcanzada (RF-019, RF-020, RF-032).'
+}
+
+Table asistencia {
+  id bigint [pk, increment]
+  inscripcion_cursada_id bigint [not null]
+  fecha_clase date [not null]
+  presente boolean [not null]
+
+  indexes {
+    (inscripcion_cursada_id, fecha_clase) [unique]
+  }
+
+  Note: 'Presentismo por clase para cálculo de porcentaje (RF-028, RF-029).'
+}
+
+Table calificacion_parcial {
+  id bigint [pk, increment]
+  inscripcion_cursada_id bigint [not null]
+  instancia instancia_evaluacion [not null]
+  numero_instancia int [not null, default: 1]
+  nota numeric(4,2) [not null]
+  fecha_carga date [not null, default: `CURRENT_DATE`]
+
+  indexes {
+    (inscripcion_cursada_id, instancia, numero_instancia) [unique]
+  }
+
+  Note: 'Calificación de parcial o trabajo práctico en la cursada (RF-030, RF-031).'
+}
+
+// ============================================================================
+// 7. PK-EXAM: MESAS DE EXAMEN FINAL Y ACTAS OFICIALES
+// ============================================================================
+
+Table mesa_examen {
+  id bigint [pk, increment]
+  materia_id bigint [not null]
+  ciclo_lectivo_id bigint [not null]
+  fecha date [not null]
+  hora time [not null]
+  docente_titular_id bigint [not null]
+  docente_observador_id bigint [null]
+
+  Note: 'Mesa evaluadora programada con tribunal docente (RF-017, RF-023).'
+}
+
+Table acta_examen {
+  id bigint [pk, increment]
+  mesa_examen_id bigint [not null, unique]
+  numero int [not null, unique]
+  estado estado_acta [not null, default: 'ABIERTA']
+  fecha_cierre timestamptz [null]
+
+  Note: 'Acta digital oficial; cerrada queda bloqueada e inmutable (RF-034 a RF-036).'
+}
+
+Table inscripcion_examen {
+  id bigint [pk, increment]
+  mesa_examen_id bigint [not null]
+  alumno_id bigint [not null]
+  acta_examen_id bigint [null]
+  fecha date [not null, default: `CURRENT_DATE`]
+  fuera_de_termino boolean [not null, default: false]
+  nota_final numeric(4,2) [null]
+  estado estado_inscripcion_examen [not null, default: 'INSCRIPTO']
+
+  indexes {
+    (alumno_id, mesa_examen_id) [unique]
+  }
+
+  Note: 'Inscripción a final y calificación asentada en el acta (RF-024 a RF-027, RF-035).'
+}
+
+// ============================================================================
+// 8. PK-DOCUM: GESTIÓN DOCUMENTAL INSTITUCIONAL
+// ============================================================================
+
+Table plantilla_documento {
+  id bigint [pk, increment]
+  cargada_por_usuario_id bigint [not null]
+  nombre varchar(150) [not null]
+  tipo_acta varchar(100) [not null]
+  archivo varchar(255) [not null]
+  version int [not null, default: 1]
+  fecha_carga timestamptz [not null, default: `now()`]
+
+  Note: 'Plantillas oficiales en blanco para descarga e impresión (RF-039, RF-040).'
+}
+
+// ============================================================================
+// 9. AGRUPACIONES VISUALES (TableGroups)
+// ============================================================================
+
+TableGroup seguridad_y_acceso {
+  usuario
+  aviso
+}
+
+TableGroup estructura_curricular {
+  carrera
+  plan_estudio
+  materia
+  correlatividad
+  ciclo_lectivo
+  periodo_inscripcion
+}
+
+TableGroup legajos_institucionales {
+  alumno
+  inscripcion_carrera
+  docente
+  asignacion_materia
+}
+
+TableGroup cursadas_y_asistencias {
+  inscripcion_cursada
+  asistencia
+  calificacion_parcial
+}
+
+TableGroup examenes_y_actas {
+  mesa_examen
+  acta_examen
+  inscripcion_examen
+}
+
+TableGroup documentacion_institucional {
+  plantilla_documento
+}
+
+// ============================================================================
+// 10. RELACIONES (Foreign Keys e Integridad Referencial)
+// ============================================================================
+
+// Seguridad y Documentos
+Ref: aviso.publicado_por_id > usuario.id [delete: restrict, update: cascade]
+Ref: plantilla_documento.cargada_por_usuario_id > usuario.id [delete: restrict, update: cascade]
+
+// Estructura Curricular
+Ref: plan_estudio.carrera_id > carrera.id [delete: restrict, update: cascade]
+Ref: materia.plan_estudio_id > plan_estudio.id [delete: restrict, update: cascade]
+Ref: correlatividad.materia_id > materia.id [delete: cascade, update: cascade]
+Ref: correlatividad.materia_correlativa_id > materia.id [delete: restrict, update: cascade]
+
+// Ciclo y Períodos
+Ref: periodo_inscripcion.ciclo_lectivo_id > ciclo_lectivo.id [delete: restrict, update: cascade]
+
+// Alumnos y Carreras
+Ref: alumno.usuario_id - usuario.id [delete: restrict, update: cascade]
+Ref: inscripcion_carrera.alumno_id > alumno.id [delete: restrict, update: cascade]
+Ref: inscripcion_carrera.carrera_id > carrera.id [delete: restrict, update: cascade]
+
+// Docentes y Asignaciones
+Ref: docente.usuario_id - usuario.id [delete: restrict, update: cascade]
+Ref: asignacion_materia.docente_id > docente.id [delete: restrict, update: cascade]
+Ref: asignacion_materia.materia_id > materia.id [delete: restrict, update: cascade]
+Ref: asignacion_materia.ciclo_lectivo_id > ciclo_lectivo.id [delete: restrict, update: cascade]
+
+// Cursadas, Asistencias y Parciales
+Ref: inscripcion_cursada.alumno_id > alumno.id [delete: restrict, update: cascade]
+Ref: inscripcion_cursada.materia_id > materia.id [delete: restrict, update: cascade]
+Ref: inscripcion_cursada.ciclo_lectivo_id > ciclo_lectivo.id [delete: restrict, update: cascade]
+Ref: asistencia.inscripcion_cursada_id > inscripcion_cursada.id [delete: cascade, update: cascade]
+Ref: calificacion_parcial.inscripcion_cursada_id > inscripcion_cursada.id [delete: cascade, update: cascade]
+
+// Mesas, Actas y Exámenes
+Ref: mesa_examen.materia_id > materia.id [delete: restrict, update: cascade]
+Ref: mesa_examen.ciclo_lectivo_id > ciclo_lectivo.id [delete: restrict, update: cascade]
+Ref: mesa_examen.docente_titular_id > docente.id [delete: restrict, update: cascade]
+Ref: mesa_examen.docente_observador_id > docente.id [delete: restrict, update: cascade]
+Ref: acta_examen.mesa_examen_id - mesa_examen.id [delete: restrict, update: cascade]
+Ref: inscripcion_examen.mesa_examen_id > mesa_examen.id [delete: restrict, update: cascade]
+Ref: inscripcion_examen.alumno_id > alumno.id [delete: restrict, update: cascade]
+Ref: inscripcion_examen.acta_examen_id > acta_examen.id [delete: restrict, update: cascade]

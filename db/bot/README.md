@@ -1,7 +1,8 @@
 # TPI Base de Datos — ISFT 189
 
-**Proyecto:** Asistente Virtual Inteligente (RAG) para el ISFT 189
-**Iteración 1:** modelo relacional (usuarios, documentos, historial de consultas)
+**Proyecto:** Asistente Virtual Inteligente (RAG) para el ISFT 189  
+**Iteración 1:** modelo relacional (documentos, historial de consultas y vinculación a usuarios institucionales)  
+**Arquitectura Modular:** Este módulo se integra con el subsistema institucional ([`db/instituto`](file:///home/marcosdima/Desktop/Institut/Segundo%20año/Analisis%20de%20sitemas/integrador/análisis-2/db/instituto)), delegando la gestión de usuarios a la tabla `instituto.usuario` sin duplicar entidades.
 
 > **Alcance:** esta iteración cubre el modelo E-R, el modelo físico (DBML) y los
 > scripts DDL/DML con datos de prueba. La **vectorización** (pgvector, embeddings,
@@ -55,10 +56,10 @@ Cardinalidades:
 | Decisión | Motivo |
 |---|---|
 | Esquema propio `isft189` | Aísla el proyecto del `public`; facilita un `DROP SCHEMA CASCADE` para re-ejecutar los scripts. |
-| `rol_usuario` y `tipo_documento` como **ENUM** | Dominios cerrados y estables; el tipo documenta los valores posibles y los rechaza si no están en la lista. |
-| `email` con `UNIQUE` + `CHECK` de formato | Evita duplicados y basura en el campo de contacto/identificación. |
-| `fecha_alta` / `fecha_subida` / `fecha_consulta` como `TIMESTAMPTZ` | El instituto opera con horario local (Argentina); con zona horaria explícita no hay ambigüedad al migrar o consultar desde otra zona. |
-| FK `historial_consultas → usuarios` con `ON DELETE RESTRICT` | El historial es auditoría: no debe perderse por un borrado de usuario. `ON UPDATE CASCADE` para renumeraciones de PK. |
+| Integración con `instituto.usuario` | Desacopla la gestión de usuarios evitando redundancia de datos. `historial_consultas.usuario_id` es FK a `instituto.usuario(id)`. |
+| `tipo_documento` como **ENUM** | Dominios cerrados y estables; el tipo documenta los valores posibles y los rechaza si no están en la lista. |
+| `fecha_subida` / `fecha_consulta` como `TIMESTAMPTZ` | El instituto opera con horario local (Argentina); con zona horaria explícita no hay ambigüedad al migrar o consultar desde otra zona. |
+| FK `historial_consultas → instituto.usuario` con `ON DELETE RESTRICT` | El historial es auditoría: no debe perderse por un borrado de usuario. `ON UPDATE CASCADE` para renumeraciones de PK. |
 | `carrera` nullable en `documentos_metadata` | Reglamentos y resoluciones son institucionales (no pertenecen a una carrera); `NULL` lo expresa sin inventar un valor mágico. |
 | Índices: `rol`, `tipo_documento`, `carrera`, `usuario_id`, `fecha_consulta DESC` | Cubren los filtros de las consultas de validación (Q2–Q8) y el orden del historial. |
 | CHECK `length(btrim(...)) > 0` en `pregunta`/`respuesta`/`titulo` | Impide strings vacío o solo espacios, que romperían la búsqueda RAG posterior. |
@@ -82,10 +83,12 @@ docker run -d --name tpi-isft189 \
 # 2. Esperar a que esté listo
 docker exec tpi-isft189 pg_isready -U tpi -d isft189
 
-# 3. Crear el esquema y las tablas
+# 3. Crear el esquema y las tablas (primero instituto, luego bot)
+psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f ../instituto/01_ddl.sql
+psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f ../instituto/02_dml.sql
 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f 01_ddl.sql
 
-# 4. Cargar datos de prueba y correr las consultas de validación
+# 4. Cargar datos de prueba del bot y correr las consultas de validación
 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f 02_dml.sql
 ```
 
