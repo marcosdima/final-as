@@ -1,10 +1,8 @@
 -- ============================================================================
--- ISFT 189 — Sistema Integral de Gestión Académica Global
+-- ISFT 189 — Sistema Integral de Gestión Académica
 -- Archivo 01: DDL (Definición de Datos)
 -- Motor: PostgreSQL 16+
 -- Esquema: instituto
--- Convención: Todas las tablas en SINGULAR
--- Nota: La auditoría del Asistente Virtual reside en db/bot y referencia a instituto.usuario
 -- ============================================================================
 
 DROP SCHEMA IF EXISTS instituto CASCADE;
@@ -12,7 +10,7 @@ CREATE SCHEMA instituto;
 SET search_path TO instituto, public;
 
 -- ============================================================================
--- 1. TIPOS ENUMERADOS (Dominios cerrados del sistema)
+-- 1. TIPOS ENUMERADOS
 -- ============================================================================
 
 CREATE TYPE instituto.rol_usuario AS ENUM (
@@ -101,7 +99,7 @@ CREATE TABLE instituto.aviso (
     titulo             VARCHAR(200)          NOT NULL,
     cuerpo             TEXT                  NOT NULL,
     fecha_publicacion  TIMESTAMPTZ           NOT NULL DEFAULT now(),
-    dirigido_a         instituto.rol_usuario NULL, -- NULL = para toda la comunidad
+    dirigido_a         instituto.rol_usuario NULL,
 
     CONSTRAINT fk_aviso_usuario
         FOREIGN KEY (publicado_por_id)

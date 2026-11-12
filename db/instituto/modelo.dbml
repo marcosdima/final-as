@@ -1,19 +1,14 @@
 // ============================================================================
-// Modelo Relacional — ISFT 189 (Estructura Global del Instituto)
-// Basado en Casos de Uso (CU) y Diagrama de Clases
-// Convención: Todas las entidades y tablas en SINGULAR
-// Nota: La gestión de consultas/conversaciones del Asistente Virtual
-// se desacopla en el submódulo db/bot referenciando a instituto.usuario.
+// Modelo Relacional — ISFT 189: Sistema de Gestión Académica
+// Estructura de Base de Datos basada en Casos de Uso y Diagrama de Clases
 // ============================================================================
 
 Project isft189_instituto {
   database_type: 'PostgreSQL'
   Note: '''
-    # ISFT 189 - Sistema de Gestión Académica Global
-    Estructura integral del instituto basada en CU-01 a CU-44 y Clases PK-SEC a PK-DOCUM.
-    Convención de nombres normalizada: todas las tablas y referencias en SINGULAR.
-    El subsistema del chatbot (consultas y vectorización) se ubica en db/bot
-    y referencia a la tabla institucional `usuario`.
+    # ISFT 189 - Sistema de Gestión Académica
+    Modelo de datos para la gestión curricular, legajos, cursadas, mesas de examen
+    y documentación oficial institucional.
   '''
 }
 

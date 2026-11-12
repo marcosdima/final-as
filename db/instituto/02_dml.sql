@@ -1,9 +1,8 @@
 -- ============================================================================
--- ISFT 189 — Sistema Integral de Gestión Académica Global
+-- ISFT 189 — Sistema Integral de Gestión Académica
 -- Archivo 02: DML (Datos de Prueba y Consultas de Validación)
 -- Motor: PostgreSQL 16+
 -- Esquema: instituto
--- Convención: Todas las tablas en SINGULAR
 -- ============================================================================
 
 SET search_path TO instituto, public;
@@ -166,27 +165,26 @@ SELECT setval('instituto.asignacion_materia_id_seq', 8);
 
 -- Cursadas 2025 (cerradas con regularidad/promoción/libre)
 INSERT INTO instituto.inscripcion_cursada (id, materia_id, alumno_id, ciclo_lectivo_id, fecha, condicion, fuera_de_termino) VALUES
-(1, 1, 1, 1, '2025-03-01', 'REGULAR',      FALSE), -- Lucas F: Regularizó Prog I
-(2, 2, 1, 1, '2025-03-01', 'REGULAR',      FALSE), -- Lucas F: Regularizó SyO
-(3, 1, 2, 1, '2025-03-01', 'PROMOCIONADO', FALSE), -- Valentina: Promocionó Prog I
-(4, 2, 2, 1, '2025-03-01', 'PROMOCIONADO', FALSE), -- Valentina: Promocionó SyO
-(5, 1, 3, 1, '2025-03-05', 'LIBRE',        FALSE), -- Matías: Quedó libre Prog I
-(6, 2, 3, 1, '2025-03-05', 'REGULAR',      FALSE); -- Matías: Regularizó SyO
+(1, 1, 1, 1, '2025-03-01', 'REGULAR',      FALSE),
+(2, 2, 1, 1, '2025-03-01', 'REGULAR',      FALSE),
+(3, 1, 2, 1, '2025-03-01', 'PROMOCIONADO', FALSE),
+(4, 2, 2, 1, '2025-03-01', 'PROMOCIONADO', FALSE),
+(5, 1, 3, 1, '2025-03-05', 'LIBRE',        FALSE),
+(6, 2, 3, 1, '2025-03-05', 'REGULAR',      FALSE);
 
 -- Cursadas 2026 (en curso)
 INSERT INTO instituto.inscripcion_cursada (id, materia_id, alumno_id, ciclo_lectivo_id, fecha, condicion, fuera_de_termino) VALUES
-(7,  5, 1, 2, '2026-03-01', 'CURSANDO', FALSE), -- Lucas: Cursando Prog II (válido: tiene Prog I regular)
-(8,  6, 1, 2, '2026-03-01', 'CURSANDO', FALSE), -- Lucas: Cursando BD (válido: tiene Prog I y SyO regular)
-(9,  7, 1, 2, '2026-03-01', 'CURSANDO', FALSE), -- Lucas: Cursando Análisis (válido: tiene SyO regular)
-(10, 5, 2, 2, '2026-03-01', 'CURSANDO', FALSE), -- Valentina: Cursando Prog II
-(11, 6, 2, 2, '2026-03-01', 'CURSANDO', FALSE), -- Valentina: Cursando BD
-(12, 1, 4, 2, '2026-03-01', 'CURSANDO', FALSE), -- Sofía: Cursando Prog I
-(13, 1, 5, 2, '2026-03-25', 'CURSANDO', TRUE);  -- Mateo: Inscripción fuera de término Prog I (RF-020)
+(7,  5, 1, 2, '2026-03-01', 'CURSANDO', FALSE),
+(8,  6, 1, 2, '2026-03-01', 'CURSANDO', FALSE),
+(9,  7, 1, 2, '2026-03-01', 'CURSANDO', FALSE),
+(10, 5, 2, 2, '2026-03-01', 'CURSANDO', FALSE),
+(11, 6, 2, 2, '2026-03-01', 'CURSANDO', FALSE),
+(12, 1, 4, 2, '2026-03-01', 'CURSANDO', FALSE),
+(13, 1, 5, 2, '2026-03-25', 'CURSANDO', TRUE);
 
 SELECT setval('instituto.inscripcion_cursada_id_seq', 13);
 
--- Asistencias de prueba para cursada 8 (Lucas en Bases de Datos 2026)
--- 5 clases registradas: 4 presentes, 1 ausente => 80% de asistencia
+-- Asistencias de prueba para cursada 8
 INSERT INTO instituto.asistencia (id, inscripcion_cursada_id, fecha_clase, presente) VALUES
 (1, 8, '2026-04-03', TRUE),
 (2, 8, '2026-04-10', TRUE),
@@ -194,8 +192,7 @@ INSERT INTO instituto.asistencia (id, inscripcion_cursada_id, fecha_clase, prese
 (4, 8, '2026-04-24', TRUE),
 (5, 8, '2026-05-01', TRUE);
 
--- Asistencias de prueba para cursada 11 (Valentina en Bases de Datos 2026)
--- 5 clases registradas: 5 presentes => 100% de asistencia
+-- Asistencias de prueba para cursada 11
 INSERT INTO instituto.asistencia (id, inscripcion_cursada_id, fecha_clase, presente) VALUES
 (6,  11, '2026-04-03', TRUE),
 (7,  11, '2026-04-10', TRUE),
@@ -218,11 +215,10 @@ SELECT setval('instituto.calificacion_parcial_id_seq', 4);
 -- 6. PK-EXAM: MESAS DE EXAMEN FINAL, ACTAS E INSCRIPCIONES
 -- ============================================================================
 
--- Mesa Dic 2025 para Programación I
 INSERT INTO instituto.mesa_examen (id, materia_id, ciclo_lectivo_id, fecha, hora, docente_titular_id, docente_observador_id) VALUES
-(1, 1, 1, '2025-12-10', '18:30:00', 1, 3), -- Prog I: Benítez (titular), Vega (observador)
-(2, 2, 1, '2025-12-12', '18:30:00', 2, 4), -- SyO: Díaz (titular), Romero (observador)
-(3, 5, 2, '2026-07-08', '18:30:00', 1, 3); -- Prog II Turno Julio 2026
+(1, 1, 1, '2025-12-10', '18:30:00', 1, 3),
+(2, 2, 1, '2025-12-12', '18:30:00', 2, 4),
+(3, 5, 2, '2026-07-08', '18:30:00', 1, 3);
 
 SELECT setval('instituto.mesa_examen_id_seq', 3);
 
@@ -236,12 +232,12 @@ SELECT setval('instituto.acta_examen_id_seq', 3);
 
 -- Inscripciones a examen y notas finales
 INSERT INTO instituto.inscripcion_examen (id, mesa_examen_id, alumno_id, acta_examen_id, fecha, fuera_de_termino, nota_final, estado) VALUES
-(1, 1, 1, 1, '2025-11-25', FALSE, 8.00, 'INSCRIPTO'), -- Lucas aprobó final Prog I con 8
-(2, 1, 2, 1, '2025-11-25', FALSE, 9.00, 'INSCRIPTO'), -- Valentina ratificó promoción Prog I con 9
-(3, 2, 1, 2, '2025-11-26', FALSE, 7.00, 'INSCRIPTO'), -- Lucas aprobó final SyO con 7
-(4, 2, 2, 2, '2025-11-26', FALSE, 9.50, 'INSCRIPTO'), -- Valentina aprobó final SyO con 9.50
-(5, 3, 1, 3, '2026-06-20', FALSE, NULL, 'INSCRIPTO'), -- Lucas inscripto a rendir Prog II (pendiente)
-(6, 3, 2, 3, '2026-06-22', FALSE, NULL, 'INSCRIPTO'); -- Valentina inscripta a rendir Prog II (pendiente)
+(1, 1, 1, 1, '2025-11-25', FALSE, 8.00, 'INSCRIPTO'),
+(2, 1, 2, 1, '2025-11-25', FALSE, 9.00, 'INSCRIPTO'),
+(3, 2, 1, 2, '2025-11-26', FALSE, 7.00, 'INSCRIPTO'),
+(4, 2, 2, 2, '2025-11-26', FALSE, 9.50, 'INSCRIPTO'),
+(5, 3, 1, 3, '2026-06-20', FALSE, NULL, 'INSCRIPTO'),
+(6, 3, 2, 3, '2026-06-22', FALSE, NULL, 'INSCRIPTO');
 
 SELECT setval('instituto.inscripcion_examen_id_seq', 6);
 
@@ -262,9 +258,7 @@ COMMIT;
 -- 8. CONSULTAS DE VALIDACIÓN DE CASOS DE USO (RF / CU)
 -- ============================================================================
 
--- ----------------------------------------------------------------------------
 -- Q1: Consulta de estructura curricular completa (Carrera -> Plan -> Materias)
--- ----------------------------------------------------------------------------
 SELECT 
     c.nombre AS carrera,
     p.anio AS anio_plan,
@@ -278,10 +272,7 @@ JOIN instituto.materia m ON m.plan_estudio_id = p.id
 WHERE p.vigente = TRUE
 ORDER BY c.nombre, m.anio_en_plan, m.nombre;
 
--- ----------------------------------------------------------------------------
 -- Q2: Validación de correlatividades para cursar una materia (CU-26 / RF-021)
--- Materia destino: Bases de Datos (id=6). Alumno: Lucas Fernández (id=1).
--- ----------------------------------------------------------------------------
 SELECT 
     m_dest.nombre AS materia_a_cursar,
     m_req.nombre AS requisito_necesario,
@@ -299,10 +290,7 @@ LEFT JOIN instituto.inscripcion_cursada cur
        ON cur.materia_id = m_req.id AND cur.alumno_id = 1
 WHERE corr.materia_id = 6 AND corr.tipo = 'PARA_CURSAR';
 
--- ----------------------------------------------------------------------------
 -- Q3: Nómina de alumnos inscriptos por materia asignada al docente (CU-21 / RF-015)
--- Docente: Carlos Benítez (legajo=201), Materia: Programación II (id=5)
--- ----------------------------------------------------------------------------
 SELECT 
     m.nombre AS materia,
     d.nombre AS docente_titular,
@@ -320,9 +308,7 @@ JOIN instituto.alumno a ON a.id = ic.alumno_id
 WHERE d.legajo = 201 AND m.id = 5 AND am.ciclo_lectivo_id = 2
 ORDER BY a.apellido, a.nombre;
 
--- ----------------------------------------------------------------------------
 -- Q4: Cálculo de porcentaje de asistencias acumuladas por alumno (CU-29 / RF-029)
--- ----------------------------------------------------------------------------
 SELECT 
     a.legajo,
     a.apellido || ', ' || a.nombre AS alumno,
@@ -337,9 +323,7 @@ JOIN instituto.asistencia asi ON asi.inscripcion_cursada_id = ic.id
 GROUP BY a.legajo, a.apellido, a.nombre, m.nombre
 ORDER BY a.legajo;
 
--- ----------------------------------------------------------------------------
 -- Q5: Planilla consolidada de cursada con notas parciales (CU-33 / RF-033)
--- ----------------------------------------------------------------------------
 SELECT 
     m.nombre AS materia,
     a.legajo,
@@ -355,9 +339,7 @@ WHERE m.id = 6 AND ic.ciclo_lectivo_id = 2
 GROUP BY m.nombre, a.legajo, a.apellido, a.nombre, ic.condicion
 ORDER BY a.apellido, a.nombre;
 
--- ----------------------------------------------------------------------------
 -- Q6: Cronograma de mesas de examen asignadas a docentes (CU-23 / RF-017)
--- ----------------------------------------------------------------------------
 SELECT 
     me.id AS mesa_id,
     m.nombre AS materia,
@@ -377,9 +359,7 @@ LEFT JOIN instituto.inscripcion_examen ie ON ie.mesa_examen_id = me.id
 GROUP BY me.id, m.nombre, me.fecha, me.hora, dt.nombre, dob.nombre, act.numero, act.estado
 ORDER BY me.fecha DESC, me.hora;
 
--- ----------------------------------------------------------------------------
 -- Q7: Detalle del acta oficial cerrada con notas finales (CU-40, CU-41 / RF-034, RF-035)
--- ----------------------------------------------------------------------------
 SELECT 
     act.numero AS numero_acta,
     act.estado AS estado_acta,
@@ -401,10 +381,7 @@ JOIN instituto.alumno a ON a.id = ie.alumno_id
 WHERE act.numero = 501
 ORDER BY a.apellido, a.nombre;
 
--- ----------------------------------------------------------------------------
 -- Q8: Historia académica consolidada y promedio general del alumno (CU-16 / RF-038)
--- Alumno: Lucas Fernández (legajo=1001)
--- ----------------------------------------------------------------------------
 SELECT 
     a.legajo,
     a.apellido || ', ' || a.nombre AS alumno,
