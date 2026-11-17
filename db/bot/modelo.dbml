@@ -33,12 +33,12 @@ Table documentos_metadata {
   titulo varchar(200) [not null]
   tipo_documento tipo_documento [not null]
   fecha_subida timestamptz [not null, default: `now()`]
-  carrera varchar(100)
+  carrera_id bigint [null, note: 'FK -> instituto.carrera.id (NULL si es institucional)']
   activo boolean [not null, default: true]
 
   indexes {
     tipo_documento [name: 'idx_documentos_tipo']
-    carrera [name: 'idx_documentos_carrera']
+    carrera_id [name: 'idx_documentos_carrera']
     activo [name: 'idx_documentos_activo']
   }
 

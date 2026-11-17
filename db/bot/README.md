@@ -88,6 +88,8 @@ docker run -d --name tpi-isft189 \
 
 ### Paso 2: Cargar ambos esquemas (`instituto` + `isft189`)
 
+> **Importante:** `isft189.documentos_metadata.carrera_id` tiene una clave foránea hacia `instituto.carrera(id)`, por lo que se debe ejecutar `db/instituto/01_ddl.sql` y `02_dml.sql` **antes** que los scripts de `db/bot/`.
+
 ```bash
 # 1. Esquema académico del instituto
 PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f db/instituto/01_ddl.sql

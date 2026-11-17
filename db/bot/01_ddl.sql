@@ -1,5 +1,6 @@
 -- ISFT 189 — TPI Base de Datos · Archivo 01: DDL
--- Requiere PostgreSQL 16+ con extensión pgvector.
+-- Requiere PostgreSQL 16+ con extensión pgvector y el esquema `instituto` creado previamente
+-- (ejecutar antes db/instituto/01_ddl.sql).
 -- Módulo: Asistente Virtual Inteligente (RAG)
 -- Ejecutar: psql -U <usuario> -d <base> -f 01_ddl.sql
 
@@ -42,24 +43,27 @@ CREATE INDEX idx_usuarios_email
 
 -- Tabla 2: documentos_metadata (registro estructurado de documentos institucionales)
 CREATE TABLE isft189.documentos_metadata (
-    id             BIGSERIAL        PRIMARY KEY,
-    titulo         VARCHAR(200)     NOT NULL,
+    id             BIGSERIAL              PRIMARY KEY,
+    titulo         VARCHAR(200)           NOT NULL,
     tipo_documento isft189.tipo_documento NOT NULL,
-    fecha_subida   TIMESTAMPTZ      NOT NULL DEFAULT now(),
-    carrera        VARCHAR(100),
-    activo         BOOLEAN          NOT NULL DEFAULT TRUE,
+    fecha_subida   TIMESTAMPTZ            NOT NULL DEFAULT now(),
+    carrera_id     BIGINT                 NULL,
+    activo         BOOLEAN                NOT NULL DEFAULT TRUE,
 
+    CONSTRAINT fk_documentos_carrera
+        FOREIGN KEY (carrera_id)
+        REFERENCES instituto.carrera (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
     CONSTRAINT ck_documentos_titulo_no_vacio
-        CHECK (length(btrim(titulo)) > 0),
-    CONSTRAINT ck_documentos_carrera_no_vacia
-        CHECK (carrera IS NULL OR length(btrim(carrera)) > 0)
+        CHECK (length(btrim(titulo)) > 0)
 );
 
 CREATE INDEX idx_documentos_tipo
     ON isft189.documentos_metadata (tipo_documento);
 
 CREATE INDEX idx_documentos_carrera
-    ON isft189.documentos_metadata (carrera);
+    ON isft189.documentos_metadata (carrera_id);
 
 CREATE INDEX idx_documentos_activo
     ON isft189.documentos_metadata (activo);
@@ -128,7 +132,7 @@ COMMENT ON SCHEMA isft189 IS
 COMMENT ON TABLE isft189.usuarios IS
   'Usuarios del sistema de consultas y administración';
 COMMENT ON TABLE isft189.documentos_metadata IS
-  'Documentos oficiales del instituto indexados para RAG (planes, reglamentos, correlatividades)';
+  'Documentos oficiales del instituto indexados para RAG (referencia FK a instituto.carrera)';
 COMMENT ON TABLE isft189.documentos_vectoriales IS
   'Fragmentos chunked con representacion semantica vectorial y metadatos JSONB';
 COMMENT ON TABLE isft189.historial_consultas IS

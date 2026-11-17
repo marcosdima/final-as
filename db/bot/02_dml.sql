@@ -19,24 +19,24 @@ INSERT INTO isft189.usuarios (id, nombre, email, rol) VALUES
 SELECT setval(pg_get_serial_sequence('isft189.usuarios', 'id'),
               (SELECT MAX(id) FROM isft189.usuarios));
 
--- 2. Inserción de documentos_metadata (planes oficiales en docs/planes/)
+-- 2. Inserción de documentos_metadata (planes oficiales en docs/planes/, FK a instituto.carrera)
 INSERT INTO isft189.documentos_metadata
-    (id, titulo, tipo_documento, fecha_subida, carrera, activo) VALUES
+    (id, titulo, tipo_documento, fecha_subida, carrera_id, activo) VALUES
     (1, 'Diseño Curricular - Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones (Res. 6175/03)',
         'plan_estudio',     '2024-02-15 09:00:00-03',
-        'Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones', TRUE),
+        1, TRUE),
     (2, 'Diseño Curricular - Tecnicatura Superior en Desarrollo de Software (IF-2019-35276485)',
         'plan_estudio',     '2024-02-15 09:30:00-03',
-        'Tecnicatura Superior en Desarrollo de Software', TRUE),
+        2, TRUE),
     (3, 'Reglamento General del Estudiante - ISFT 189',
         'reglamento',       '2024-02-20 11:00:00-03',
         NULL, TRUE),
     (4, 'Régimen de Correlatividades - Análisis, Desarrollo y Programación de Aplicaciones (Res. 6175/03)',
         'correlatividades', '2024-03-01 10:00:00-03',
-        'Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones', TRUE),
+        1, TRUE),
     (5, 'Régimen de Correlatividades - Tecnicatura Superior en Desarrollo de Software',
         'correlatividades', '2024-03-01 10:20:00-03',
-        'Tecnicatura Superior en Desarrollo de Software', TRUE),
+        2, TRUE),
     (6, 'Resolución 123/2024 - Régimen de Asistencia y Justificaciones',
         'resolucion',       '2024-04-10 08:45:00-03',
         NULL, TRUE),

@@ -61,7 +61,7 @@
                 <mxCell id="attr-d-fecha" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="fecha_subida" vertex="1">
                     <mxGeometry height="36" width="115" x="115" y="590" as="geometry"/>
                 </mxCell>
-                <mxCell id="attr-d-carrera" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="carrera" vertex="1">
+                <mxCell id="attr-d-carrera" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="carrera_id (FK)" vertex="1">
                     <mxGeometry height="36" width="115" x="230" y="655" as="geometry"/>
                 </mxCell>
                 <mxCell id="attr-d-activo" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" value="activo" vertex="1">
