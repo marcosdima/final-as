@@ -10,9 +10,9 @@
 
 | Archivo | Descripción |
 |---|---|
-| [`modelo.dbml`](file:///home/marcosdima/Desktop/Institut/Segundo%20año/Analisis%20de%20sitemas/integrador/análisis-2/db/instituto/modelo.dbml) | Especificación del modelo físico relacional en **DBML**: tipos enumerados, tablas, restricciones de clave primaria/foránea, índices de rendimiento y agrupación por módulos funcionales (`TableGroup`). Permite generar y visualizar el esquema en herramientas como [dbdocs.io](https://dbdocs.io) o [dbdiagram.io](https://dbdiagram.io). |
-| [`01_ddl.sql`](file:///home/marcosdima/Desktop/Institut/Segundo%20año/Analisis%20de%20sitemas/integrador/análisis-2/db/instituto/01_ddl.sql) | Script **DDL** idempotente para PostgreSQL 16+: creación del esquema `instituto`, 11 tipos `ENUM`, 18 tablas con restricciones de integridad (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`), índices B-Tree y comentarios explicativos (`COMMENT ON`). |
-| [`02_dml.sql`](file:///home/marcosdima/Desktop/Institut/Segundo%20año/Analisis%20de%20sitemas/integrador/análisis-2/db/instituto/02_dml.sql) | Script **DML** transaccional con datos de prueba realistas para la *Tecnicatura Superior en Análisis de Sistemas* + **8 consultas SQL de validación** que comprueban la resolución de los Casos de Uso del sistema. |
+| [`modelo.dbml`](modelo.dbml) | Especificación del modelo físico relacional en **DBML**: tipos enumerados, tablas, restricciones de clave primaria/foránea, índices de rendimiento y agrupación por módulos funcionales (`TableGroup`). Permite generar y visualizar el esquema en herramientas como [dbdocs.io](https://dbdocs.io) o [dbdiagram.io](https://dbdiagram.io). |
+| [`01_ddl.sql`](01_ddl.sql) | Script **DDL** idempotente para PostgreSQL 16+: creación del esquema `instituto`, 11 tipos `ENUM`, 19 tablas con restricciones de integridad (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`), índices B-Tree y comentarios explicativos (`COMMENT ON`). |
+| [`02_dml.sql`](02_dml.sql) | Script **DML** transaccional con datos de prueba realistas basados en los diseños curriculares oficiales (*Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones* y *Tecnicatura Superior en Desarrollo de Software*) + **8 consultas SQL de validación** que comprueban la resolución de los Casos de Uso del sistema. |
 
 ---
 
