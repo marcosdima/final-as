@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "ms-python.vscode-python-envs",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg",
+    "jebbs.plantuml",
+    "hediet.vscode-drawio",
+    "dbdiagram.dbdiagram-vscode",
+    "bierner.markdown-mermaid",
+    "timonwong.shellcheck",
+    "redhat.vscode-yaml",
+    "eamodio.gitlens",
+    "mathematic.vscode-pdf",
+    "ms-ceintl.vscode-language-pack-es"
+  ]
+}

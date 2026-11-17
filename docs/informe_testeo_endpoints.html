@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe de Testeo de Endpoints</title>
+<style>
+  @page { size: A4; margin: 18mm 15mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt; color: #1a1a2e; line-height: 1.5; margin: 0;
+  }
+  .cover {
+    text-align: center; padding: 60px 0 40px; border-bottom: 3px solid #0d47a1;
+    margin-bottom: 28px;
+  }
+  .cover .badge {
+    display: inline-block; background: #e3f2fd; color: #0d47a1;
+    padding: 5px 16px; border-radius: 20px; font-size: 9pt;
+    font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  h1 { font-size: 25pt; margin: 16px 0 6px; color: #0d47a1; letter-spacing: -0.5px; }
+  .subtitle { font-size: 12.5pt; color: #455a64; margin: 0; }
+  .meta { margin-top: 22px; font-size: 9.5pt; color: #607d8b; }
+  .meta b { color: #37474f; }
+
+  h2 {
+    font-size: 14pt; color: #0d47a1; border-bottom: 2px solid #e3f2fd;
+    padding-bottom: 6px; margin: 30px 0 14px; page-break-after: avoid;
+  }
+  h3 { font-size: 11.5pt; color: #1565c0; margin: 20px 0 8px; page-break-after: avoid; }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 9pt; page-break-inside: auto; }
+  th {
+    background: #0d47a1; color: #fff; text-align: left; padding: 7px 8px;
+    font-weight: 600; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .4px;
+  }
+  td { padding: 6px 8px; border-bottom: 1px solid #eceff1; vertical-align: top; }
+  tr:nth-child(even) td { background: #f7f9fc; }
+  tr { page-break-inside: avoid; }
+
+  .ok   { color: #1b5e20; font-weight: 700; }
+  .http {
+    display: inline-block; min-width: 34px; text-align: center;
+    padding: 1px 6px; border-radius: 4px; font-weight: 700; font-size: 8.5pt; color: #fff;
+  }
+  .h200 { background: #2e7d32; } .h201 { background: #0277bd; }
+  .h401 { background: #e65100; } .h403 { background: #c62828; }
+  .h404 { background: #6a1b9a; } .h422 { background: #455a64; }
+
+  .grid { display: flex; gap: 12px; margin: 16px 0 22px; }
+  .card {
+    flex: 1; background: #f7f9fc; border-left: 4px solid #0d47a1;
+    padding: 12px 14px; border-radius: 0 6px 6px 0;
+  }
+  .card .num { font-size: 22pt; font-weight: 700; color: #0d47a1; line-height: 1; }
+  .card .lbl { font-size: 8.5pt; color: #607d8b; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+  .card.green { border-color: #2e7d32; } .card.green .num { color: #2e7d32; }
+  .card.amber { border-color: #e65100; } .card.amber .num { color: #e65100; }
+
+  .callout {
+    background: #fff8e1; border-left: 4px solid #f9a825; padding: 12px 16px;
+    border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 9.5pt;
+  }
+  .callout.info { background: #e3f2fd; border-color: #0d47a1; }
+  .callout.good { background: #e8f5e9; border-color: #2e7d32; }
+  .callout b { display: block; margin-bottom: 4px; color: #1a1a2e; }
+
+  code, pre {
+    font-family: "Cascadia Mono", Consolas, monospace; font-size: 8.5pt;
+    background: #eceff1; padding: 1px 5px; border-radius: 3px; color: #b71c1c;
+  }
+  pre { padding: 10px 12px; border-radius: 6px; color: #e0e0e0; background: #263238; overflow: hidden; white-space: pre-wrap; }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  .method { font-weight: 700; font-size: 8.5pt; }
+  .mGET { color: #0277bd; } .mPOST { color: #2e7d32; } .mDELETE { color: #c62828; }
+  .ep { font-family: Consolas, monospace; font-size: 8.5pt; color: #37474f; }
+  .role { font-size: 8pt; color: #607d8b; }
+  .res { font-size: 8.5pt; color: #455a64; }
+
+  .footer { margin-top: 34px; padding-top: 12px; border-top: 2px solid #eceff1; font-size: 8.5pt; color: #90a4ae; text-align: center; }
+  .pb { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <span class="badge">Informe Técnico · Pruebas de Aceptación</span>
+  <h1>Testeo de Endpoints REST</h1>
+  <p class="subtitle">Sistema Integral de Gestión Académica — Asistente Virtual RAG<br>Instituto Superior de Formación Técnica N° 189</p>
+  <div class="meta">
+    <b>Fecha:</b> 17 de noviembre de 2026 &nbsp;·&nbsp;
+    <b>Base:</b> <code>http://127.0.0.1:8000</code><br>
+    <b>Stack:</b> FastAPI · PostgreSQL 16 + pgvector · JWT + RBAC<br>
+    <b>Suite:</b> <code>pytest tests/test_app.py</code> — 8/8 aprobados
+  </div>
+</div>
+
+<h2>1. Resumen Ejecutivo</h2>
+
+<div class="grid">
+  <div class="card green"><div class="num">22</div><div class="lbl">Operaciones probadas</div></div>
+  <div class="card green"><div class="num">100%</div><div class="lbl">Endpoints correctos</div></div>
+  <div class="card green"><div class="num">19/19</div><div class="lbl">Pruebas de error OK</div></div>
+  <div class="card amber"><div class="num">0</div><div class="lbl">Bugs en el código</div></div>
+</div>
+
+<div class="callout good">
+  <b>Resultado: APROBADO</b>
+  Las 22 operaciones sobre los 21 paths del API responden con el código HTTP esperado y el payload correcto.
+  El esquema de autorización por roles (RBAC) opera según lo especificado en los requisitos RF-041 a RF-048 y RNF-007:
+  los accesos no autorizados devuelven <b>401</b> o <b>403</b> según corresponda, y los cuerpos inválidos devuelven <b>422</b>.
+</div>
+
+<h3>Estado del servicio</h3>
+<table>
+  <tr><th style="width:32%">Verificación</th><th style="width:18%">Estado</th><th>Detalle</th></tr>
+  <tr><td>Endpoint de salud <code>/health</code></td><td><span class="http h200">200</span> <span class="ok">healthy</span></td><td class="res"><code>database: ok</code> · <code>pgvector: active (v0.8.7)</code> · <code>schemas: instituto, isft189</code></td></tr>
+  <tr><td>Documentación Swagger</td><td><span class="http h200">200</span> <span class="ok">disponible</span></td><td class="res">OpenAPI 3.1.0 — 21 paths / 22 operaciones</td></tr>
+  <tr><td>Contenedor PostgreSQL</td><td><span class="ok">Up</span></td><td class="res"><code>tpi-isft189</code> · <code>pgvector/pgvector:pg16</code> · puerto 55432</td></tr>
+  <tr><td>Esquemas cargados</td><td><span class="ok">OK</span></td><td class="res"><code>instituto</code> (19 tablas) · <code>isft189</code> (4 tablas)</td></tr>
+  <tr><td>Suite de pruebas pytest</td><td><span class="ok">8 passed</span></td><td class="res">12.92 s — lógica de negocio, JWT, RBAC, PDF y RAG</td></tr>
+</table>
+
+<h3>Credenciales validadas</h3>
+<table>
+  <tr><th>Rol</th><th>Usuario</th><th>Email</th><th style="width:14%">Login</th></tr>
+  <tr><td>Alumno (legajo 1001)</td><td>Marcos Di Matteo</td><td class="ep">mdimatteo@alumno.isft189.edu.ar</td><td><span class="http h200">200</span> <span class="ok">OK</span></td></tr>
+  <tr><td>Alumno (legajo 1002)</td><td>Nahuel Quiñonez</td><td class="ep">nquinonez@alumno.isft189.edu.ar</td><td><span class="http h200">200</span> <span class="ok">OK</span></td></tr>
+  <tr><td>Docente (legajo 201)</td><td>Leonel Luengo</td><td class="ep">lluengo@isft189.edu.ar</td><td><span class="http h200">200</span> <span class="ok">OK</span></td></tr>
+  <tr><td>Docente (legajo 202)</td><td>Juan Carlos Romero</td><td class="ep">jcromero@isft189.edu.ar</td><td><span class="http h200">200</span> <span class="ok">OK</span></td></tr>
+</table>
+<p class="role">Contraseña utilizada en todos los casos: <code>isft189.2026</code></p>
+
+<div class="pb"></div>
+<h2>2. Pruebas de Endpoints Funcionales</h2>
+
+<h3>2.1 Endpoints públicos (sin autenticación)</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:30%">Endpoint</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/</td><td><span class="http h200">200</span></td><td class="res">Raíz del servicio — <code>system, version, docs, llm_provider</code></td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/health</td><td><span class="http h200">200</span></td><td class="res">Salud de DB, pgvector y esquemas</td></tr>
+  <tr><td class="method mPOST">POST</td><td class="ep">/api/v1/auth/login</td><td><span class="http h200">200</span></td><td class="res"><code>access_token</code> + perfil de usuario (JSON)</td></tr>
+  <tr><td class="method mPOST">POST</td><td class="ep">/api/v1/auth/token</td><td><span class="http h200">200</span></td><td class="res">Login OAuth2 (form) — habilita botón <b>Authorize</b> en Swagger</td></tr>
+</table>
+
+<h3>2.2 Autenticación y datos académicos generales</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:34%">Endpoint</th><th style="width:8%">Rol</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/auth/me</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">Marcos Di Matteo · <code>STUDENT</code> · legajo 1001</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/careers</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">2 carreras con materias anidadas</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/notices</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">2 avisos institucionales</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/enrollment-periods</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">3 períodos de inscripción</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/exam-boards</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">Períodos de examen y mesas de examen</td></tr>
+</table>
+
+<h3>2.3 Endpoints exclusivos STUDENT</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:34%">Endpoint</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/students/me/history</td><td><span class="http h200">200</span></td><td class="res">Historia académica completa · promedio de finales <b>7.5</b> · 2 actas cerradas (Prog. I: 8.0, Adm.: 7.0)</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/students/me/attendance</td><td><span class="http h200">200</span></td><td class="res">Asistencia Base de Datos: <b>80%</b> (4 de 5 clases)</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/students/me/prerequisites</td><td><span class="http h200">200</span></td><td class="res"><i>Práctica Profesional</i> → 1 match, 8 correlativas, <code>eligible_to_enroll: false</code> ✓ correcto</td></tr>
+</table>
+
+<h3>2.4 Endpoints exclusivos TEACHER</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:34%">Endpoint</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/teachers/me/rosters</td><td><span class="http h200">200</span></td><td class="res">4 cátedras con nóminas de alumnos inscriptos</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/teachers/me/exam-boards</td><td><span class="http h200">200</span></td><td class="res">Acta 502 (<code>CLOSED</code>) donde integra tribunal</td></tr>
+</table>
+
+<h3>2.5 Endpoints exclusivos PRECEPTOR / ADMIN</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:34%">Endpoint</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/academic/admin/students</td><td><span class="http h200">200</span></td><td class="res">Consulta de legajo por <code>file_number=1001</code> — datos completos</td></tr>
+</table>
+
+<div class="pb"></div>
+<h3>2.6 Gestión de documentos — ciclo CRUD completo</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:30%">Endpoint</th><th style="width:8%">Rol</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mPOST">POST</td><td class="ep">/api/v1/documents/ingest</td><td class="role">ADMIN</td><td><span class="http h201">201</span></td><td class="res"><code>document_id: 10</code> · 1 chunk · vectorizado correctamente</td></tr>
+  <tr><td class="method mPOST">POST</td><td class="ep">/api/v1/documents/ingest-pdf</td><td class="role">ADMIN</td><td><span class="http h201">201</span></td><td class="res"><code>document_id: 11</code> · <b>8 chunks</b> extraídos de PDF de 646 KB (multipart)</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/documents/</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">Listado de 7 documentos indexados</td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/documents/{id}</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">Metadata completa del documento</td></tr>
+  <tr><td class="method mDELETE">DELETE</td><td class="ep">/api/v1/documents/{id}</td><td class="role">ADMIN</td><td><span class="http h200">200</span></td><td class="res">Borrado en cascada incluyendo chunks vectoriales</td></tr>
+</table>
+
+<h3>2.7 Asistente virtual (RAG + Tool Calling)</h3>
+<table>
+  <tr><th style="width:7%">Método</th><th style="width:30%">Endpoint</th><th style="width:8%">Rol</th><th style="width:8%">HTTP</th><th>Resultado</th></tr>
+  <tr><td class="method mPOST">POST</td><td class="ep">/api/v1/chat/</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">Respondió <i>"¿Qué correlativas tiene Base de Datos?"</i> con <b>fuentes citadas</b>: <i>Régimen de Correlatividades — Res. 6175/03</i></td></tr>
+  <tr><td class="method mGET">GET</td><td class="ep">/api/v1/chat/history</td><td class="role">ALUMNO</td><td><span class="http h200">200</span></td><td class="res">5 registros de historial aislados por usuario</td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>3. Pruebas de Seguridad y Manejo de Errores</h2>
+<p>Se ejecutaron <b>19 pruebas negativas</b> para verificar el comportamiento ante accesos inválidos. Resultado: <span class="ok">19/19 correctas</span>.</p>
+
+<h3>3.1 Autenticación fallida — HTTP 401</h3>
+<table>
+  <tr><th style="width:48%">Escenario</th><th style="width:10%">HTTP</th><th>Respuesta del servidor</th></tr>
+  <tr><td>GET <code>/auth/me</code> sin token</td><td><span class="http h401">401</span></td><td class="res"><code>{"detail":"Bearer JWT authentication is required."}</code></td></tr>
+  <tr><td>GET <code>/auth/me</code> con token corrupto</td><td><span class="http h401">401</span></td><td class="res">Token rechazado</td></tr>
+  <tr><td>GET <code>/students/me/history</code> sin token</td><td><span class="http h401">401</span></td><td class="res">Token requerido</td></tr>
+  <tr><td>POST <code>/chat/</code> sin token</td><td><span class="http h401">401</span></td><td class="res">Token requerido</td></tr>
+  <tr><td>POST <code>/auth/login</code> con contraseña incorrecta</td><td><span class="http h401">401</span></td><td class="res">Credenciales inválidas</td></tr>
+</table>
+
+<h3>3.2 Control de acceso por rol — HTTP 403 (RF-046 / RNF-007)</h3>
+<table>
+  <tr><th style="width:52%">Escenario</th><th style="width:10%">HTTP</th><th>Resultado</th></tr>
+  <tr><td>ALUMNO → <code>/teachers/me/rosters</code></td><td><span class="http h403">403</span></td><td class="res"><span class="ok">Correcto</span> — acceso restringido</td></tr>
+  <tr><td>ALUMNO → <code>/teachers/me/exam-boards</code></td><td><span class="http h403">403</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td>ALUMNO → <code>/admin/students</code></td><td><span class="http h403">403</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td>DOCENTE → <code>/students/me/history</code></td><td><span class="http h403">403</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td>DOCENTE → <code>POST /documents/ingest</code></td><td><span class="http h403">403</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td>ALUMNO → <code>DELETE /documents/{id}</code></td><td><span class="http h403">403</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+</table>
+
+<h3>3.3 Recurso inexistente — HTTP 404</h3>
+<table>
+  <tr><th style="width:52%">Escenario</th><th style="width:10%">HTTP</th><th>Resultado</th></tr>
+  <tr><td>GET <code>/documents/99999</code></td><td><span class="http h404">404</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td>DELETE <code>/documents/99999</code></td><td><span class="http h404">404</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td>GET <code>/api/v1/no-existe</code></td><td><span class="http h404">404</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+</table>
+
+<h3>3.4 Validación de datos — HTTP 422</h3>
+<table>
+  <tr><th style="width:52%">Escenario</th><th style="width:10%">HTTP</th><th>Resultado</th></tr>
+  <tr><td><code>POST /auth/login</code> con cuerpo vacío</td><td><span class="http h422">422</span></td><td class="res"><span class="ok">Correcto</span> — Pydantic valida <code>email</code> y <code>password</code></td></tr>
+  <tr><td><code>POST /chat/</code> sin <code>question</code></td><td><span class="http h422">422</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td><code>POST /documents/ingest</code> sin <code>title</code></td><td><span class="http h422">422</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+  <tr><td><code>document_type</code> fuera del enum permitido</td><td><span class="http h422">422</span></td><td class="res"><span class="ok">Correcto</span> — enum rechazado</td></tr>
+  <tr><td>GET <code>/prerequisites</code> sin <code>subject</code></td><td><span class="http h422">422</span></td><td class="res"><span class="ok">Correcto</span></td></tr>
+</table>
+
+<div class="pb"></div>
+<h2>4. Suite de Pruebas Automatizadas (pytest)</h2>
+<table>
+  <tr><th style="width:6%">#</th><th style="width:44%">Test</th><th style="width:14%">Estado</th><th>Cobertura</th></tr>
+  <tr><td>1</td><td class="ep">test_chunk_text_normal_and_invalid_overlap</td><td><span class="http h200">PASSED</span></td><td class="res">Segmentación de texto (chunking)</td></tr>
+  <tr><td>2</td><td class="ep">test_ingest_schema_validation</td><td><span class="http h200">PASSED</span></td><td class="res">Validación de esquema de ingesta</td></tr>
+  <tr><td>3</td><td class="ep">test_password_and_jwt_roundtrip</td><td><span class="http h200">PASSED</span></td><td class="res">Hash bcrypt + emisión/validación JWT</td></tr>
+  <tr><td>4</td><td class="ep">test_health_and_auth_required</td><td><span class="http h200">PASSED</span></td><td class="res">Salud del servicio y autenticación obligatoria</td></tr>
+  <tr><td>5</td><td class="ep">test_careers_nested_and_exam_boards_separation</td><td><span class="http h200">PASSED</span></td><td class="res">Carreras anidadas y separación de períodos de examen</td></tr>
+  <tr><td>6</td><td class="ep">test_rbac_and_academic_queries</td><td><span class="http h200">PASSED</span></td><td class="res">RBAC, historia, asistencia y correlatividades</td></tr>
+  <tr><td>7</td><td class="ep">test_document_ingest_list_delete_and_hybrid_chat</td><td><span class="http h200">PASSED</span></td><td class="res">CRUD de documentos + chat híbrido</td></tr>
+  <tr><td>8</td><td class="ep">test_ingest_real_pdf_and_tool_calling_orchestration</td><td><span class="http h200">PASSED</span></td><td class="res">Ingesta de PDF real + orquestación Tool Calling</td></tr>
+</table>
+<div class="callout good"><b>Resultado: 8 passed in 12.92s</b> — Sin fallos, sin errores de colección. Cobertura de la lógica de negocio exigida en RNF-011.</div>
+
+<h2>5. Hallazgos</h2>
+
+<div class="callout good">
+  <b>0 bugs encontrados en el código del proyecto</b>
+  Todas las incidencias detectadas durante la ejecución correspondieron al <b>entorno de ejecución en Windows</b>,
+  no al código fuente. Los archivos SQL originales del repositorio fueron verificados y están correctos en UTF-8.
+</div>
+
+<table>
+  <tr><th style="width:5%">#</th><th style="width:26%">Incidencia</th><th style="width:34%">Causa raíz</th><th>Resolución</th></tr>
+  <tr>
+    <td>1</td>
+    <td>Corrupción de acentos al cargar la BD</td>
+    <td class="res">PowerShell 5.1 define <code>$OutputEncoding = US-ASCII</code>; el pipe <code>$content | docker exec ... psql</code> convertía cada <code>á</code> en <code>?</code></td>
+    <td class="res">Recarga con redirección binaria: <code>cmd /c "... psql &lt; archivo.sql"</code></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Fallo de <code>curl</code> al subir PDF</td>
+    <td class="res"><code>$args</code> es una variable automática de PowerShell y alteraba el parseo de argumentos</td>
+    <td class="res">Renombrar la variable a <code>$curlArgs</code></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Rutas con espacios partidas en argumentos</td>
+    <td class="res"><code>Start-Process</code> de PS 5.1 no quotea automáticamente los argumentos con espacios</td>
+    <td class="res">Quoteado explícito de cada argumento</td>
+  </tr>
+</table>
+
+<h3>Recomendaciones</h3>
+<table>
+  <tr><th style="width:5%">#</th><th style="width:30%">Área</th><th>Detalle</th></tr>
+  <tr><td>1</td><td>Claves LLM</td><td class="res">El <code>.env</code> contiene valores placeholder (<code>gsk_tu_clave_de_groq_aqui</code>). Para respuestas completas del modelo en <code>/chat/</code>, cargar una key real de Groq u OpenRouter.</td></tr>
+  <tr><td>2</td><td>Codificación en Windows</td><td class="res">Documentar en el README el comando de carga correcto para Windows, ya que el flujo documentado usa sintaxis Linux/macOS.</td></tr>
+  <tr><td>3</td><td>Tests</td><td class="res">Considerar agregar tests de integración para los flujos de <code>ingest-pdf</code> y de autorización con tokens expirados.</td></tr>
+</table>
+
+<div class="footer">
+  Informe generado automáticamente · 17 de noviembre de 2026 · Proyecto TPI — Análisis de Sistemas &amp; Base de Datos · ISFT 189<br>
+  22 operaciones · 19 pruebas de error · 8 tests unitarios · 0 fallos
+</div>
+
+</body>
+</html>

@@ -1,0 +1,4839 @@
+{
+ "cu": [
+  {
+   "file": "01_seguridad_y_acceso.puml",
+   "title": "Seguridad y Acceso",
+   "actors": [
+    {
+     "id": "user",
+     "name": "Usuario"
+    },
+    {
+     "id": "admin",
+     "name": "Administrador/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU01",
+     "code": "CU-01",
+     "name": "Iniciar sesión"
+    },
+    {
+     "id": "CU02",
+     "code": "CU-02",
+     "name": "Recuperar contraseña"
+    },
+    {
+     "id": "CU03",
+     "code": "CU-03",
+     "name": "Asignar roles a usuarios/as"
+    },
+    {
+     "id": "CU04",
+     "code": "CU-04",
+     "name": "Publicar avisos institucionales"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "user",
+     "to": "CU01"
+    },
+    {
+     "from": "user",
+     "to": "CU02"
+    },
+    {
+     "from": "admin",
+     "to": "CU03"
+    },
+    {
+     "from": "admin",
+     "to": "CU04"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "02_estructura_curricular.puml",
+   "title": "Estructura Curricular y Ciclo Lectivo",
+   "actors": [
+    {
+     "id": "admin",
+     "name": "Administrador/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU05",
+     "code": "CU-05",
+     "name": "Registrar carrera"
+    },
+    {
+     "id": "CU06",
+     "code": "CU-06",
+     "name": "Modificar carrera"
+    },
+    {
+     "id": "CU07",
+     "code": "CU-07",
+     "name": "Registrar plan de estudios"
+    },
+    {
+     "id": "CU08",
+     "code": "CU-08",
+     "name": "Registrar materia"
+    },
+    {
+     "id": "CU09",
+     "code": "CU-09",
+     "name": "Configurar régimen de correlatividades"
+    },
+    {
+     "id": "CU10",
+     "code": "CU-10",
+     "name": "Configurar ciclo lectivo y períodos de inscripción"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "admin",
+     "to": "CU05"
+    },
+    {
+     "from": "admin",
+     "to": "CU06"
+    },
+    {
+     "from": "admin",
+     "to": "CU07"
+    },
+    {
+     "from": "admin",
+     "to": "CU08"
+    },
+    {
+     "from": "admin",
+     "to": "CU09"
+    },
+    {
+     "from": "admin",
+     "to": "CU10"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "03_alumnos_y_legajos.puml",
+   "title": "Gestión de Alumnos y Legajos",
+   "actors": [
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU11",
+     "code": "CU-11",
+     "name": "Registrar alumno/a"
+    },
+    {
+     "id": "CU12",
+     "code": "CU-12",
+     "name": "Modificar datos de alumno/a"
+    },
+    {
+     "id": "CU13",
+     "code": "CU-13",
+     "name": "Consultar datos de alumno/a"
+    },
+    {
+     "id": "CU14",
+     "code": "CU-14",
+     "name": "Dar de baja alumno/a"
+    },
+    {
+     "id": "CU15",
+     "code": "CU-15",
+     "name": "Inscribir alumno/a a carrera"
+    },
+    {
+     "id": "CU16",
+     "code": "CU-16",
+     "name": "Consultar historia académica"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "preceptor",
+     "to": "CU11"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU12"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU13"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU14"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU15"
+    },
+    {
+     "from": "alumno",
+     "to": "CU16"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "04_planta_docente.puml",
+   "title": "Gestión de Planta Docente",
+   "actors": [
+    {
+     "id": "admin",
+     "name": "Administrador/a"
+    },
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "docente",
+     "name": "Docente"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU17",
+     "code": "CU-17",
+     "name": "Registrar docente"
+    },
+    {
+     "id": "CU18",
+     "code": "CU-18",
+     "name": "Modificar datos de docente"
+    },
+    {
+     "id": "CU19",
+     "code": "CU-19",
+     "name": "Asignar docente a materia"
+    },
+    {
+     "id": "CU20",
+     "code": "CU-20",
+     "name": "Consultar materias asignadas"
+    },
+    {
+     "id": "CU21",
+     "code": "CU-21",
+     "name": "Consultar nómina de alumnos/as por materia"
+    },
+    {
+     "id": "CU22",
+     "code": "CU-22",
+     "name": "Consultar nómina general de alumnos/as inscriptos/as"
+    },
+    {
+     "id": "CU23",
+     "code": "CU-23",
+     "name": "Consultar mesas de examen asignadas"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "admin",
+     "to": "CU17"
+    },
+    {
+     "from": "admin",
+     "to": "CU18"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU19"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU22"
+    },
+    {
+     "from": "docente",
+     "to": "CU20"
+    },
+    {
+     "from": "docente",
+     "to": "CU21"
+    },
+    {
+     "from": "docente",
+     "to": "CU23"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "05_cursadas_y_asistencias.puml",
+   "title": "Cursadas, Asistencias y Calificaciones Parciales",
+   "actors": [
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    },
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "docente",
+     "name": "Docente"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU24",
+     "code": "CU-24",
+     "name": "Inscribirse a cursada de materia"
+    },
+    {
+     "id": "CU25",
+     "code": "CU-25",
+     "name": "Inscribir alumno/a a cursada fuera de término"
+    },
+    {
+     "id": "CU26",
+     "code": "CU-26",
+     "name": "Validar correlatividades de cursada"
+    },
+    {
+     "id": "CU27",
+     "code": "CU-27",
+     "name": "Anular inscripción a cursada"
+    },
+    {
+     "id": "CU28",
+     "code": "CU-28",
+     "name": "Registrar asistencia de alumnos/as"
+    },
+    {
+     "id": "CU29",
+     "code": "CU-29",
+     "name": "Consultar porcentaje de asistencia"
+    },
+    {
+     "id": "CU30",
+     "code": "CU-30",
+     "name": "Registrar calificaciones parciales"
+    },
+    {
+     "id": "CU31",
+     "code": "CU-31",
+     "name": "Modificar calificaciones parciales"
+    },
+    {
+     "id": "CU32",
+     "code": "CU-32",
+     "name": "Registrar condición final de cursada"
+    },
+    {
+     "id": "CU33",
+     "code": "CU-33",
+     "name": "Consultar y exportar planillas de cursada consolidadas"
+    },
+    {
+     "id": "CU34",
+     "code": "CU-34",
+     "name": "Generar nómina de inscriptos y planilla de asistencia"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "alumno",
+     "to": "CU24"
+    },
+    {
+     "from": "alumno",
+     "to": "CU27"
+    },
+    {
+     "from": "alumno",
+     "to": "CU29"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU25"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU29"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU33"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU34"
+    },
+    {
+     "from": "docente",
+     "to": "CU28"
+    },
+    {
+     "from": "docente",
+     "to": "CU29"
+    },
+    {
+     "from": "docente",
+     "to": "CU30"
+    },
+    {
+     "from": "docente",
+     "to": "CU31"
+    },
+    {
+     "from": "docente",
+     "to": "CU32"
+    }
+   ],
+   "uc_links": [
+    {
+     "from": "CU24",
+     "to": "CU26",
+     "kind": "include"
+    },
+    {
+     "from": "CU25",
+     "to": "CU26",
+     "kind": "include"
+    }
+   ]
+  },
+  {
+   "file": "06_examenes_y_actas.puml",
+   "title": "Exámenes Finales y Actas Oficiales",
+   "actors": [
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    },
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "docente",
+     "name": "Docente"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU35",
+     "code": "CU-35",
+     "name": "Programar mesa de examen final"
+    },
+    {
+     "id": "CU36",
+     "code": "CU-36",
+     "name": "Inscribirse a examen final"
+    },
+    {
+     "id": "CU38",
+     "code": "CU-38",
+     "name": "Validar condiciones para examen final"
+    },
+    {
+     "id": "CU37",
+     "code": "CU-37",
+     "name": "Inscribir alumno/a a examen final fuera de término"
+    },
+    {
+     "id": "CU38b",
+     "code": "CU-38",
+     "name": "Validar condiciones para examen final"
+    },
+    {
+     "id": "CU39",
+     "code": "CU-39",
+     "name": "Anular inscripción a examen final"
+    },
+    {
+     "id": "CU40",
+     "code": "CU-40",
+     "name": "Generar acta de examen"
+    },
+    {
+     "id": "CU41",
+     "code": "CU-41",
+     "name": "Cargar calificaciones en acta de examen"
+    },
+    {
+     "id": "CU42",
+     "code": "CU-42",
+     "name": "Cerrar acta de examen"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "alumno",
+     "to": "CU36"
+    },
+    {
+     "from": "alumno",
+     "to": "CU39"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU35"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU37"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU40"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU42"
+    },
+    {
+     "from": "docente",
+     "to": "CU41"
+    }
+   ],
+   "uc_links": [
+    {
+     "from": "CU36",
+     "to": "CU38",
+     "kind": "include"
+    },
+    {
+     "from": "CU37",
+     "to": "CU38b",
+     "kind": "include"
+    }
+   ]
+  },
+  {
+   "file": "07_documentacion_oficial.puml",
+   "title": "Gestión Documental Institucional",
+   "actors": [
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "usuario",
+     "name": "Usuario"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU43",
+     "code": "CU-43",
+     "name": "Cargar plantilla de documento oficial"
+    },
+    {
+     "id": "CU44",
+     "code": "CU-44",
+     "name": "Consultar plantillas de documentos oficiales"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "preceptor",
+     "to": "CU43"
+    },
+    {
+     "from": "usuario",
+     "to": "CU44"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "08_asistente_virtual.puml",
+   "title": "Asistente Virtual / Chatbot",
+   "actors": [
+    {
+     "id": "user",
+     "name": "Usuario"
+    },
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU45",
+     "code": "CU-45",
+     "name": "Realizar consulta al asistente virtual"
+    },
+    {
+     "id": "CU46",
+     "code": "CU-46",
+     "name": "Validar rol y permisos de consulta"
+    },
+    {
+     "id": "CU47",
+     "code": "CU-47",
+     "name": "Consultar información en la base de datos"
+    },
+    {
+     "id": "CU48",
+     "code": "CU-48",
+     "name": "Consultar correlatividades de una materia (ejemplo)"
+    },
+    {
+     "id": "CU49",
+     "code": "CU-49",
+     "name": "Registrar la conversación"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "user",
+     "to": "CU45"
+    },
+    {
+     "from": "alumno",
+     "to": "CU48"
+    }
+   ],
+   "uc_links": [
+    {
+     "from": "CU45",
+     "to": "CU46",
+     "kind": "include"
+    },
+    {
+     "from": "CU45",
+     "to": "CU47",
+     "kind": "include"
+    },
+    {
+     "from": "CU45",
+     "to": "CU49",
+     "kind": "include"
+    },
+    {
+     "from": "CU48",
+     "to": "CU47",
+     "kind": "extend"
+    }
+   ]
+  }
+ ],
+ "clases": [
+  {
+   "file": "01_seguridad_y_acceso.puml",
+   "title": "01_seguridad_y_acceso_clases",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "passwordHash",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "rol",
+       "type": "Rol"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "iniciarSesion",
+       "params": "email, clave",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "recuperarContrasenia",
+       "params": "email",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "titulo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuerpo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaPublicacion",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "dirigidoA",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Rol",
+     "stereo": "enum",
+     "color": null,
+     "attrs": [
+      {
+       "vis": " ",
+       "name": "ALUMNO",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "DOCENTE",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "PRECEPTOR",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "ADMINISTRADOR",
+       "type": ""
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Usuario",
+     "to": "Aviso",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "publica"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Usuario",
+     "text": "RF-041 : iniciar sesion RF-042 : recuperar contrasenia RF-043 : el Administrador/a asigna el rol"
+    }
+   ]
+  },
+  {
+   "file": "02_estructura_curricular.puml",
+   "title": "02_estructura_curricular_clases",
+   "classes": [
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tituloOtorgado",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "vigente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "anioEnPlan",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargaHoraria",
+       "type": "int"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTO | CERRADO"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "tipo",
+       "type": "CURSADA | EXAMEN"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fechaFin",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Carrera",
+     "to": "PlanDeEstudios",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "tiene"
+    },
+    {
+     "from": "PlanDeEstudios",
+     "to": "Materia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "contiene"
+    },
+    {
+     "from": "CicloLectivo",
+     "to": "PeriodoInscripcion",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "define"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para cursar (RF-021)"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para rendir (RF-026)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PeriodoInscripcion",
+     "text": "RF-010 : fechas de los periodos ordinarios de inscripcion"
+    }
+   ]
+  },
+  {
+   "file": "03_alumnos_y_legajos.puml",
+   "title": "03_alumnos_y_legajos_clases",
+   "classes": [
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "apellido",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "dni",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaNacimiento",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "telefono",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVO | BAJA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "consultarHistoriaAcademica",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaInscripcion",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | BAJA"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Alumno",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "formaliza"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Alumno",
+     "text": "RF-001 a RF-004 : el Preceptor/a gestiona datos y baja RF-038 : historia academica (derivada de InscripcionCursada e InscripcionExamen) En el diagrama general : InscripcionCarrera se conecta con Carrera (PK-CUR) y Alumno hereda de Usuario (PK-SEC)."
+    }
+   ]
+  },
+  {
+   "file": "04_planta_docente.puml",
+   "title": "04_planta_docente_clases",
+   "classes": [
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuil",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "cicloLectivo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargo",
+       "type": "TITULAR | OBSERVADOR"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Docente",
+     "to": "AsignacionMateria",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "se asigna a"
+    }
+   ],
+   "notes": [
+    {
+     "target": "AsignacionMateria",
+     "text": "RF-013 : el Preceptor/a asigna al Docente titular por ciclo lectivo En el diagrama general : AsignacionMateria se conecta con Materia (PK-CUR)."
+    }
+   ]
+  },
+  {
+   "file": "05_cursadas_y_asistencias.puml",
+   "title": "05_cursadas_y_asistencias_clases",
+   "classes": [
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "condicion",
+       "type": "CURSANDO | REGULAR | PROMOCIONADO | LIBRE"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "validarCorrelativas",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "calcularPorcentajeAsistencia",
+       "params": "",
+       "ret": "float"
+      }
+     ]
+    },
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaClase",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "presente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "instancia",
+       "type": "PARCIAL | TRABAJO_PRACTICO"
+      },
+      {
+       "vis": "-",
+       "name": "nota",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "modificar",
+       "params": "nota",
+       "ret": ""
+      }
+     ]
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionCursada",
+     "to": "Asistencia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "CalificacionParcial",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCursada",
+     "text": "RF-019 / RF-020 : inscripcion ordinaria y fuera de termino RF-021 : validarCorrelativas() consulta las correlatividades de la Materia (PK-CUR) RF-022 : anular() dentro de los plazos RF-032 : la condicion final se asienta al cierre En el diagrama general : se conecta con Materia (PK-CUR) y Alumno (PK-ALU)."
+    }
+   ]
+  },
+  {
+   "file": "06_examenes_y_actas.puml",
+   "title": "06_examenes_y_actas_clases",
+   "classes": [
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "hora",
+       "type": "time"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      },
+      {
+       "vis": "-",
+       "name": "notaFinal",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "INSCRIPTO | ANULADO"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "validarCondiciones",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "numero",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTA | CERRADA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    }
+   ],
+   "rels": [
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "incluye"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "0..1",
+     "label": "genera"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "registra nota"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionExamen",
+     "text": "RF-024 / RF-025 : inscripcion ordinaria y fuera de termino RF-026 : validarCondiciones() exige condicion de REGULAR (o PROMOCIONADO) y correlativas de aprobacion de la Materia (PK-CUR) RF-027 : anular() dentro del plazo En el diagrama general : InscripcionExamen se conecta con Alumno (PK-ALU)."
+    }
+   ]
+  },
+  {
+   "file": "07_documentacion_oficial.puml",
+   "title": "07_documentacion_oficial_clases",
+   "classes": [
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tipoActa",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "archivo",
+       "type": "path"
+      },
+      {
+       "vis": "-",
+       "name": "version",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [],
+   "notes": [
+    {
+     "target": "PlantillaDocumento",
+     "text": "RF-039 : el Preceptor/a carga plantillas RF-040 : todos los/as usuarios/as las consultan En el diagrama general : PlantillaDocumento se conecta con Usuario (cargada por) (PK-SEC)."
+    }
+   ]
+  },
+  {
+   "file": "08_diagrama_general.puml",
+   "title": "08_diagrama_general_clases",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "passwordHash",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "rol",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "titulo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaPublicacion",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "dirigidoA",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tituloOtorgado",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "vigente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "anioEnPlan",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargaHoraria",
+       "type": "int"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTO | CERRADO"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "tipo",
+       "type": "CURSADA | EXAMEN"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fechaFin",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaInscripcion",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | BAJA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "cicloLectivo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargo",
+       "type": "TITULAR | OBSERVADOR"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "condicion",
+       "type": "CURSANDO | REGULAR | PROMOCIONADO | LIBRE"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaClase",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "presente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "instancia",
+       "type": "PARCIAL | TRABAJO_PRACTICO"
+      },
+      {
+       "vis": "-",
+       "name": "nota",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "hora",
+       "type": "time"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      },
+      {
+       "vis": "-",
+       "name": "notaFinal",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "INSCRIPTO | ANULADO"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "numero",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTA | CERRADA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | CERRADA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "emisor",
+       "type": "USUARIO | CHATBOT"
+      },
+      {
+       "vis": "-",
+       "name": "texto",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaHora",
+       "type": "datetime"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "recibirConsulta",
+       "params": "texto",
+       "ret": "Mensaje"
+      },
+      {
+       "vis": "+",
+       "name": "consultarBD",
+       "params": "entidad, filtros",
+       "ret": "datos"
+      },
+      {
+       "vis": "+",
+       "name": "generarRespuesta",
+       "params": "datos",
+       "ret": "Mensaje"
+      }
+     ]
+    },
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "verificarRol",
+       "params": "usuario, recurso",
+       "ret": "PERMITIDO | DENEGADO"
+      }
+     ]
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "componer",
+       "params": "consulta, datos",
+       "ret": "string"
+      }
+     ]
+    },
+    {
+     "name": "Rol",
+     "stereo": "enum",
+     "color": null,
+     "attrs": [
+      {
+       "vis": " ",
+       "name": "ALUMNO",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "DOCENTE",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "PRECEPTOR",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "ADMINISTRADOR",
+       "type": ""
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Administrador",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Aviso",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "publica"
+    },
+    {
+     "from": "PlantillaDocumento",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "cargada por"
+    },
+    {
+     "from": "Carrera",
+     "to": "PlanDeEstudios",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "tiene"
+    },
+    {
+     "from": "PlanDeEstudios",
+     "to": "Materia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "contiene"
+    },
+    {
+     "from": "CicloLectivo",
+     "to": "PeriodoInscripcion",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "define"
+    },
+    {
+     "from": "InscripcionCarrera",
+     "to": "Carrera",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a"
+    },
+    {
+     "from": "Alumno",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "formaliza"
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": ""
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "Docente",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Asistencia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "CalificacionParcial",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "MesaExamen",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "incluye"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "0..1",
+     "label": "genera"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "registra nota"
+    },
+    {
+     "from": "InscripcionExamen",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "Conversacion",
+     "to": "Mensaje",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "Conversacion",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "abre"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "atiende"
+    },
+    {
+     "from": "Administrador",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Preceptor",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Docente",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Alumno",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para cursar (RF-021)"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para rendir (RF-026)"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-019/RF-020/RF-022)"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-024/RF-025/RF-027)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida rol (RNF-007)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega"
+    },
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "compone respuesta"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Materia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta correlatividades (RF-021/RF-026)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta historia y notas (RF-038)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "PeriodoInscripcion",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta plazos"
+    },
+    {
+     "from": "Chatbot",
+     "to": "MesaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta mesas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCursada",
+     "text": "RF-021 / RF-026 : al inscribirse se validan las correlatividades de la Materia, la condicion regular y las fechas de PeriodoInscripcion"
+    },
+    {
+     "target": "Chatbot",
+     "text": "RF-045 / RF-046 / RF-047 / RF-048 : recibe la consulta, valida el rol (RBAC), lee de la base de datos y responde solo con datos recuperados; la conversacion queda auditada"
+    }
+   ]
+  },
+  {
+   "file": "09_asistente_virtual.puml",
+   "title": "09_asistente_virtual_clases",
+   "classes": [
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "recibirConsulta",
+       "params": "texto",
+       "ret": "Mensaje"
+      },
+      {
+       "vis": "+",
+       "name": "validarPermiso",
+       "params": "usuario",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "consultarBD",
+       "params": "entidad, filtros",
+       "ret": "datos"
+      },
+      {
+       "vis": "+",
+       "name": "generarRespuesta",
+       "params": "datos",
+       "ret": "Mensaje"
+      }
+     ]
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | CERRADA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "emisor",
+       "type": "USUARIO | CHATBOT"
+      },
+      {
+       "vis": "-",
+       "name": "texto",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaHora",
+       "type": "datetime"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "verificarRol",
+       "params": "usuario, recurso",
+       "ret": "PERMITIDO | DENEGADO"
+      }
+     ]
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "componer",
+       "params": "consulta, datos",
+       "ret": "string"
+      }
+     ]
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Chatbot",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "atiende"
+    },
+    {
+     "from": "Conversacion",
+     "to": "Mensaje",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "Conversacion",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "abre"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida rol (RNF-007)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega"
+    },
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "compone respuesta"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Materia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta correlatividades para cursar y rendir (RF-021 / RF-026)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta historia, asistencias y notas del alumno (RF-038)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "PeriodoInscripcion",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta plazos vigentes"
+    },
+    {
+     "from": "Chatbot",
+     "to": "MesaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta mesas e inscriptos"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Chatbot",
+     "text": "RF-045 : recibe la consulta en lenguaje natural RF-046 : ControladorAcceso verifica el rol y limita los datos a los autorizados (RBAC) RF-047 : consulta la BD y responde SOLO con datos recuperados RF-048 / RNF-009 : la conversacion queda registrada"
+    }
+   ]
+  }
+ ],
+ "detalle": [
+  {
+   "file": "01_Usuario.puml",
+   "title": "01_usuario",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "passwordHash",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "rol",
+       "type": "Rol"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "iniciarSesion",
+       "params": "email, clave",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "recuperarContrasenia",
+       "params": "email",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Rol",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Administrador",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Usuario",
+     "to": "Aviso",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "publica"
+    },
+    {
+     "from": "Usuario",
+     "to": "PlantillaDocumento",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "cargada por"
+    },
+    {
+     "from": "Alumno",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Docente",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Preceptor",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Administrador",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    }
+   ],
+   "notes": [
+    {
+     "target": "Usuario",
+     "text": "Responsabilidad : identidad, autenticacion y rol de acceso de cada persona del sistema. RF-041 : iniciar sesion RF-042 : recuperar contrasenia RF-043 : el rol lo asigna el Administrador/a RF-044 : publica avisos institucionales"
+    }
+   ]
+  },
+  {
+   "file": "02_Rol.puml",
+   "title": "02_rol",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Rol",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Usuario",
+     "to": "Rol",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "1",
+     "label": "rol"
+    },
+    {
+     "from": "Aviso",
+     "to": "Rol",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "0..1",
+     "label": "dirigidoA"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Rol",
+     "text": "Responsabilidad : codifica los cuatro roles de la institucion; determina a que funcionalidades accede cada Usuario. RNF-007 : autorizacion basada en roles (RBAC)"
+    }
+   ]
+  },
+  {
+   "file": "03_Aviso.puml",
+   "title": "03_aviso",
+   "classes": [
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "titulo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuerpo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaPublicacion",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "dirigidoA",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Rol",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Aviso",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "publicada por <"
+    },
+    {
+     "from": "Aviso",
+     "to": "Rol",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "0..1",
+     "label": "dirigida a"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Aviso",
+     "text": "Responsabilidad : comunicados institucionales del Administrador/a, dirigidos a un rol o a toda la comunidad. RF-044 : publicar avisos institucionales"
+    }
+   ]
+  },
+  {
+   "file": "04_Administrador.puml",
+   "title": "04_administrador",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Administrador",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Administrador",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Administrador",
+     "to": "Carrera",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra y modifica (RF-005/RF-006..RF-009)"
+    },
+    {
+     "from": "Administrador",
+     "to": "CicloLectivo",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "aperturas y periodos (RF-010)"
+    },
+    {
+     "from": "Administrador",
+     "to": "Docente",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra y modifica (RF-011/RF-012)"
+    },
+    {
+     "from": "Administrador",
+     "to": "Aviso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "publica (RF-044)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Administrador",
+     "text": "Responsabilidad : configurar la estructura curricular, el ciclo lectivo, la planta docente, los roles (RF-043) y los avisos. RF-005 a RF-010, RF-011, RF-012, RF-043, RF-044"
+    }
+   ]
+  },
+  {
+   "file": "05_Preceptor.puml",
+   "title": "05_preceptor",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Preceptor",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Preceptor",
+     "to": "Alumno",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra, consulta y da de baja (RF-001 a RF-004 / RF-018)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "AsignacionMateria",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "asigna docente (RF-013)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "MesaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "programa e inscribe fuera de termino (RF-023 / RF-025)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "ActaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "genera y cierra (RF-034 / RF-036)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "PlantillaDocumento",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "carga plantillas (RF-039)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Preceptor",
+     "text": "Responsabilidad : gestionar legajos de alumnos, nóminas e inscriptos generales (RF-016), mesas, actas, plantillas y planillas consolidadas (RF-033 / RF-037)."
+    }
+   ]
+  },
+  {
+   "file": "06_Alumno.puml",
+   "title": "06_alumno",
+   "classes": [
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "apellido",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "dni",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaNacimiento",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "telefono",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVO | BAJA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "consultarHistoriaAcademica",
+       "params": "",
+       "ret": "HistoriaAcademica"
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Alumno",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "formaliza"
+    },
+    {
+     "from": "Alumno",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "cursa"
+    },
+    {
+     "from": "Alumno",
+     "to": "InscripcionExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "rinde"
+    },
+    {
+     "from": "Alumno",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    }
+   ],
+   "notes": [
+    {
+     "target": "Alumno",
+     "text": "Responsabilidad : representar a la persona que estudia y actuar en inscripciones, anulaciones y consulta de su historia academica (RF-038)."
+    }
+   ]
+  },
+  {
+   "file": "07_Docente.puml",
+   "title": "07_docente",
+   "classes": [
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuil",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "consultarMateriasAsignadas",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "consultarNominaAlumnos",
+       "params": "materia",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "consultarMesasAsignadas",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Docente",
+     "to": "AsignacionMateria",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "se asigna a"
+    },
+    {
+     "from": "Docente",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Docente",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra asistencias, notas y condicion final (RF-028 / RF-030 a RF-032)"
+    },
+    {
+     "from": "Docente",
+     "to": "ActaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "carga calificaciones (RF-035)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Docente",
+     "text": "Responsabilidad : registrar asistencias y calificaciones parciales (RF-028..RF-031), la condicion final de cursada (RF-032) y las notas del acta (RF-035); tambien consulta sus materias (RF-014), nominas (RF-015) y mesas de examen (RF-017)."
+    }
+   ]
+  },
+  {
+   "file": "08_Carrera.puml",
+   "title": "08_carrera",
+   "classes": [
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tituloOtorgado",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Carrera",
+     "to": "PlanDeEstudios",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "tiene"
+    },
+    {
+     "from": "Carrera",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "recibe"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Carrera",
+     "text": "Responsabilidad : representar a cada carrera terciaria del ISFT 189. RF-005 / RF-006 : registrar y modificar RF-007 : cada carrera tiene sus planes RF-018 : el Preceptor/a inscribe alumnos/as"
+    }
+   ]
+  },
+  {
+   "file": "09_PlanDeEstudios.puml",
+   "title": "09_plan_de_estudios",
+   "classes": [
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "vigente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "PlanDeEstudios",
+     "to": "Carrera",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "PlanDeEstudios",
+     "to": "Materia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "contiene"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PlanDeEstudios",
+     "text": "Responsabilidad : agrupar las materias con sus anios y correlatividades que forman la currícula. RF-007 : registrar plan RF-008 : registrar materia en el plan"
+    }
+   ]
+  },
+  {
+   "file": "10_Materia.puml",
+   "title": "10_materia",
+   "classes": [
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "anioEnPlan",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargaHoraria",
+       "type": "int"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Materia",
+     "to": "PlanDeEstudios",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "pertenece a <"
+    },
+    {
+     "from": "Materia",
+     "to": "AsignacionMateria",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "docente"
+    },
+    {
+     "from": "Materia",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "cursada por"
+    },
+    {
+     "from": "Materia",
+     "to": "MesaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "examen"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para cursar (RF-021)"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para rendir (RF-026)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Materia",
+     "text": "Responsabilidad : unidad curricular, con su regimen de correlatividades (RF-009) para cursar (RF-021) y para rendir (RF-026). Las inscriptas (RF-019) y mesas (RF-023) salen de cada materia."
+    }
+   ]
+  },
+  {
+   "file": "11_CicloLectivo.puml",
+   "title": "11_ciclo_lectivo",
+   "classes": [
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTO | CERRADO"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "aperturar",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "CicloLectivo",
+     "to": "PeriodoInscripcion",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "define"
+    },
+    {
+     "from": "CicloLectivo",
+     "to": "AsignacionMateria",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "habilita asignaciones de docentes y cursadas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "CicloLectivo",
+     "text": "Responsabilidad : envoltura temporal del sistema; todas las inscripciones y nombramientos ocurren dentro de un ciclo. RF-010 : aperturar ciclo y definir periodos ordinarios de inscripcion a cursadas y examenes"
+    }
+   ]
+  },
+  {
+   "file": "12_PeriodoInscripcion.puml",
+   "title": "12_periodo_inscripcion",
+   "classes": [
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "tipo",
+       "type": "CURSADA | EXAMEN"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fechaFin",
+       "type": "date"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "estaActivo",
+       "params": "",
+       "ret": "boolean"
+      }
+     ]
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "PeriodoInscripcion",
+     "to": "CicloLectivo",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "del ciclo <"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-019/RF-020/RF-022)"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-024/RF-025/RF-027)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PeriodoInscripcion",
+     "text": "Responsabilidad : ventanas habilitadas (RF-010) para inscribirse a cursadas o examenes; fuera de ellas, solo el Preceptor/a puede inscribir excepcionalmente (RF-020 / RF-025)."
+    }
+   ]
+  },
+  {
+   "file": "13_InscripcionCarrera.puml",
+   "title": "13_inscripcion_carrera",
+   "classes": [
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaInscripcion",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | BAJA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "darDeBaja",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionCarrera",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "formalizada por <"
+    },
+    {
+     "from": "InscripcionCarrera",
+     "to": "Carrera",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCarrera",
+     "text": "Responsabilidad : formalizar el vinculo del alumno con una carrera y registrar su baja correspondiente. RF-018 : inscribir alumno/a a carrera RF-004 / RF-002 : baja relacionada con el estado del Alumno"
+    }
+   ]
+  },
+  {
+   "file": "14_AsignacionMateria.puml",
+   "title": "14_asignacion_materia",
+   "classes": [
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "cicloLectivo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargo",
+       "type": "TITULAR | OBSERVADOR"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "AsignacionMateria",
+     "to": "Docente",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "asignada a <"
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "CicloLectivo",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "corre dentro del ciclo (RF-013)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "AsignacionMateria",
+     "text": "Responsabilidad : registrar que docente dicta cada materia, en que ciclo lectivo y con que cargo; permite al Docente consultar sus materias (RF-014) y nominas (RF-015), y al Preceptor/a las nominas generales (RF-016)."
+    }
+   ]
+  },
+  {
+   "file": "15_InscripcionCursada.puml",
+   "title": "15_inscripcion_cursada",
+   "classes": [
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "condicion",
+       "type": "CURSANDO | REGULAR | PROMOCIONADO | LIBRE"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "validarCorrelativas",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "calcularPorcentajeAsistencia",
+       "params": "",
+       "ret": "float"
+      }
+     ]
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionCursada",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a <"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Asistencia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "CalificacionParcial",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas"
+    },
+    {
+     "from": "Materia",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida correlativas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCursada",
+     "text": "Responsabilidad : representar el vínculo del alumno con una materia en el aula, incluyendo asistencias y notas parciales, terminar en una condición (RF-032). RF-019 / RF-020 : inscripcion ordinaria y fuera de termino RF-021 : validar correlatividades RF-022 : anular dentro de los plazos RF-029 : porcentaje de asistencia"
+    }
+   ]
+  },
+  {
+   "file": "16_Asistencia.puml",
+   "title": "16_asistencia",
+   "classes": [
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaClase",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "presente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Asistencia",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "Docente",
+     "to": "Asistencia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra presentismo (RF-028)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Asistencia",
+     "text": "Responsabilidad : registrar el presentismo de cada clase; el acumulado da el porcentaje consultable por Alumno, Docente y Preceptor (RF-029)."
+    }
+   ]
+  },
+  {
+   "file": "17_CalificacionParcial.puml",
+   "title": "17_calificacion_parcial",
+   "classes": [
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "instancia",
+       "type": "PARCIAL | TRABAJO_PRACTICO"
+      },
+      {
+       "vis": "-",
+       "name": "nota",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "modificar",
+       "params": "nota",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "CalificacionParcial",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "Docente",
+     "to": "CalificacionParcial",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra y corrige (RF-030 / RF-031)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "CalificacionParcial",
+     "text": "Responsabilidad : nota de una evaluacion parcial o trabajo practico dentro de la cursada; alimenta la planilla consolidada (RF-033) y la historia academica (RF-038)."
+    }
+   ]
+  },
+  {
+   "file": "18_MesaExamen.puml",
+   "title": "18_mesa_examen",
+   "classes": [
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "hora",
+       "type": "time"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "MesaExamen",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "incluye"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "0..1",
+     "label": "genera"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "Docente",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "titular y observador/a (RF-017 / RF-023)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "MesaExamen",
+     "text": "Responsabilidad : instancia de evaluacion final estructurada en el cronograma. RF-023 : la programa el Preceptor/a, con docente a cargo y observador/a RF-034 : generacion del acta"
+    }
+   ]
+  },
+  {
+   "file": "19_InscripcionExamen.puml",
+   "title": "19_inscripcion_examen",
+   "classes": [
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      },
+      {
+       "vis": "-",
+       "name": "notaFinal",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "INSCRIPTO | ANULADO"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "validarCondiciones",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionExamen",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "InscripcionExamen",
+     "to": "MesaExamen",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a <"
+    },
+    {
+     "from": "InscripcionExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "nota registrada en <"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "exige ser REGULAR y correlativas aprobadas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionExamen",
+     "text": "Responsabilidad : llamado a examen final del alumno en una mesa. RF-024 / RF-025 : inscripcion ordinaria y fuera de termino RF-026 : validar condición regular y correlativas de aprobacion RF-027 : anular dentro del plazo RF-035 : la nota se registra en el acta"
+    }
+   ]
+  },
+  {
+   "file": "20_ActaExamen.puml",
+   "title": "20_acta_examen",
+   "classes": [
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "numero",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTA | CERRADA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "ActaExamen",
+     "to": "MesaExamen",
+     "kind": "assoc",
+     "cf": "0..1",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "registra notas"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "Preceptor",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "genera y cierra (RF-034 / RF-036)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "ActaExamen",
+     "text": "Responsabilidad : recurso oficial digital que lista los inscriptos de la mesa, recibe las notas del docente (RF-035) y al cerrarse (RF-036) queda bloqueada para su archivo. Importa promociones a la mesa y por lo tanto es la base de la historia académica."
+    }
+   ]
+  },
+  {
+   "file": "21_PlantillaDocumento.puml",
+   "title": "21_plantilla_documento",
+   "classes": [
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tipoActa",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "archivo",
+       "type": "path"
+      },
+      {
+       "vis": "-",
+       "name": "version",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "PlantillaDocumento",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "cargada por <"
+    },
+    {
+     "from": "PlantillaDocumento",
+     "to": "Preceptor",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "carga (RF-039)"
+    },
+    {
+     "from": "PlantillaDocumento",
+     "to": "Usuario",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta (RF-040)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PlantillaDocumento",
+     "text": "Responsabilidad : repositorio de las plantillas en blanco de actas, notas, constancias y documentos institucionales para completado manual e impresion. RF-039 : carga por el Preceptor/a RF-040 : consulta por los usuarios"
+    }
+   ]
+  },
+  {
+   "file": "22_Chatbot.puml",
+   "title": "22_chatbot",
+   "classes": [
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "recibirConsulta",
+       "params": "texto",
+       "ret": "Mensaje"
+      },
+      {
+       "vis": "+",
+       "name": "validarPermiso",
+       "params": "usuario",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "consultarBD",
+       "params": "entidad, filtros",
+       "ret": "datos"
+      },
+      {
+       "vis": "+",
+       "name": "generarRespuesta",
+       "params": "datos",
+       "ret": "Mensaje"
+      }
+     ]
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Chatbot",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "atiende"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida rol del usuario"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega la redaccion"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Materia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "lee correlatividades"
+    },
+    {
+     "from": "Chatbot",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "lee historia, asistencias y notas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Chatbot",
+     "text": "Responsabilidad : punto de entrada del asistente. Recibe la consulta (RF-045), valida el rol (RF-046), consulta la base de datos (RF-047) y responde solo con los datos recuperados; cada interaccion queda registrada (RF-048 / RNF-009). RNF-003 : la respuesta debe respetarse en menos de 3 seg (P95)."
+    }
+   ]
+  },
+  {
+   "file": "23_Conversacion.puml",
+   "title": "23_conversacion",
+   "classes": [
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | CERRADA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Conversacion",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "abierta por <"
+    },
+    {
+     "from": "Conversacion",
+     "to": "Mensaje",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "Conversacion",
+     "to": "Chatbot",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "atendida por <"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Conversacion",
+     "text": "Responsabilidad : agrupar la sesion de intercambio entre el usuario y el asistente; historial completo para auditar que informacion se entrego a cada rol. RF-045 : conversacion entre Usuario y Chatbot RF-048 / RNF-009 : registro auditable e inmutable de las operaciones sensibles"
+    }
+   ]
+  },
+  {
+   "file": "24_Mensaje.puml",
+   "title": "24_mensaje",
+   "classes": [
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "emisor",
+       "type": "USUARIO | CHATBOT"
+      },
+      {
+       "vis": "-",
+       "name": "texto",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaHora",
+       "type": "datetime"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Mensaje",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "pertenece a <"
+    },
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "compone la respuesta"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Mensaje",
+     "text": "Responsabilidad : cada pregunta y cada respuesta dentro de la conversacion. RF-045 : envio de la consulta RF-047 : la respuesta del Chatbot se compone SOLO con datos recuperados de la BD RF-048 : persistencia para auditoria"
+    }
+   ]
+  },
+  {
+   "file": "25_ControladorAcceso.puml",
+   "title": "25_controlador_acceso",
+   "classes": [
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "verificarRol",
+       "params": "usuario, recurso",
+       "ret": "PERMITIDO | DENEGADO"
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "ControladorAcceso",
+     "to": "Usuario",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta su rol"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega la validacion"
+    }
+   ],
+   "notes": [
+    {
+     "target": "ControladorAcceso",
+     "text": "Responsabilidad : decidir si el rol del usuario habilita el dato consultado; si devuelve DENEGADO, el Chatbot responde con un aviso de falta de permisos y registra la consulta (auditoria). RF-046 : validar rol y permisos de consulta RNF-007 : RBAC (Mismo mecanismo del resto del sistema) RNF-009 : registro de lo rechazado"
+    }
+   ]
+  },
+  {
+   "file": "26_GeneradorRespuesta.puml",
+   "title": "26_generador_respuesta",
+   "classes": [
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "componer",
+       "params": "consulta, datos",
+       "ret": "string"
+      }
+     ]
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "produce la respuesta"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega"
+    }
+   ],
+   "notes": [
+    {
+     "target": "GeneradorRespuesta",
+     "text": "Responsabilidad : recibir los datos extraidos de la base y redactar la respuesta en lenguaje natural; nunca inventa datos: solo interpreta lo que la BD le devolvio (fuente unica de verdad). RF-047 : respuesta a partir de los datos RNF-011 : lógica de negocio con cobertura de pruebas (validaciones y datos)"
+    }
+   ]
+  }
+ ]
+}

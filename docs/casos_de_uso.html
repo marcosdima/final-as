@@ -1,0 +1,6239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casos de Uso &amp; UML — ISFT 189</title>
+<style>
+:root{
+  --bg:#f4f7fb; --ink:#16233a; --muted:#64748b; --line:#e2e8f0;
+  --navy:#0d47a1; --navy2:#1565c0; --teal:#00838f; --amber:#ef6c00;
+  --green:#2e7d32; --red:#c62828; --purple:#6a1b9a;
+  --card:#ffffff; --shadow:0 1px 3px rgba(15,32,64,.08),0 6px 24px rgba(15,32,64,.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+
+/* ---------- header ---------- */
+header{background:linear-gradient(120deg,#0d47a1 0%,#1565c0 55%,#00838f 100%);color:#fff;padding:18px 26px 0;box-shadow:var(--shadow)}
+header h1{margin:0;font-size:21px;letter-spacing:-.3px;font-weight:650}
+header .sub{opacity:.85;font-size:12.5px;margin-top:3px}
+.kpis{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.kpi{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:9px;padding:7px 13px;backdrop-filter:blur(4px)}
+.kpi b{display:block;font-size:17px;line-height:1.15}
+.kpi span{font-size:10.5px;opacity:.82;text-transform:uppercase;letter-spacing:.5px}
+
+/* ---------- tabs ---------- */
+nav{display:flex;gap:4px;margin-top:16px;flex-wrap:wrap}
+nav button{
+  appearance:none;border:0;background:rgba(255,255,255,.12);color:rgba(255,255,255,.86);
+  padding:10px 16px;border-radius:8px 8px 0 0;font-size:13.2px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;border-bottom:0;transition:.15s;white-space:nowrap
+}
+nav button:hover{background:rgba(255,255,255,.2);color:#fff}
+nav button.on{background:var(--bg);color:var(--navy);border-color:rgba(255,255,255,.35)}
+nav button .cnt{font-size:10.5px;opacity:.7;font-weight:500;margin-left:5px}
+
+main{padding:18px 22px 40px;max-width:1600px;margin:0 auto}
+section.tab{display:none;animation:fade .25s ease}
+section.tab.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+h2.sec{font-size:16.5px;margin:6px 0 4px;color:var(--navy)}
+p.lead{color:var(--muted);margin:0 0 16px;font-size:13.2px;max-width:1000px;line-height:1.6}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:18px}
+
+/* ---------- resumen ---------- */
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border-top:4px solid var(--navy)}
+.stat.g{border-top-color:var(--green)} .stat.t{border-top-color:var(--teal)}
+.stat.a{border-top-color:var(--amber)} .stat.p{border-top-color:var(--purple)}
+.stat b{font-size:27px;display:block;line-height:1.1;color:var(--navy)}
+.stat.g b{color:var(--green)} .stat.t b{color:var(--teal)} .stat.a b{color:var(--amber)} .stat.p b{color:var(--purple)}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+
+table{width:100%;border-collapse:collapse;font-size:12.8px}
+th{background:var(--navy);color:#fff;text-align:left;padding:8px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;z-index:2}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr:hover{background:#eef4ff}
+.pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10.8px;font-weight:700;letter-spacing:.3px}
+.p1{background:#e3f2fd;color:#0d47a1} .p2{background:#e0f7fa;color:#00695c}
+.p3{background:#fff3e0;color:#e65100} .p4{background:#f3e5f5;color:#6a1b9a}
+.p5{background:#e8f5e9;color:#2e7d32} .p6{background:#fce4ec;color:#ad1457}
+.p7{background:#e0e7ff;color:#3730a3} .p8{background:#fff8e1;color:#f57f17}
+.rf{font-family:Consolas,monospace;font-size:11.5px;color:#37474f}
+.ccode{font-family:Consolas,monospace;font-weight:700;color:var(--navy);white-space:nowrap}
+.muted{color:var(--muted)}
+
+/* ---------- filtros ---------- */
+.filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:13px}
+.filters input,.filters select{
+  padding:8px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;color:var(--ink);min-width:150px
+}
+.filters input:focus,.filters select:focus{outline:2px solid #bbdefb;border-color:var(--navy2)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#eef2f7;border:1px solid var(--line);padding:5px 11px;border-radius:16px;font-size:12px;cursor:pointer;user-select:none}
+.chip.on{background:#e3f2fd;border-color:#90caf9;color:var(--navy);font-weight:600}
+.chip input{accent-color:var(--navy)}
+.btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 13px;border-radius:8px;font-size:12.4px;font-weight:600;cursor:pointer;transition:.15s}
+.btn:hover{background:#eef4ff;border-color:#90caf9;color:var(--navy)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover{background:#0a3a83;color:#fff}
+.count{font-size:12.4px;color:var(--muted);margin-left:auto;font-weight:600}
+
+/* ---------- fichas ---------- */
+.ficha{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:22px;overflow:hidden}
+.ficha .head{background:linear-gradient(100deg,#0d47a1,#1565c0);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.ficha .head .id{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);padding:4px 12px;border-radius:7px;font-weight:800;font-size:13px;letter-spacing:.6px}
+.ficha .head h3{margin:0;font-size:16.5px;font-weight:650;flex:1;min-width:220px}
+.ficha .body{padding:20px 24px}
+.fmeta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:18px}
+.fmeta div{background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:9px 12px}
+.fmeta label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px}
+.fmeta span{font-size:13px;font-weight:600}
+h4.fh{font-size:13px;color:var(--navy);margin:18px 0 7px;text-transform:uppercase;letter-spacing:.7px;border-bottom:2px solid #e3f2fd;padding-bottom:4px}
+.ficha p.desc{font-size:13.6px;line-height:1.72;margin:0 0 8px;color:#243b53}
+ol.flow{margin:6px 0 4px;padding-left:20px;line-height:1.75;font-size:13.4px}
+ol.flow li{margin-bottom:5px}
+ol.flow li b{color:var(--navy)}
+.alt{background:#fff8e1;border-left:4px solid #f9a825;padding:9px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:8px 0}
+.alt b{color:#e65100}
+.exc{background:#fdecea;border-left:4px solid #c62828;padding:9px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:8px 0}
+.exc b{color:#c62828}
+.ok{background:#e8f5e9;border-left:4px solid #2e7d32;padding:9px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:8px 0}
+.ok b{color:#2e7d32}
+pre.code{background:#263238;color:#eceff1;padding:11px 14px;border-radius:8px;font-size:11.6px;overflow-x:auto;margin:8px 0}
+pre.code b{color:#80cbc4;font-weight:600}
+pre.code i{color:#ffcc80;font-style:normal}
+
+/* ---------- viewer ---------- */
+.viewer{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.vtoolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 13px;border-bottom:1px solid var(--line);background:#f8fafc}
+.vbody{display:flex;height:600px}
+.side{width:268px;min-width:268px;border-right:1px solid var(--line);background:#fbfcfe;padding:13px;overflow-y:auto;font-size:12.6px}
+.side h5{margin:14px 0 7px;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:4px}
+.side h5:first-child{margin-top:0}
+.side label{display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;cursor:pointer;line-height:1.35}
+.side label:hover{background:#eef4ff}
+.side label input{accent-color:var(--navy);flex:none}
+.side label .mini{margin-left:auto;font-size:10px;color:var(--muted);background:#eef2f7;padding:1px 6px;border-radius:9px}
+.side .swatch{width:11px;height:11px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.15)}
+.side .box{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:9px}
+.side .search{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.stage{flex:1;position:relative;overflow:hidden;
+  background-image:radial-gradient(#dbe3ee 1.1px,transparent 1.1px);background-size:22px 22px;cursor:grab}
+.stage.grabbing{cursor:grabbing}
+.layer{transform-origin:0 0;position:absolute;top:0;left:0;width:0;height:0}
+svg.canvas{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+svg.canvas .hit{pointer-events:auto}
+svg text{user-select:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);padding:8px 13px;border-top:1px solid var(--line);background:#fbfcfe;align-items:center}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid #94a3b8;vertical-align:middle;margin-right:5px}
+.legend i.dash{border-top-style:dashed}
+.hint{margin-left:auto;font-style:italic;opacity:.85}
+.zoomlbl{font-family:Consolas,monospace;font-size:12px;background:#eef2f7;border:1px solid var(--line);padding:3px 9px;border-radius:7px;font-weight:700;color:var(--navy)}
+
+footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
+@media (max-width:900px){ .vbody{flex-direction:column;height:auto} .side{width:100%;border-right:0;border-bottom:1px solid var(--line)} .stage{height:440px} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Casos de Uso &amp; Diagramas UML — Sistema Integral de Gestión Académica</h1>
+  <div class="sub">Instituto Superior de Formación Técnica N° 189 · Análisis de Sistemas &amp; Base de Datos · Documento interactivo</div>
+  <div class="kpis">
+    <div class="kpi"><b>49</b><span>Casos de uso</span></div>
+    <div class="kpi"><b>8</b><span>Paquetes funcionales</span></div>
+    <div class="kpi"><b>5</b><span>Fichas descriptivas</span></div>
+    <div class="kpi"><b>17</b><span>Diagramas UML</span></div>
+    <div class="kpi"><b>48</b><span>Requisitos RF</span></div>
+  </div>
+  <nav id="tabs">
+    <button class="on" data-tab="resumen">Resumen</button>
+    <button data-tab="cu">Casos de Uso <span class="cnt">49</span></button>
+    <button data-tab="fichas">Fichas descriptivas <span class="cnt">5</span></button>
+    <button data-tab="umlcu">UML · Casos de Uso <span class="cnt">8</span></button>
+    <button data-tab="umlcl">UML · Clases <span class="cnt">9 + 26</span></button>
+  </nav>
+</header>
+
+<main>
+<!-- ==================== RESUMEN ==================== -->
+<section class="tab on" id="tab-resumen">
+  <h2 class="sec">Documento interactivo de casos de uso y modelos UML</h2>
+  <p class="lead">Este informe reúne el catálogo completo de casos de del sistema, sus fichas descriptivas con diagramas de flujo
+  y los diagramas UML cargados directamente desde los archivos <code>.puml</code> del repositorio. Los diagramas son
+  <b>interactivos</b>: se pueden arrastrar los elementos, hacer zoom, filtrar por paquete, actor o tipo de relación, y
+  guardar la disposición personalizada (estilo dbdiagram).</p>
+
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="stat"><b>49</b><span>Casos de uso (CU-01…CU-49)</span></div>
+    <div class="stat g"><b>8</b><span>Paquetes funcionales</span></div>
+    <div class="stat t"><b>5</b><span>Fichas con diagrama de flujo</span></div>
+    <div class="stat a"><b>15</b><span>Diagramas UML navegables</span></div>
+    <div class="stat p"><b>26</b><span>Clases documentadas</span></div>
+    <div class="stat"><b>48</b><span>Requisitos funcionales</span></div>
+    <div class="stat g"><b>8/8</b><span>Tests de la API aprobados</span></div>
+    <div class="stat t"><b>21</b><span>Endpoints verificados</span></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4 class="fh" style="margin-top:0">Paquetes funcionales</h4>
+      <table><thead><tr><th>Pkg</th><th>Paquete</th><th style="width:64px">CU</th></tr></thead><tbody id="pkgRows"></tbody></table>
+    </div>
+    <div class="card">
+      <h4 class="fh" style="margin-top:0">Cómo usar este documento</h4>
+      <ol class="flow" style="font-size:13.2px">
+        <li><b>Casos de Uso</b> — tabla completa filtrable por paquete, actor o texto libre.</li>
+        <li><b>Fichas descriptivas</b> — 5 CU detallados con descripción, pre/postcondiciones, flujo paso a paso y su <b>diagrama de flujo</b> interactivo.</li>
+        <li><b>UML · Casos de Uso</b> — visor interactivo de los 8 diagramas: arrastrá los nodos, filtrá actores y relaciones.</li>
+        <li><b>UML · Clases</b> — visor de los 9 diagramas por paquete + 26 clases individuales.</li>
+      </ol>
+      <div class="ok"><b>Tip de navegación</b> — La rueda del mouse hace zoom, arrastrar el fondo desplaza el lienzo,
+      y los filtros del panel izquierdo muestran/ocultan elementos sin recargar nada.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CASOS DE USO ==================== -->
+<section class="tab" id="tab-cu">
+  <h2 class="sec">Catálogo de casos de uso</h2>
+  <p class="lead">49 casos de uso organizados en 8 paquetes funcionales, con su actor primario y los requisitos funcionales (RF) que amparan.
+  La columna <b>Ficha</b> indica los CU con descripción detallada disponible.</p>
+  <div class="card">
+    <div class="filters">
+      <input id="cuQ" type="search" placeholder="🔍 Buscar por nombre, ID o RF…" style="min-width:250px">
+      <select id="cuPkg"><option value="">Todos los paquetes</option></select>
+      <select id="cuActor"><option value="">Todos los actores</option></select>
+      <label class="chip"><input type="checkbox" id="cuOnlyFicha"> solo con ficha</label>
+      <span class="count" id="cuCount"></span>
+      <button class="btn" id="cuReset">Limpiar</button>
+    </div>
+    <div style="max-height:640px;overflow:auto;border:1px solid var(--line);border-radius:9px">
+      <table><thead><tr>
+        <th style="width:74px">ID</th><th>Caso de uso</th><th style="width:150px">Paquete</th>
+        <th style="width:150px">Actor primario</th><th style="width:130px">RF</th><th style="width:70px">Ficha</th>
+      </tr></thead><tbody id="cuRows"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== FICHAS ==================== -->
+<section class="tab" id="tab-fichas">
+  <h2 class="sec">Fichas descriptivas de casos de uso</h2>
+  <p class="lead">Los archivos del proyecto no incluían descripciones narrativas de los CU (solo tablas de identificación y diagramas),
+  por lo que se redactaron <b>5 fichas</b> de los casos de uso principales, cada una con su descripción, condiciones,
+  flujo detallado y <b>diagrama de flujo</b> interactivo.</p>
+  <div id="fichas"></div>
+</section>
+
+<!-- ==================== UML CU ==================== -->
+<section class="tab" id="tab-umlcu">
+  <h2 class="sec">Diagramas de casos de uso — visor interactivo</h2>
+  <p class="lead">Arrastrá cualquier elemento para reposicionarlo, usá la rueda para hacer zoom y filtrá lo que querés ver desde el panel izquierdo.
+  La disposición se guarda automáticamente en tu navegador.</p>
+  <div class="viewer">
+    <div class="vtoolbar">
+      <select id="cuDiagram" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:600"></select>
+      <button class="btn primary" data-v="cu" data-act="auto">↻ Auto-ordenar</button>
+      <button class="btn" data-v="cu" data-act="fit">⛶ Ajustar</button>
+      <button class="btn" data-v="cu" data-act="save">💾 Guardar</button>
+      <button class="btn" data-v="cu" data-act="load">📂 Cargar</button>
+      <button class="btn" data-v="cu" data-act="clear">🗑 Borrar posiciones</button>
+      <span class="zoomlbl" id="cuZoom">100%</span>
+      <span class="count" id="cuVisible"></span>
+    </div>
+    <div class="vbody">
+      <aside class="side" id="cuSide"></aside>
+      <div class="stage" id="cuStage"><div class="layer" id="cuLayer">
+        <svg class="canvas" id="cuSvg"></svg>
+      </div></div>
+    </div>
+    <div class="legend">
+      <span><i style="border-color:#5c6bc0"></i>Actor</span>
+      <span><i style="border-color:#1e88e5"></i>Caso de uso</span>
+      <span><i style="border-color:#43a047"></i>&lt;&lt;include&gt;&gt;</span>
+      <span><i style="border-color:#fb8c00" class="dash"></i>&lt;&lt;extend&gt;&gt;</span>
+      <span class="hint">🖱 rueda = zoom · arrastrar fondo = desplazar · doble clic en un nodo = centrar</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== UML CLASES ==================== -->
+<section class="tab" id="tab-umlcl">
+  <h2 class="sec">Diagramas de clases — visor interactivo</h2>
+  <p class="lead">Modelo orientado a objetos del sistema. Elegí entre los diagramas por paquete o las clases individuales;
+  podés ocultar atributos, métodos y notas, y filtrar por tipo de relación.</p>
+  <div class="viewer">
+    <div class="vtoolbar">
+      <select id="clGroup" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:600">
+        <option value="paquete">▸ Diagramas por paquete (9)</option>
+        <option value="detalle">▸ Clases individuales (26)</option>
+      </select>
+      <select id="clDiagram" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px"></select>
+      <select id="clLayout" title="Diseño del diagrama" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:600">
+        <option value="hier">↕ Jerárquico vertical</option>
+        <option value="grid">▦ Rejilla</option>
+      </select>
+      <button class="btn primary" data-v="cl" data-act="auto">↻ Auto-ordenar</button>
+      <button class="btn" data-v="cl" data-act="fit">⛶ Ajustar</button>
+      <button class="btn" data-v="cl" data-act="save">💾 Guardar</button>
+      <button class="btn" data-v="cl" data-act="load">📂 Cargar</button>
+      <button class="btn" data-v="cl" data-act="clear">🗑 Borrar posiciones</button>
+      <span class="zoomlbl" id="clZoom">100%</span>
+      <span class="count" id="clVisible"></span>
+    </div>
+    <div class="vbody">
+      <aside class="side" id="clSide"></aside>
+      <div class="stage" id="clStage"><div class="layer" id="clLayer">
+        <svg class="canvas" id="clSvg"></svg>
+      </div></div>
+    </div>
+    <div class="legend">
+      <span><i style="border-color:#1e88e5"></i>Clase</span>
+      <span><i style="border-color:#8e24aa"></i>Enumeración</span>
+      <span><i style="border-color:#43a047"></i>Herencia</span>
+      <span><i style="border-color:#78909c"></i>Asociación</span>
+      <span class="hint">🖱 rueda = zoom · arrastrar fondo = desplazar · doble clic = centrar</span>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>ISFT 189 · Sistema Integral de Gestión Académica · Diagramas generados desde los archivos .puml del repositorio</footer>
+
+<script>
+const DATA = {
+ "cu": [
+  {
+   "file": "01_seguridad_y_acceso.puml",
+   "title": "Seguridad y Acceso",
+   "actors": [
+    {
+     "id": "user",
+     "name": "Usuario"
+    },
+    {
+     "id": "admin",
+     "name": "Administrador/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU01",
+     "code": "CU-01",
+     "name": "Iniciar sesión"
+    },
+    {
+     "id": "CU02",
+     "code": "CU-02",
+     "name": "Recuperar contraseña"
+    },
+    {
+     "id": "CU03",
+     "code": "CU-03",
+     "name": "Asignar roles a usuarios/as"
+    },
+    {
+     "id": "CU04",
+     "code": "CU-04",
+     "name": "Publicar avisos institucionales"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "user",
+     "to": "CU01"
+    },
+    {
+     "from": "user",
+     "to": "CU02"
+    },
+    {
+     "from": "admin",
+     "to": "CU03"
+    },
+    {
+     "from": "admin",
+     "to": "CU04"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "02_estructura_curricular.puml",
+   "title": "Estructura Curricular y Ciclo Lectivo",
+   "actors": [
+    {
+     "id": "admin",
+     "name": "Administrador/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU05",
+     "code": "CU-05",
+     "name": "Registrar carrera"
+    },
+    {
+     "id": "CU06",
+     "code": "CU-06",
+     "name": "Modificar carrera"
+    },
+    {
+     "id": "CU07",
+     "code": "CU-07",
+     "name": "Registrar plan de estudios"
+    },
+    {
+     "id": "CU08",
+     "code": "CU-08",
+     "name": "Registrar materia"
+    },
+    {
+     "id": "CU09",
+     "code": "CU-09",
+     "name": "Configurar régimen de correlatividades"
+    },
+    {
+     "id": "CU10",
+     "code": "CU-10",
+     "name": "Configurar ciclo lectivo y períodos de inscripción"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "admin",
+     "to": "CU05"
+    },
+    {
+     "from": "admin",
+     "to": "CU06"
+    },
+    {
+     "from": "admin",
+     "to": "CU07"
+    },
+    {
+     "from": "admin",
+     "to": "CU08"
+    },
+    {
+     "from": "admin",
+     "to": "CU09"
+    },
+    {
+     "from": "admin",
+     "to": "CU10"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "03_alumnos_y_legajos.puml",
+   "title": "Gestión de Alumnos y Legajos",
+   "actors": [
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU11",
+     "code": "CU-11",
+     "name": "Registrar alumno/a"
+    },
+    {
+     "id": "CU12",
+     "code": "CU-12",
+     "name": "Modificar datos de alumno/a"
+    },
+    {
+     "id": "CU13",
+     "code": "CU-13",
+     "name": "Consultar datos de alumno/a"
+    },
+    {
+     "id": "CU14",
+     "code": "CU-14",
+     "name": "Dar de baja alumno/a"
+    },
+    {
+     "id": "CU15",
+     "code": "CU-15",
+     "name": "Inscribir alumno/a a carrera"
+    },
+    {
+     "id": "CU16",
+     "code": "CU-16",
+     "name": "Consultar historia académica"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "preceptor",
+     "to": "CU11"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU12"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU13"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU14"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU15"
+    },
+    {
+     "from": "alumno",
+     "to": "CU16"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "04_planta_docente.puml",
+   "title": "Gestión de Planta Docente",
+   "actors": [
+    {
+     "id": "admin",
+     "name": "Administrador/a"
+    },
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "docente",
+     "name": "Docente"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU17",
+     "code": "CU-17",
+     "name": "Registrar docente"
+    },
+    {
+     "id": "CU18",
+     "code": "CU-18",
+     "name": "Modificar datos de docente"
+    },
+    {
+     "id": "CU19",
+     "code": "CU-19",
+     "name": "Asignar docente a materia"
+    },
+    {
+     "id": "CU20",
+     "code": "CU-20",
+     "name": "Consultar materias asignadas"
+    },
+    {
+     "id": "CU21",
+     "code": "CU-21",
+     "name": "Consultar nómina de alumnos/as por materia"
+    },
+    {
+     "id": "CU22",
+     "code": "CU-22",
+     "name": "Consultar nómina general de alumnos/as inscriptos/as"
+    },
+    {
+     "id": "CU23",
+     "code": "CU-23",
+     "name": "Consultar mesas de examen asignadas"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "admin",
+     "to": "CU17"
+    },
+    {
+     "from": "admin",
+     "to": "CU18"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU19"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU22"
+    },
+    {
+     "from": "docente",
+     "to": "CU20"
+    },
+    {
+     "from": "docente",
+     "to": "CU21"
+    },
+    {
+     "from": "docente",
+     "to": "CU23"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "05_cursadas_y_asistencias.puml",
+   "title": "Cursadas, Asistencias y Calificaciones Parciales",
+   "actors": [
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    },
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "docente",
+     "name": "Docente"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU24",
+     "code": "CU-24",
+     "name": "Inscribirse a cursada de materia"
+    },
+    {
+     "id": "CU25",
+     "code": "CU-25",
+     "name": "Inscribir alumno/a a cursada fuera de término"
+    },
+    {
+     "id": "CU26",
+     "code": "CU-26",
+     "name": "Validar correlatividades de cursada"
+    },
+    {
+     "id": "CU27",
+     "code": "CU-27",
+     "name": "Anular inscripción a cursada"
+    },
+    {
+     "id": "CU28",
+     "code": "CU-28",
+     "name": "Registrar asistencia de alumnos/as"
+    },
+    {
+     "id": "CU29",
+     "code": "CU-29",
+     "name": "Consultar porcentaje de asistencia"
+    },
+    {
+     "id": "CU30",
+     "code": "CU-30",
+     "name": "Registrar calificaciones parciales"
+    },
+    {
+     "id": "CU31",
+     "code": "CU-31",
+     "name": "Modificar calificaciones parciales"
+    },
+    {
+     "id": "CU32",
+     "code": "CU-32",
+     "name": "Registrar condición final de cursada"
+    },
+    {
+     "id": "CU33",
+     "code": "CU-33",
+     "name": "Consultar y exportar planillas de cursada consolidadas"
+    },
+    {
+     "id": "CU34",
+     "code": "CU-34",
+     "name": "Generar nómina de inscriptos y planilla de asistencia"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "alumno",
+     "to": "CU24"
+    },
+    {
+     "from": "alumno",
+     "to": "CU27"
+    },
+    {
+     "from": "alumno",
+     "to": "CU29"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU25"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU29"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU33"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU34"
+    },
+    {
+     "from": "docente",
+     "to": "CU28"
+    },
+    {
+     "from": "docente",
+     "to": "CU29"
+    },
+    {
+     "from": "docente",
+     "to": "CU30"
+    },
+    {
+     "from": "docente",
+     "to": "CU31"
+    },
+    {
+     "from": "docente",
+     "to": "CU32"
+    }
+   ],
+   "uc_links": [
+    {
+     "from": "CU24",
+     "to": "CU26",
+     "kind": "include"
+    },
+    {
+     "from": "CU25",
+     "to": "CU26",
+     "kind": "include"
+    }
+   ]
+  },
+  {
+   "file": "06_examenes_y_actas.puml",
+   "title": "Exámenes Finales y Actas Oficiales",
+   "actors": [
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    },
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "docente",
+     "name": "Docente"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU35",
+     "code": "CU-35",
+     "name": "Programar mesa de examen final"
+    },
+    {
+     "id": "CU36",
+     "code": "CU-36",
+     "name": "Inscribirse a examen final"
+    },
+    {
+     "id": "CU38",
+     "code": "CU-38",
+     "name": "Validar condiciones para examen final"
+    },
+    {
+     "id": "CU37",
+     "code": "CU-37",
+     "name": "Inscribir alumno/a a examen final fuera de término"
+    },
+    {
+     "id": "CU38b",
+     "code": "CU-38",
+     "name": "Validar condiciones para examen final"
+    },
+    {
+     "id": "CU39",
+     "code": "CU-39",
+     "name": "Anular inscripción a examen final"
+    },
+    {
+     "id": "CU40",
+     "code": "CU-40",
+     "name": "Generar acta de examen"
+    },
+    {
+     "id": "CU41",
+     "code": "CU-41",
+     "name": "Cargar calificaciones en acta de examen"
+    },
+    {
+     "id": "CU42",
+     "code": "CU-42",
+     "name": "Cerrar acta de examen"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "alumno",
+     "to": "CU36"
+    },
+    {
+     "from": "alumno",
+     "to": "CU39"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU35"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU37"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU40"
+    },
+    {
+     "from": "preceptor",
+     "to": "CU42"
+    },
+    {
+     "from": "docente",
+     "to": "CU41"
+    }
+   ],
+   "uc_links": [
+    {
+     "from": "CU36",
+     "to": "CU38",
+     "kind": "include"
+    },
+    {
+     "from": "CU37",
+     "to": "CU38b",
+     "kind": "include"
+    }
+   ]
+  },
+  {
+   "file": "07_documentacion_oficial.puml",
+   "title": "Gestión Documental Institucional",
+   "actors": [
+    {
+     "id": "preceptor",
+     "name": "Preceptor/a"
+    },
+    {
+     "id": "usuario",
+     "name": "Usuario"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU43",
+     "code": "CU-43",
+     "name": "Cargar plantilla de documento oficial"
+    },
+    {
+     "id": "CU44",
+     "code": "CU-44",
+     "name": "Consultar plantillas de documentos oficiales"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "preceptor",
+     "to": "CU43"
+    },
+    {
+     "from": "usuario",
+     "to": "CU44"
+    }
+   ],
+   "uc_links": []
+  },
+  {
+   "file": "08_asistente_virtual.puml",
+   "title": "Asistente Virtual / Chatbot",
+   "actors": [
+    {
+     "id": "user",
+     "name": "Usuario"
+    },
+    {
+     "id": "alumno",
+     "name": "Alumno/a"
+    }
+   ],
+   "usecases": [
+    {
+     "id": "CU45",
+     "code": "CU-45",
+     "name": "Realizar consulta al asistente virtual"
+    },
+    {
+     "id": "CU46",
+     "code": "CU-46",
+     "name": "Validar rol y permisos de consulta"
+    },
+    {
+     "id": "CU47",
+     "code": "CU-47",
+     "name": "Consultar información en la base de datos"
+    },
+    {
+     "id": "CU48",
+     "code": "CU-48",
+     "name": "Consultar correlatividades de una materia (ejemplo)"
+    },
+    {
+     "id": "CU49",
+     "code": "CU-49",
+     "name": "Registrar la conversación"
+    }
+   ],
+   "actor_links": [
+    {
+     "from": "user",
+     "to": "CU45"
+    },
+    {
+     "from": "alumno",
+     "to": "CU48"
+    }
+   ],
+   "uc_links": [
+    {
+     "from": "CU45",
+     "to": "CU46",
+     "kind": "include"
+    },
+    {
+     "from": "CU45",
+     "to": "CU47",
+     "kind": "include"
+    },
+    {
+     "from": "CU45",
+     "to": "CU49",
+     "kind": "include"
+    },
+    {
+     "from": "CU48",
+     "to": "CU47",
+     "kind": "extend"
+    }
+   ]
+  }
+ ],
+ "clases": [
+  {
+   "file": "01_seguridad_y_acceso.puml",
+   "title": "01_seguridad_y_acceso_clases",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "passwordHash",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "rol",
+       "type": "Rol"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "iniciarSesion",
+       "params": "email, clave",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "recuperarContrasenia",
+       "params": "email",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "titulo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuerpo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaPublicacion",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "dirigidoA",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Rol",
+     "stereo": "enum",
+     "color": null,
+     "attrs": [
+      {
+       "vis": " ",
+       "name": "ALUMNO",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "DOCENTE",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "PRECEPTOR",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "ADMINISTRADOR",
+       "type": ""
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Usuario",
+     "to": "Aviso",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "publica"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Usuario",
+     "text": "RF-041 : iniciar sesion RF-042 : recuperar contrasenia RF-043 : el Administrador/a asigna el rol"
+    }
+   ]
+  },
+  {
+   "file": "02_estructura_curricular.puml",
+   "title": "02_estructura_curricular_clases",
+   "classes": [
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tituloOtorgado",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "vigente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "anioEnPlan",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargaHoraria",
+       "type": "int"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTO | CERRADO"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "tipo",
+       "type": "CURSADA | EXAMEN"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fechaFin",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Carrera",
+     "to": "PlanDeEstudios",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "tiene"
+    },
+    {
+     "from": "PlanDeEstudios",
+     "to": "Materia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "contiene"
+    },
+    {
+     "from": "CicloLectivo",
+     "to": "PeriodoInscripcion",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "define"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para cursar (RF-021)"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para rendir (RF-026)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PeriodoInscripcion",
+     "text": "RF-010 : fechas de los periodos ordinarios de inscripcion"
+    }
+   ]
+  },
+  {
+   "file": "03_alumnos_y_legajos.puml",
+   "title": "03_alumnos_y_legajos_clases",
+   "classes": [
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "apellido",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "dni",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaNacimiento",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "telefono",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVO | BAJA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "consultarHistoriaAcademica",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaInscripcion",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | BAJA"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Alumno",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "formaliza"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Alumno",
+     "text": "RF-001 a RF-004 : el Preceptor/a gestiona datos y baja RF-038 : historia academica (derivada de InscripcionCursada e InscripcionExamen) En el diagrama general : InscripcionCarrera se conecta con Carrera (PK-CUR) y Alumno hereda de Usuario (PK-SEC)."
+    }
+   ]
+  },
+  {
+   "file": "04_planta_docente.puml",
+   "title": "04_planta_docente_clases",
+   "classes": [
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuil",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "cicloLectivo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargo",
+       "type": "TITULAR | OBSERVADOR"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Docente",
+     "to": "AsignacionMateria",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "se asigna a"
+    }
+   ],
+   "notes": [
+    {
+     "target": "AsignacionMateria",
+     "text": "RF-013 : el Preceptor/a asigna al Docente titular por ciclo lectivo En el diagrama general : AsignacionMateria se conecta con Materia (PK-CUR)."
+    }
+   ]
+  },
+  {
+   "file": "05_cursadas_y_asistencias.puml",
+   "title": "05_cursadas_y_asistencias_clases",
+   "classes": [
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "condicion",
+       "type": "CURSANDO | REGULAR | PROMOCIONADO | LIBRE"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "validarCorrelativas",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "calcularPorcentajeAsistencia",
+       "params": "",
+       "ret": "float"
+      }
+     ]
+    },
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaClase",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "presente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "instancia",
+       "type": "PARCIAL | TRABAJO_PRACTICO"
+      },
+      {
+       "vis": "-",
+       "name": "nota",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "modificar",
+       "params": "nota",
+       "ret": ""
+      }
+     ]
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionCursada",
+     "to": "Asistencia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "CalificacionParcial",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCursada",
+     "text": "RF-019 / RF-020 : inscripcion ordinaria y fuera de termino RF-021 : validarCorrelativas() consulta las correlatividades de la Materia (PK-CUR) RF-022 : anular() dentro de los plazos RF-032 : la condicion final se asienta al cierre En el diagrama general : se conecta con Materia (PK-CUR) y Alumno (PK-ALU)."
+    }
+   ]
+  },
+  {
+   "file": "06_examenes_y_actas.puml",
+   "title": "06_examenes_y_actas_clases",
+   "classes": [
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "hora",
+       "type": "time"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      },
+      {
+       "vis": "-",
+       "name": "notaFinal",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "INSCRIPTO | ANULADO"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "validarCondiciones",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "numero",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTA | CERRADA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    }
+   ],
+   "rels": [
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "incluye"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "0..1",
+     "label": "genera"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "registra nota"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionExamen",
+     "text": "RF-024 / RF-025 : inscripcion ordinaria y fuera de termino RF-026 : validarCondiciones() exige condicion de REGULAR (o PROMOCIONADO) y correlativas de aprobacion de la Materia (PK-CUR) RF-027 : anular() dentro del plazo En el diagrama general : InscripcionExamen se conecta con Alumno (PK-ALU)."
+    }
+   ]
+  },
+  {
+   "file": "07_documentacion_oficial.puml",
+   "title": "07_documentacion_oficial_clases",
+   "classes": [
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tipoActa",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "archivo",
+       "type": "path"
+      },
+      {
+       "vis": "-",
+       "name": "version",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    }
+   ],
+   "rels": [],
+   "notes": [
+    {
+     "target": "PlantillaDocumento",
+     "text": "RF-039 : el Preceptor/a carga plantillas RF-040 : todos los/as usuarios/as las consultan En el diagrama general : PlantillaDocumento se conecta con Usuario (cargada por) (PK-SEC)."
+    }
+   ]
+  },
+  {
+   "file": "08_diagrama_general.puml",
+   "title": "08_diagrama_general_clases",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "passwordHash",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "rol",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "titulo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaPublicacion",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "dirigidoA",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tituloOtorgado",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "vigente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "anioEnPlan",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargaHoraria",
+       "type": "int"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTO | CERRADO"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "tipo",
+       "type": "CURSADA | EXAMEN"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fechaFin",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaInscripcion",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | BAJA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "cicloLectivo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargo",
+       "type": "TITULAR | OBSERVADOR"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "condicion",
+       "type": "CURSANDO | REGULAR | PROMOCIONADO | LIBRE"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaClase",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "presente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "instancia",
+       "type": "PARCIAL | TRABAJO_PRACTICO"
+      },
+      {
+       "vis": "-",
+       "name": "nota",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "hora",
+       "type": "time"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      },
+      {
+       "vis": "-",
+       "name": "notaFinal",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "INSCRIPTO | ANULADO"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "numero",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTA | CERRADA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | CERRADA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "emisor",
+       "type": "USUARIO | CHATBOT"
+      },
+      {
+       "vis": "-",
+       "name": "texto",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaHora",
+       "type": "datetime"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "recibirConsulta",
+       "params": "texto",
+       "ret": "Mensaje"
+      },
+      {
+       "vis": "+",
+       "name": "consultarBD",
+       "params": "entidad, filtros",
+       "ret": "datos"
+      },
+      {
+       "vis": "+",
+       "name": "generarRespuesta",
+       "params": "datos",
+       "ret": "Mensaje"
+      }
+     ]
+    },
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "verificarRol",
+       "params": "usuario, recurso",
+       "ret": "PERMITIDO | DENEGADO"
+      }
+     ]
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "componer",
+       "params": "consulta, datos",
+       "ret": "string"
+      }
+     ]
+    },
+    {
+     "name": "Rol",
+     "stereo": "enum",
+     "color": null,
+     "attrs": [
+      {
+       "vis": " ",
+       "name": "ALUMNO",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "DOCENTE",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "PRECEPTOR",
+       "type": ""
+      },
+      {
+       "vis": " ",
+       "name": "ADMINISTRADOR",
+       "type": ""
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Administrador",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Aviso",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "publica"
+    },
+    {
+     "from": "PlantillaDocumento",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "cargada por"
+    },
+    {
+     "from": "Carrera",
+     "to": "PlanDeEstudios",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "tiene"
+    },
+    {
+     "from": "PlanDeEstudios",
+     "to": "Materia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "contiene"
+    },
+    {
+     "from": "CicloLectivo",
+     "to": "PeriodoInscripcion",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "define"
+    },
+    {
+     "from": "InscripcionCarrera",
+     "to": "Carrera",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a"
+    },
+    {
+     "from": "Alumno",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "formaliza"
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": ""
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "Docente",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Asistencia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "CalificacionParcial",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "MesaExamen",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "incluye"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "0..1",
+     "label": "genera"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "registra nota"
+    },
+    {
+     "from": "InscripcionExamen",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de"
+    },
+    {
+     "from": "Conversacion",
+     "to": "Mensaje",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "Conversacion",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "abre"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "atiende"
+    },
+    {
+     "from": "Administrador",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Preceptor",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Docente",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Alumno",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para cursar (RF-021)"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para rendir (RF-026)"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-019/RF-020/RF-022)"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-024/RF-025/RF-027)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida rol (RNF-007)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega"
+    },
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "compone respuesta"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Materia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta correlatividades (RF-021/RF-026)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta historia y notas (RF-038)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "PeriodoInscripcion",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta plazos"
+    },
+    {
+     "from": "Chatbot",
+     "to": "MesaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta mesas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCursada",
+     "text": "RF-021 / RF-026 : al inscribirse se validan las correlatividades de la Materia, la condicion regular y las fechas de PeriodoInscripcion"
+    },
+    {
+     "target": "Chatbot",
+     "text": "RF-045 / RF-046 / RF-047 / RF-048 : recibe la consulta, valida el rol (RBAC), lee de la base de datos y responde solo con datos recuperados; la conversacion queda auditada"
+    }
+   ]
+  },
+  {
+   "file": "09_asistente_virtual.puml",
+   "title": "09_asistente_virtual_clases",
+   "classes": [
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "recibirConsulta",
+       "params": "texto",
+       "ret": "Mensaje"
+      },
+      {
+       "vis": "+",
+       "name": "validarPermiso",
+       "params": "usuario",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "consultarBD",
+       "params": "entidad, filtros",
+       "ret": "datos"
+      },
+      {
+       "vis": "+",
+       "name": "generarRespuesta",
+       "params": "datos",
+       "ret": "Mensaje"
+      }
+     ]
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | CERRADA"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "emisor",
+       "type": "USUARIO | CHATBOT"
+      },
+      {
+       "vis": "-",
+       "name": "texto",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaHora",
+       "type": "datetime"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "verificarRol",
+       "params": "usuario, recurso",
+       "ret": "PERMITIDO | DENEGADO"
+      }
+     ]
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "componer",
+       "params": "consulta, datos",
+       "ret": "string"
+      }
+     ]
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Chatbot",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "atiende"
+    },
+    {
+     "from": "Conversacion",
+     "to": "Mensaje",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "Conversacion",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "abre"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida rol (RNF-007)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega"
+    },
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "compone respuesta"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Materia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta correlatividades para cursar y rendir (RF-021 / RF-026)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta historia, asistencias y notas del alumno (RF-038)"
+    },
+    {
+     "from": "Chatbot",
+     "to": "PeriodoInscripcion",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta plazos vigentes"
+    },
+    {
+     "from": "Chatbot",
+     "to": "MesaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta mesas e inscriptos"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Chatbot",
+     "text": "RF-045 : recibe la consulta en lenguaje natural RF-046 : ControladorAcceso verifica el rol y limita los datos a los autorizados (RBAC) RF-047 : consulta la BD y responde SOLO con datos recuperados RF-048 / RNF-009 : la conversacion queda registrada"
+    }
+   ]
+  }
+ ],
+ "detalle": [
+  {
+   "file": "01_Usuario.puml",
+   "title": "01_usuario",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "passwordHash",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "rol",
+       "type": "Rol"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "iniciarSesion",
+       "params": "email, clave",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "recuperarContrasenia",
+       "params": "email",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Rol",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Administrador",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Usuario",
+     "to": "Aviso",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "publica"
+    },
+    {
+     "from": "Usuario",
+     "to": "PlantillaDocumento",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "cargada por"
+    },
+    {
+     "from": "Alumno",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Docente",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Preceptor",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Administrador",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    }
+   ],
+   "notes": [
+    {
+     "target": "Usuario",
+     "text": "Responsabilidad : identidad, autenticacion y rol de acceso de cada persona del sistema. RF-041 : iniciar sesion RF-042 : recuperar contrasenia RF-043 : el rol lo asigna el Administrador/a RF-044 : publica avisos institucionales"
+    }
+   ]
+  },
+  {
+   "file": "02_Rol.puml",
+   "title": "02_rol",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Rol",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Usuario",
+     "to": "Rol",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "1",
+     "label": "rol"
+    },
+    {
+     "from": "Aviso",
+     "to": "Rol",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "0..1",
+     "label": "dirigidoA"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Rol",
+     "text": "Responsabilidad : codifica los cuatro roles de la institucion; determina a que funcionalidades accede cada Usuario. RNF-007 : autorizacion basada en roles (RBAC)"
+    }
+   ]
+  },
+  {
+   "file": "03_Aviso.puml",
+   "title": "03_aviso",
+   "classes": [
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "titulo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuerpo",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaPublicacion",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "dirigidoA",
+       "type": "Rol"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Rol",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Aviso",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "publicada por <"
+    },
+    {
+     "from": "Aviso",
+     "to": "Rol",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "0..1",
+     "label": "dirigida a"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Aviso",
+     "text": "Responsabilidad : comunicados institucionales del Administrador/a, dirigidos a un rol o a toda la comunidad. RF-044 : publicar avisos institucionales"
+    }
+   ]
+  },
+  {
+   "file": "04_Administrador.puml",
+   "title": "04_administrador",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Aviso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Administrador",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Administrador",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Administrador",
+     "to": "Carrera",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra y modifica (RF-005/RF-006..RF-009)"
+    },
+    {
+     "from": "Administrador",
+     "to": "CicloLectivo",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "aperturas y periodos (RF-010)"
+    },
+    {
+     "from": "Administrador",
+     "to": "Docente",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra y modifica (RF-011/RF-012)"
+    },
+    {
+     "from": "Administrador",
+     "to": "Aviso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "publica (RF-044)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Administrador",
+     "text": "Responsabilidad : configurar la estructura curricular, el ciclo lectivo, la planta docente, los roles (RF-043) y los avisos. RF-005 a RF-010, RF-011, RF-012, RF-043, RF-044"
+    }
+   ]
+  },
+  {
+   "file": "05_Preceptor.puml",
+   "title": "05_preceptor",
+   "classes": [
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Preceptor",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Preceptor",
+     "to": "Alumno",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra, consulta y da de baja (RF-001 a RF-004 / RF-018)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "AsignacionMateria",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "asigna docente (RF-013)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "MesaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "programa e inscribe fuera de termino (RF-023 / RF-025)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "ActaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "genera y cierra (RF-034 / RF-036)"
+    },
+    {
+     "from": "Preceptor",
+     "to": "PlantillaDocumento",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "carga plantillas (RF-039)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Preceptor",
+     "text": "Responsabilidad : gestionar legajos de alumnos, nóminas e inscriptos generales (RF-016), mesas, actas, plantillas y planillas consolidadas (RF-033 / RF-037)."
+    }
+   ]
+  },
+  {
+   "file": "06_Alumno.puml",
+   "title": "06_alumno",
+   "classes": [
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "apellido",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "dni",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaNacimiento",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "telefono",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVO | BAJA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "consultarHistoriaAcademica",
+       "params": "",
+       "ret": "HistoriaAcademica"
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Alumno",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "formaliza"
+    },
+    {
+     "from": "Alumno",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "cursa"
+    },
+    {
+     "from": "Alumno",
+     "to": "InscripcionExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "rinde"
+    },
+    {
+     "from": "Alumno",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    }
+   ],
+   "notes": [
+    {
+     "target": "Alumno",
+     "text": "Responsabilidad : representar a la persona que estudia y actuar en inscripciones, anulaciones y consulta de su historia academica (RF-038)."
+    }
+   ]
+  },
+  {
+   "file": "07_Docente.puml",
+   "title": "07_docente",
+   "classes": [
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "legajo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "cuil",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "email",
+       "type": "string"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "consultarMateriasAsignadas",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "consultarNominaAlumnos",
+       "params": "materia",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "consultarMesasAsignadas",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Docente",
+     "to": "AsignacionMateria",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "se asigna a"
+    },
+    {
+     "from": "Docente",
+     "to": "Usuario",
+     "kind": "inherit",
+     "cf": "",
+     "ct": "",
+     "label": ""
+    },
+    {
+     "from": "Docente",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra asistencias, notas y condicion final (RF-028 / RF-030 a RF-032)"
+    },
+    {
+     "from": "Docente",
+     "to": "ActaExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "carga calificaciones (RF-035)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Docente",
+     "text": "Responsabilidad : registrar asistencias y calificaciones parciales (RF-028..RF-031), la condicion final de cursada (RF-032) y las notas del acta (RF-035); tambien consulta sus materias (RF-014), nominas (RF-015) y mesas de examen (RF-017)."
+    }
+   ]
+  },
+  {
+   "file": "08_Carrera.puml",
+   "title": "08_carrera",
+   "classes": [
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tituloOtorgado",
+       "type": "string"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Carrera",
+     "to": "PlanDeEstudios",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "tiene"
+    },
+    {
+     "from": "Carrera",
+     "to": "InscripcionCarrera",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "recibe"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Carrera",
+     "text": "Responsabilidad : representar a cada carrera terciaria del ISFT 189. RF-005 / RF-006 : registrar y modificar RF-007 : cada carrera tiene sus planes RF-018 : el Preceptor/a inscribe alumnos/as"
+    }
+   ]
+  },
+  {
+   "file": "09_PlanDeEstudios.puml",
+   "title": "09_plan_de_estudios",
+   "classes": [
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "vigente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "PlanDeEstudios",
+     "to": "Carrera",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "PlanDeEstudios",
+     "to": "Materia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "contiene"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PlanDeEstudios",
+     "text": "Responsabilidad : agrupar las materias con sus anios y correlatividades que forman la currícula. RF-007 : registrar plan RF-008 : registrar materia en el plan"
+    }
+   ]
+  },
+  {
+   "file": "10_Materia.puml",
+   "title": "10_materia",
+   "classes": [
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "anioEnPlan",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargaHoraria",
+       "type": "int"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "PlanDeEstudios",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Materia",
+     "to": "PlanDeEstudios",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "pertenece a <"
+    },
+    {
+     "from": "Materia",
+     "to": "AsignacionMateria",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "docente"
+    },
+    {
+     "from": "Materia",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "cursada por"
+    },
+    {
+     "from": "Materia",
+     "to": "MesaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "examen"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para cursar (RF-021)"
+    },
+    {
+     "from": "Materia",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "",
+     "ct": "",
+     "label": "correlativa para rendir (RF-026)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Materia",
+     "text": "Responsabilidad : unidad curricular, con su regimen de correlatividades (RF-009) para cursar (RF-021) y para rendir (RF-026). Las inscriptas (RF-019) y mesas (RF-023) salen de cada materia."
+    }
+   ]
+  },
+  {
+   "file": "11_CicloLectivo.puml",
+   "title": "11_ciclo_lectivo",
+   "classes": [
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "anio",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTO | CERRADO"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "aperturar",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "CicloLectivo",
+     "to": "PeriodoInscripcion",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "define"
+    },
+    {
+     "from": "CicloLectivo",
+     "to": "AsignacionMateria",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "habilita asignaciones de docentes y cursadas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "CicloLectivo",
+     "text": "Responsabilidad : envoltura temporal del sistema; todas las inscripciones y nombramientos ocurren dentro de un ciclo. RF-010 : aperturar ciclo y definir periodos ordinarios de inscripcion a cursadas y examenes"
+    }
+   ]
+  },
+  {
+   "file": "12_PeriodoInscripcion.puml",
+   "title": "12_periodo_inscripcion",
+   "classes": [
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "tipo",
+       "type": "CURSADA | EXAMEN"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fechaFin",
+       "type": "date"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "estaActivo",
+       "params": "",
+       "ret": "boolean"
+      }
+     ]
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "PeriodoInscripcion",
+     "to": "CicloLectivo",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "del ciclo <"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-019/RF-020/RF-022)"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas (RF-024/RF-025/RF-027)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PeriodoInscripcion",
+     "text": "Responsabilidad : ventanas habilitadas (RF-010) para inscribirse a cursadas o examenes; fuera de ellas, solo el Preceptor/a puede inscribir excepcionalmente (RF-020 / RF-025)."
+    }
+   ]
+  },
+  {
+   "file": "13_InscripcionCarrera.puml",
+   "title": "13_inscripcion_carrera",
+   "classes": [
+    {
+     "name": "InscripcionCarrera",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaInscripcion",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | BAJA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "darDeBaja",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Carrera",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionCarrera",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "formalizada por <"
+    },
+    {
+     "from": "InscripcionCarrera",
+     "to": "Carrera",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCarrera",
+     "text": "Responsabilidad : formalizar el vinculo del alumno con una carrera y registrar su baja correspondiente. RF-018 : inscribir alumno/a a carrera RF-004 / RF-002 : baja relacionada con el estado del Alumno"
+    }
+   ]
+  },
+  {
+   "file": "14_AsignacionMateria.puml",
+   "title": "14_asignacion_materia",
+   "classes": [
+    {
+     "name": "AsignacionMateria",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "cicloLectivo",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "cargo",
+       "type": "TITULAR | OBSERVADOR"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "CicloLectivo",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "AsignacionMateria",
+     "to": "Docente",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "asignada a <"
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "AsignacionMateria",
+     "to": "CicloLectivo",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "corre dentro del ciclo (RF-013)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "AsignacionMateria",
+     "text": "Responsabilidad : registrar que docente dicta cada materia, en que ciclo lectivo y con que cargo; permite al Docente consultar sus materias (RF-014) y nominas (RF-015), y al Preceptor/a las nominas generales (RF-016)."
+    }
+   ]
+  },
+  {
+   "file": "15_InscripcionCursada.puml",
+   "title": "15_inscripcion_cursada",
+   "classes": [
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "condicion",
+       "type": "CURSANDO | REGULAR | PROMOCIONADO | LIBRE"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      },
+      {
+       "vis": "+",
+       "name": "validarCorrelativas",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "calcularPorcentajeAsistencia",
+       "params": "",
+       "ret": "float"
+      }
+     ]
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionCursada",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a <"
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "Asistencia",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "InscripcionCursada",
+     "to": "CalificacionParcial",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas"
+    },
+    {
+     "from": "Materia",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida correlativas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionCursada",
+     "text": "Responsabilidad : representar el vínculo del alumno con una materia en el aula, incluyendo asistencias y notas parciales, terminar en una condición (RF-032). RF-019 / RF-020 : inscripcion ordinaria y fuera de termino RF-021 : validar correlatividades RF-022 : anular dentro de los plazos RF-029 : porcentaje de asistencia"
+    }
+   ]
+  },
+  {
+   "file": "16_Asistencia.puml",
+   "title": "16_asistencia",
+   "classes": [
+    {
+     "name": "Asistencia",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fechaClase",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "presente",
+       "type": "boolean"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Asistencia",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "Docente",
+     "to": "Asistencia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra presentismo (RF-028)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Asistencia",
+     "text": "Responsabilidad : registrar el presentismo de cada clase; el acumulado da el porcentaje consultable por Alumno, Docente y Preceptor (RF-029)."
+    }
+   ]
+  },
+  {
+   "file": "17_CalificacionParcial.puml",
+   "title": "17_calificacion_parcial",
+   "classes": [
+    {
+     "name": "CalificacionParcial",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "instancia",
+       "type": "PARCIAL | TRABAJO_PRACTICO"
+      },
+      {
+       "vis": "-",
+       "name": "nota",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "modificar",
+       "params": "nota",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "CalificacionParcial",
+     "to": "InscripcionCursada",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "Docente",
+     "to": "CalificacionParcial",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "registra y corrige (RF-030 / RF-031)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "CalificacionParcial",
+     "text": "Responsabilidad : nota de una evaluacion parcial o trabajo practico dentro de la cursada; alimenta la planilla consolidada (RF-033) y la historia academica (RF-038)."
+    }
+   ]
+  },
+  {
+   "file": "18_MesaExamen.puml",
+   "title": "18_mesa_examen",
+   "classes": [
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "hora",
+       "type": "time"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Docente",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "MesaExamen",
+     "to": "Materia",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "incluye"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "0..1",
+     "label": "genera"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "Docente",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "titular y observador/a (RF-017 / RF-023)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "MesaExamen",
+     "text": "Responsabilidad : instancia de evaluacion final estructurada en el cronograma. RF-023 : la programa el Preceptor/a, con docente a cargo y observador/a RF-034 : generacion del acta"
+    }
+   ]
+  },
+  {
+   "file": "19_InscripcionExamen.puml",
+   "title": "19_inscripcion_examen",
+   "classes": [
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "fecha",
+       "type": "date"
+      },
+      {
+       "vis": "-",
+       "name": "fueraDeTermino",
+       "type": "boolean"
+      },
+      {
+       "vis": "-",
+       "name": "notaFinal",
+       "type": "float"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "INSCRIPTO | ANULADO"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "validarCondiciones",
+       "params": "",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "anular",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Alumno",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "PeriodoInscripcion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "InscripcionExamen",
+     "to": "Alumno",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "InscripcionExamen",
+     "to": "MesaExamen",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "a <"
+    },
+    {
+     "from": "InscripcionExamen",
+     "to": "ActaExamen",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "nota registrada en <"
+    },
+    {
+     "from": "PeriodoInscripcion",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "controla fechas"
+    },
+    {
+     "from": "MesaExamen",
+     "to": "InscripcionExamen",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "exige ser REGULAR y correlativas aprobadas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "InscripcionExamen",
+     "text": "Responsabilidad : llamado a examen final del alumno en una mesa. RF-024 / RF-025 : inscripcion ordinaria y fuera de termino RF-026 : validar condición regular y correlativas de aprobacion RF-027 : anular dentro del plazo RF-035 : la nota se registra en el acta"
+    }
+   ]
+  },
+  {
+   "file": "20_ActaExamen.puml",
+   "title": "20_acta_examen",
+   "classes": [
+    {
+     "name": "ActaExamen",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "numero",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ABIERTA | CERRADA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "MesaExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionExamen",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "ActaExamen",
+     "to": "MesaExamen",
+     "kind": "assoc",
+     "cf": "0..1",
+     "ct": "1",
+     "label": "de <"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "InscripcionExamen",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": "registra notas"
+    },
+    {
+     "from": "ActaExamen",
+     "to": "Preceptor",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "genera y cierra (RF-034 / RF-036)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "ActaExamen",
+     "text": "Responsabilidad : recurso oficial digital que lista los inscriptos de la mesa, recibe las notas del docente (RF-035) y al cerrarse (RF-036) queda bloqueada para su archivo. Importa promociones a la mesa y por lo tanto es la base de la historia académica."
+    }
+   ]
+  },
+  {
+   "file": "21_PlantillaDocumento.puml",
+   "title": "21_plantilla_documento",
+   "classes": [
+    {
+     "name": "PlantillaDocumento",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "nombre",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "tipoActa",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "archivo",
+       "type": "path"
+      },
+      {
+       "vis": "-",
+       "name": "version",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaCarga",
+       "type": "date"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Preceptor",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "PlantillaDocumento",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "cargada por <"
+    },
+    {
+     "from": "PlantillaDocumento",
+     "to": "Preceptor",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "carga (RF-039)"
+    },
+    {
+     "from": "PlantillaDocumento",
+     "to": "Usuario",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta (RF-040)"
+    }
+   ],
+   "notes": [
+    {
+     "target": "PlantillaDocumento",
+     "text": "Responsabilidad : repositorio de las plantillas en blanco de actas, notas, constancias y documentos institucionales para completado manual e impresion. RF-039 : carga por el Preceptor/a RF-040 : consulta por los usuarios"
+    }
+   ]
+  },
+  {
+   "file": "22_Chatbot.puml",
+   "title": "22_chatbot",
+   "classes": [
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "recibirConsulta",
+       "params": "texto",
+       "ret": "Mensaje"
+      },
+      {
+       "vis": "+",
+       "name": "validarPermiso",
+       "params": "usuario",
+       "ret": "boolean"
+      },
+      {
+       "vis": "+",
+       "name": "consultarBD",
+       "params": "entidad, filtros",
+       "ret": "datos"
+      },
+      {
+       "vis": "+",
+       "name": "generarRespuesta",
+       "params": "datos",
+       "ret": "Mensaje"
+      }
+     ]
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Materia",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "InscripcionCursada",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Chatbot",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "1",
+     "ct": "*",
+     "label": "atiende"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "valida rol del usuario"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega la redaccion"
+    },
+    {
+     "from": "Chatbot",
+     "to": "Materia",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "lee correlatividades"
+    },
+    {
+     "from": "Chatbot",
+     "to": "InscripcionCursada",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "lee historia, asistencias y notas"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Chatbot",
+     "text": "Responsabilidad : punto de entrada del asistente. Recibe la consulta (RF-045), valida el rol (RF-046), consulta la base de datos (RF-047) y responde solo con los datos recuperados; cada interaccion queda registrada (RF-048 / RNF-009). RNF-003 : la respuesta debe respetarse en menos de 3 seg (P95)."
+    }
+   ]
+  },
+  {
+   "file": "23_Conversacion.puml",
+   "title": "23_conversacion",
+   "classes": [
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "fechaInicio",
+       "type": "datetime"
+      },
+      {
+       "vis": "-",
+       "name": "estado",
+       "type": "ACTIVA | CERRADA"
+      }
+     ],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "cerrar",
+       "params": "",
+       "ret": ""
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Conversacion",
+     "to": "Usuario",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "abierta por <"
+    },
+    {
+     "from": "Conversacion",
+     "to": "Mensaje",
+     "kind": "compose",
+     "cf": "1",
+     "ct": "*",
+     "label": ""
+    },
+    {
+     "from": "Conversacion",
+     "to": "Chatbot",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "atendida por <"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Conversacion",
+     "text": "Responsabilidad : agrupar la sesion de intercambio entre el usuario y el asistente; historial completo para auditar que informacion se entrego a cada rol. RF-045 : conversacion entre Usuario y Chatbot RF-048 / RNF-009 : registro auditable e inmutable de las operaciones sensibles"
+    }
+   ]
+  },
+  {
+   "file": "24_Mensaje.puml",
+   "title": "24_mensaje",
+   "classes": [
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [
+      {
+       "vis": "-",
+       "name": "id",
+       "type": "int"
+      },
+      {
+       "vis": "-",
+       "name": "emisor",
+       "type": "USUARIO | CHATBOT"
+      },
+      {
+       "vis": "-",
+       "name": "texto",
+       "type": "string"
+      },
+      {
+       "vis": "-",
+       "name": "fechaHora",
+       "type": "datetime"
+      }
+     ],
+     "methods": []
+    },
+    {
+     "name": "Conversacion",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "Mensaje",
+     "to": "Conversacion",
+     "kind": "assoc",
+     "cf": "*",
+     "ct": "1",
+     "label": "pertenece a <"
+    },
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "compone la respuesta"
+    }
+   ],
+   "notes": [
+    {
+     "target": "Mensaje",
+     "text": "Responsabilidad : cada pregunta y cada respuesta dentro de la conversacion. RF-045 : envio de la consulta RF-047 : la respuesta del Chatbot se compone SOLO con datos recuperados de la BD RF-048 : persistencia para auditoria"
+    }
+   ]
+  },
+  {
+   "file": "25_ControladorAcceso.puml",
+   "title": "25_controlador_acceso",
+   "classes": [
+    {
+     "name": "ControladorAcceso",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "verificarRol",
+       "params": "usuario, recurso",
+       "ret": "PERMITIDO | DENEGADO"
+      }
+     ]
+    },
+    {
+     "name": "Usuario",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "ControladorAcceso",
+     "to": "Usuario",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "consulta su rol"
+    },
+    {
+     "from": "Chatbot",
+     "to": "ControladorAcceso",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega la validacion"
+    }
+   ],
+   "notes": [
+    {
+     "target": "ControladorAcceso",
+     "text": "Responsabilidad : decidir si el rol del usuario habilita el dato consultado; si devuelve DENEGADO, el Chatbot responde con un aviso de falta de permisos y registra la consulta (auditoria). RF-046 : validar rol y permisos de consulta RNF-007 : RBAC (Mismo mecanismo del resto del sistema) RNF-009 : registro de lo rechazado"
+    }
+   ]
+  },
+  {
+   "file": "26_GeneradorRespuesta.puml",
+   "title": "26_generador_respuesta",
+   "classes": [
+    {
+     "name": "GeneradorRespuesta",
+     "stereo": "class",
+     "color": "E3F2FD",
+     "attrs": [],
+     "methods": [
+      {
+       "vis": "+",
+       "name": "componer",
+       "params": "consulta, datos",
+       "ret": "string"
+      }
+     ]
+    },
+    {
+     "name": "Chatbot",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    },
+    {
+     "name": "Mensaje",
+     "stereo": "class",
+     "color": null,
+     "attrs": [],
+     "methods": []
+    }
+   ],
+   "rels": [
+    {
+     "from": "GeneradorRespuesta",
+     "to": "Mensaje",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "produce la respuesta"
+    },
+    {
+     "from": "Chatbot",
+     "to": "GeneradorRespuesta",
+     "kind": "depend",
+     "cf": "",
+     "ct": "",
+     "label": "delega"
+    }
+   ],
+   "notes": [
+    {
+     "target": "GeneradorRespuesta",
+     "text": "Responsabilidad : recibir los datos extraidos de la base y redactar la respuesta en lenguaje natural; nunca inventa datos: solo interpreta lo que la BD le devolvio (fuente unica de verdad). RF-047 : respuesta a partir de los datos RNF-011 : lógica de negocio con cobertura de pruebas (validaciones y datos)"
+    }
+   ]
+  }
+ ]
+};
+/* ============================================================
+   Casos de Uso & UML — ISFT 189
+   ============================================================ */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- pestañas ---------- */
+$$('#tabs button').forEach(b=>b.onclick=()=>{
+  $$('#tabs button').forEach(x=>x.classList.remove('on'));
+  $$('section.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  $('#tab-'+b.dataset.tab).classList.add('on');
+  /* al mostrar una pestaña con visor, re-ajustar (estaba oculta y fit() medía 0) */
+  const t=b.dataset.tab;
+  requestAnimationFrame(()=>{
+    try{
+      if(t==='umlcu'  && !vCU.userMoved) vCU.fit();
+      if(t==='umlcl'  && !vCL.userMoved) vCL.fit();
+      if(t==='fichas') FICHAS.forEach(f=>{ const v=FLOWVIEWS[f.id]; if(v && !v.userMoved) v.fit(); });
+    }catch(e){}
+  });
+});
+
+/* ============================================================
+   CATÁLOGO DE CASOS DE USO
+   ============================================================ */
+const PKGCODE = {'01':'PK-SEC','02':'PK-CUR','03':'PK-ALU','04':'PK-DOC',
+                 '05':'PK-CURS','06':'PK-EXAM','07':'PK-DOCUM','08':'PK-CHAT'};
+const PKGPILL = {'PK-SEC':'p1','PK-CUR':'p2','PK-ALU':'p3','PK-DOC':'p4',
+                 'PK-CURS':'p5','PK-EXAM':'p6','PK-DOCUM':'p7','PK-CHAT':'p8'};
+const RF = {
+ 'CU-01':'RF-041','CU-02':'RF-042','CU-03':'RF-043','CU-04':'RF-044',
+ 'CU-05':'RF-005','CU-06':'RF-006','CU-07':'RF-007','CU-08':'RF-008','CU-09':'RF-009','CU-10':'RF-010',
+ 'CU-11':'RF-001','CU-12':'RF-002','CU-13':'RF-003','CU-14':'RF-004','CU-15':'RF-018','CU-16':'RF-038',
+ 'CU-17':'RF-011','CU-18':'RF-012','CU-19':'RF-013','CU-20':'RF-014','CU-21':'RF-015','CU-22':'RF-016','CU-23':'RF-017',
+ 'CU-24':'RF-019, RF-021','CU-25':'RF-020, RF-021','CU-26':'RF-021','CU-27':'RF-022','CU-28':'RF-028',
+ 'CU-29':'RF-029','CU-30':'RF-030','CU-31':'RF-031','CU-32':'RF-032','CU-33':'RF-033','CU-34':'RF-037',
+ 'CU-35':'RF-023','CU-36':'RF-024, RF-026','CU-37':'RF-025, RF-026','CU-38':'RF-026','CU-39':'RF-027',
+ 'CU-40':'RF-034','CU-41':'RF-035','CU-42':'RF-036',
+ 'CU-43':'RF-039','CU-44':'RF-040',
+ 'CU-45':'RF-045','CU-46':'RF-046','CU-47':'RF-047','CU-48':'RF-047, RF-009, RF-021','CU-49':'RF-048'
+};
+const FICHA_IDS = ['CU-01','CU-11','CU-24','CU-35','CU-45'];
+
+/* Construye el catálogo unificado desde los .puml parseados */
+const CATALOG = (()=>{
+  const byCode = new Map();
+  DATA.cu.forEach(d=>{
+    const prefix = d.file.slice(0,2);
+    const pkg = PKGCODE[prefix] || 'PK-?';
+    const pkgName = d.title || d.file;
+    const alias2name = {}; d.actors.forEach(a=>alias2name[a.id]=a.name);
+    const actorOf = {};
+    d.actor_links.forEach(l=>{ if(!actorOf[l.to]) actorOf[l.to]=alias2name[l.from]||l.from; });
+    d.usecases.forEach(u=>{
+      if(!u.code) return;
+      if(byCode.has(u.code)) return;           // evita el duplicado CU-38
+      byCode.set(u.code,{
+        code:u.code, name:u.name, pkg, pkgName,
+        actor: actorOf[u.id] || 'Inclusión',
+        rf: RF[u.code]||'—', file:d.file,
+        ficha: FICHA_IDS.includes(u.code)
+      });
+    });
+  });
+  return [...byCode.values()].sort((a,b)=>parseInt(a.code.slice(3))-parseInt(b.code.slice(3)));
+})();
+
+/* ---------- tabla de paquetes (resumen) ---------- */
+(()=>{
+  const groups = new Map();
+  CATALOG.forEach(c=>{ if(!groups.has(c.pkg)) groups.set(c.pkg,{name:c.pkgName,n:0}); groups.get(c.pkg).n++; });
+  $('#pkgRows').innerHTML = [...groups].map(([code,g])=>
+    `<tr><td><span class="pill ${PKGPILL[code]||'p1'}">${code}</span></td><td>${esc(g.name)}</td><td><b>${g.n}</b></td></tr>`).join('');
+})();
+
+/* ---------- filtros de la tabla ---------- */
+(()=>{
+  const q=$('#cuQ'), pk=$('#cuPkg'), ac=$('#cuActor'), of=$('#cuOnlyFicha'), cnt=$('#cuCount');
+  const pkgs=[...new Set(CATALOG.map(c=>c.pkg))].sort();
+  const pkgNames={}; CATALOG.forEach(c=>pkgNames[c.pkg]=c.pkgName);
+  pk.innerHTML = '<option value="">Todos los paquetes</option>' +
+    pkgs.map(p=>`<option value="${p}">${p} — ${esc(pkgNames[p])}</option>`).join('');
+  const actors=[...new Set(CATALOG.map(c=>c.actor))].sort();
+  ac.innerHTML = '<option value="">Todos los actores</option>' +
+    actors.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+
+  function render(){
+    const t=(q.value||'').toLowerCase().trim();
+    const rows = CATALOG.filter(c=>{
+      if(pk.value && c.pkg!==pk.value) return false;
+      if(ac.value && c.actor!==ac.value) return false;
+      if(of.checked && !c.ficha) return false;
+      if(t && !(c.code.toLowerCase().includes(t) || c.name.toLowerCase().includes(t) ||
+                c.rf.toLowerCase().includes(t) || c.actor.toLowerCase().includes(t))) return false;
+      return true;
+    });
+    $('#cuRows').innerHTML = rows.map(c=>`<tr>
+      <td class="ccode">${c.code}</td>
+      <td>${esc(c.name)}</td>
+      <td><span class="pill ${PKGPILL[c.pkg]||'p1'}">${c.pkg}</span> <span class="muted" style="font-size:11px">${esc(c.pkgName)}</span></td>
+      <td>${esc(c.actor)}</td>
+      <td class="rf">${esc(c.rf)}</td>
+      <td>${c.ficha?'<span class="pill p5">sí</span>':'<span class="muted">—</span>'}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="muted" style="text-align:center;padding:22px">Sin resultados</td></tr>';
+    cnt.textContent = `${rows.length} de ${CATALOG.length} casos de uso`;
+  }
+  [q,pk,ac,of].forEach(el=>el.addEventListener('input',render));
+  $('#cuReset').onclick=()=>{q.value='';pk.value='';ac.value='';of.checked=false;render();};
+  render();
+})();
+
+/* ============================================================
+   FICHAS + DIAGRAMAS DE FLUJO
+   ============================================================ */
+const FICHAS = [
+{
+ id:'CU-01', title:'Iniciar sesión', pkg:'PK-SEC', pkgName:'Seguridad y Acceso',
+ actor:'Usuario', sec:'—', rf:'RF-041', inc:'—', ext:'—',
+ desc:`Permite a cualquier persona con cuenta institucional autenticarse en la plataforma mediante su correo
+ institucional y contraseña. Es el punto de entrada obligatorio a todas las funcionalidades del sistema y
+ la base del esquema de control de acceso por roles (RNF-007): el rol determina qué menús y qué información
+ quedan disponibles una vez dentro.`,
+ pre:['Existe una cuenta registrada en la tabla <code>usuario</code> con estado <code>activo = true</code>.',
+      'El usuario conoce su correo institucional y su contraseña.',
+      'No hay una sesión abierta para ese usuario en el mismo navegador.'],
+ post:['Se emite un <b>token JWT</b> firmado con el rol del usuario y una vigencia de 120 minutos.',
+       'La sesión queda registrada con usuario, fecha y hora para auditoría (RNF-009).',
+       'El usuario es redirigido al panel propio de su rol.'],
+ steps:[
+  {t:'start',text:'Inicio',next:1},
+  {t:'proc',text:'El usuario accede al sistema y selecciona "Iniciar sesión"',next:2},
+  {t:'proc',text:'Ingresa su correo institucional y su contraseña',next:3},
+  {t:'proc',text:'Envía las credenciales al servidor',next:4},
+  {t:'dec',text:'¿Credenciales válidas?',next:6,no:5},
+  {t:'err',text:'Mostrar "Correo o contraseña incorrectos" y permanecer en la pantalla de acceso'},
+  {t:'dec',text:'¿Cuenta activa?',next:8,no:7},
+  {t:'err',text:'Mostrar "Cuenta inactiva" y derivar al Administrador/a'},
+  {t:'proc',text:'Generar token JWT con identificador, rol y vigencia',next:9},
+  {t:'proc',text:'Registrar el evento de acceso (auditoría)',next:10},
+  {t:'end',text:'Sesión iniciada · Acceso al panel del rol'}
+ ],
+ alt:`Si el usuario olvidó su contraseña, desde la misma pantalla puede invocar el <b>CU-02: Recuperar contraseña</b>,
+ que reemplaza el paso de validación por un flujo de verificación por correo electrónico.`,
+ exc:`Tras 5 intentos fallidos consecutivos, el sistema bloquea temporalmente la cuenta y notifica al
+ Administrador/a para evitar ataques de fuerza bruta.`
+},
+{
+ id:'CU-11', title:'Registrar alumno/a', pkg:'PK-ALU', pkgName:'Gestión de Alumnos y Legajos',
+ actor:'Preceptor/a', sec:'—', rf:'RF-001', inc:'—', ext:'—',
+ desc:`Permite al/a la preceptor/a dar de alta a un/a nuevo/a alumno/a en la institución, cargando su legajo,
+ datos personales, datos de contacto y estado. El alta genera a su vez la cuenta de usuario asociada y
+ habilita las posteriores inscripciones a carrera y a cursadas (CU-15, CU-24).`,
+ pre:['El/a Preceptor/a tiene una sesión activa.',
+      'No existe otro/a alumno/a con el mismo DNI ni con el mismo legajo.',
+      'El ciclo lectivo correspondiente está abierto.'],
+ post:['El registro queda persistido en la tabla <code>alumno</code> con estado <code>ACTIVO</code>.',
+       'Se genera la cuenta de usuario vinculada con hash bcrypt de la contraseña provisoria.',
+       'Se registra la fecha de alta para auditoría.'],
+ steps:[
+  {t:'start',text:'Inicio',next:1},
+  {t:'proc',text:'El/a Preceptor/a ingresa al módulo de legajos de alumnos/as',next:2},
+  {t:'proc',text:'Selecciona "Registrar alumno/a"',next:3},
+  {t:'proc',text:'Completa DNI, apellido y nombre, fecha de nacimiento, email, teléfono y domicilio',next:4},
+  {t:'dec',text:'¿Datos completos y válidos?',next:6,no:5},
+  {t:'err',text:'Resaltar los campos con error y volver a solicitar la carga'},
+  {t:'dec',text:'¿DNI ya registrado?',next:8,no:7},
+  {t:'err',text:'Mostrar "Ya existe un legajo con ese DNI" y ofrecer abrir el existente'},
+  {t:'proc',text:'Asignar legajo único y generar la cuenta de usuario con contraseña provisoria',next:9},
+  {t:'proc',text:'Guardar en la tabla alumno con estado ACTIVO',next:10},
+  {t:'end',text:'Alumno/a registrado · Legajo asignado correctamente'}
+ ],
+ alt:`Si el/a alumno/a ya figura en otra institución con documentación traspasada, el/a Preceptor/a registra
+ el alta marcando el origen de la documentación en el campo de observaciones, sin alterar el flujo principal.`,
+ exc:`Si el DNI ya existe, el sistema no duplica el registro: muestra el legajo existente y sugiere usar el
+ <b>CU-12: Modificar datos de alumno/a</b> para actualizar la información.`,
+},
+{
+ id:'CU-24', title:'Inscribirse a cursada de materia', pkg:'PK-CURS', pkgName:'Cursadas, Asistencias y Calificaciones',
+ actor:'Alumno/a', sec:'—', rf:'RF-019, RF-021', inc:'CU-26', ext:'—',
+ desc:`Permite al/a alumno/a inscribirse a la cursada de una materia dentro de los plazos habilitados por el
+ período de inscripción. Antes de confirmar, el sistema ejecuta obligatoriamente la <b>inclusión CU-26</b>
+ que valida las correlatividades exigidas por el plan de estudios (RF-021).`,
+ pre:['El/a alumno/a tiene una carrera inscripta y activa.',
+      'Existe un ciclo lectivo abierto con un período de inscripción a cursadas vigente.',
+      'El/a alumno/a no tiene una inscripción activa a esa misma materia en ese ciclo.'],
+ post:['Queda registrada la inscripción con condición <code>CURSANDO</code>.',
+       'Se registra si la inscripción fue dentro o fuera de término.',
+       'El/a alumno/a aparece en la nómina de la cátedra correspondiente (CU-21).'],
+ steps:[
+  {t:'start',text:'Inicio',next:1},
+  {t:'proc',text:'El/a alumno/a consulta las materias disponibles en su plan de estudios',next:2},
+  {t:'proc',text:'Selecciona la materia y confirma la inscripción',next:3},
+  {t:'dec',text:'¿Período de inscripción vigente?',next:5,no:4},
+  {t:'err',text:'Mostrar "Período cerrado" y derivar al/a Preceptor/a (CU-25 fuera de término)'},
+  {t:'proc',text:'Invocar CU-26: validar correlatividades de cursada',next:6},
+  {t:'dec',text:'¿Cumple todas las correlativas?',next:8,no:7},
+  {t:'err',text:'Listar las materias faltantes con su tipo (para cursar / para rendir) y no inscribir'},
+  {t:'proc',text:'Registrar la inscripción con condición CURSANDO',next:9},
+  {t:'proc',text:'Actualizar la nómina y el porcentaje de la cátedra',next:10},
+  {t:'end',text:'Inscripción a cursada confirmada'}
+ ],
+ alt:`El/a Preceptor/a puede registrar una inscripción <b>fuera de término</b> mediante el <b>CU-25</b>,
+ que saltea la restricción de período pero conserva la validación de correlatividades.`,
+ exc:`Si la materia ya está aprobada o tiene una inscripción activa, el sistema bloquea la nueva inscripción
+ y muestra la condición actual del/a alumno/a en esa unidad curricular.`,
+},
+{
+ id:'CU-35', title:'Programar mesa de examen final', pkg:'PK-EXAM', pkgName:'Exámenes Finales y Actas Oficiales',
+ actor:'Preceptor/a', sec:'—', rf:'RF-023', inc:'—', ext:'—',
+ desc:`Permite al/a preceptor/a crear una mesa de examen final indicando materia, fecha, horario, ciclo lectivo
+ y el tribunal evaluador: docente titular y docente observador/a. El tribunal debe estar conformado por dos
+ docentes distintos, restricción que garantiza una <code>CHECK</code> a nivel de base de datos.`,
+ pre:['El/a Preceptor/a tiene una sesión activa.',
+      'La materia pertenece a un plan de estudios vigente.',
+      'Ambos docentes designados están dados de alta y activos.'],
+ post:['La mesa queda registrada en <code>mesa_examen</code> con estado <code>ABIERTA</code>.',
+       'Se habilita el período de inscripción a examen final asociado.',
+       'Los alumnos/as elegibles pueden inscribirse (CU-36).'],
+ steps:[
+  {t:'start',text:'Inicio',next:1},
+  {t:'proc',text:'El/a Preceptor/a ingresa al módulo de exámenes finales',next:2},
+  {t:'proc',text:'Selecciona materia, fecha, horario y ciclo lectivo',next:3},
+  {t:'proc',text:'Designa al docente titular y al docente observador/a',next:4},
+  {t:'dec',text:'¿Son dos docentes distintos?',next:6,no:5},
+  {t:'err',text:'Mostrar "El tribunal debe tener docentes distintos" y volver a la designación'},
+  {t:'dec',text:'¿Fecha disponible y sin conflicto?',next:8,no:7},
+  {t:'err',text:'Mostrar los horarios ocupados de esa materia y solicitar otra fecha'},
+  {t:'proc',text:'Guardar la mesa con estado ABIERTA',next:9},
+  {t:'proc',text:'Abrir la ventana de inscripción a examen final',next:10},
+  {t:'end',text:'Mesa de examen programada y habilitada para inscripción'}
+ ],
+ alt:`Si aún no se definieron ambos docentes, el/a Preceptor/a puede dejar la mesa en estado provisional y
+ completar el tribunal luego con el <b>CU-19: Asignar docente a materia</b>.`,
+ exc:`No puede programarse una mesa para una materia sin ciclo lectivo abierto: el sistema bloquea la
+ operación y solicita aperturar el ciclo con el <b>CU-10</b>.`,
+},
+{
+ id:'CU-45', title:'Realizar consulta al asistente virtual', pkg:'PK-CHAT', pkgName:'Asistente Virtual / Chatbot',
+ actor:'Usuario', sec:'Alumno/a, Docente, Preceptor/a, Administrador/a', rf:'RF-045',
+ inc:'CU-46, CU-47, CU-49', ext:'CU-48',
+ desc:`Permite a los/as usuarios/as plantear consultas en lenguaje natural al chatbot integrado en la
+ plataforma. La respuesta se construye mediante una búsqueda híbrida sobre la base de datos (RAG) y
+ sobre las tablas académicas, ejecutando tres inclusiones obligatorias: validación de permisos (CU-46),
+ recuperación de información (CU-47) y registro de la conversación (CU-49).`,
+ pre:['El/a usuario/a tiene una sesión activa con token JWT válido.',
+      'Existe al menos un documento indexado o datos académicos cargados.'],
+ post:['La respuesta se emite junto con las fuentes utilizadas.',
+       'Queda registrada la consulta con usuario, fecha y hora (RF-048).',
+       'La información entregada está acotada al rol del/a usuario/a (RF-046).'],
+ steps:[
+  {t:'start',text:'Inicio',next:1},
+  {t:'proc',text:'El/a usuario/a escribe su consulta en lenguaje natural',next:2},
+  {t:'proc',text:'La consulta se envía al endpoint /api/v1/chat/',next:3},
+  {t:'proc',text:'Incluir CU-46: validar rol y permisos de consulta',next:4},
+  {t:'dec',text:'¿Tiene permiso para esa información?',next:6,no:5},
+  {t:'err',text:'Responder "No tiene permisos para consultar esa información" según el rol'},
+  {t:'proc',text:'Incluir CU-47: recuperar información de la base de datos (RAG + tools)',next:7},
+  {t:'proc',text:'Componer la respuesta citando las fuentes recuperadas',next:8},
+  {t:'proc',text:'Incluir CU-49: registrar la conversación (usuario, fecha, hora)',next:9},
+  {t:'end',text:'Respuesta entregada al/a usuario/a'}
+ ],
+ alt:`Desde el <b>CU-48: Consultar correlatividades de una materia</b> se dispara este flujo mediante una
+ <code>&lt;&lt;extend&gt;&gt;</code>, inyectando un parámetro de materia que acota la búsqueda.`,
+ exc:`Si el proveedor LLM no responde, el sistema devuelve la información recuperada por similitud
+ vectorial sin síntesis, dejando constancia del fallo en la auditoría.`
+}];
+
+/* ---------- render de fichas ---------- */
+function renderFichas(){
+  $('#fichas').innerHTML = FICHAS.map(f=>`
+  <article class="ficha">
+    <div class="head">
+      <span class="id">${f.id}</span>
+      <h3>${esc(f.title)}</h3>
+      <span class="pill ${PKGPILL[f.pkg]}">${f.pkg}</span>
+    </div>
+    <div class="body">
+      <div class="fmeta">
+        <div><label>Paquete funcional</label><span>${esc(f.pkgName)}</span></div>
+        <div><label>Actor primario</label><span>${esc(f.actor)}</span></div>
+        <div><label>Actores secundarios</label><span>${esc(f.sec)}</span></div>
+        <div><label>Requisitos</label><span class="rf">${esc(f.rf)}</span></div>
+        <div><label>Incluye a</label><span>${esc(f.inc)}</span></div>
+        <div><label>Extiende a</label><span>${esc(f.ext)}</span></div>
+      </div>
+
+      <h4 class="fh">Descripción</h4>
+      <p class="desc">${f.desc.replace(/\s+/g,' ')}</p>
+
+      <h4 class="fh">Precondiciones</h4>
+      <ol class="flow">${f.pre.map(p=>`<li>${p}</li>`).join('')}</ol>
+
+      <h4 class="fh">Postcondiciones</h4>
+      <ol class="flow">${f.post.map(p=>`<li>${p}</li>`).join('')}</ol>
+
+      <h4 class="fh">Flujo principal</h4>
+      <ol class="flow">${f.steps.filter(s=>s.t!=='err').map((s,i)=>`<li><b>Paso ${i+1}.</b> ${esc(s.text)}</li>`).join('')}</ol>
+
+      <h4 class="fh">Flujo alternativo</h4>
+      <div class="alt"><b>Alternativo:</b> ${f.alt}</div>
+
+      <h4 class="fh">Flujo de excepción</h4>
+      <div class="exc"><b>Excepción:</b> ${f.exc}</div>
+
+      <h4 class="fh">Diagrama de flujo</h4>
+      <div class="box" style="border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fbfcfe">
+        <div class="vtoolbar" style="border-bottom:1px solid var(--line)">
+          <span style="font-size:12px;color:var(--muted);font-weight:600">${f.id} — ${esc(f.title)}</span>
+          <span class="hint" style="margin-left:auto;font-size:11.5px;color:var(--muted)">arrastrá el diagrama para desplazarlo · rueda = zoom</span>
+          <button class="btn" data-flow="${f.id}" data-act="fit">⛶ Ajustar</button>
+        </div>
+        <div class="stage" id="stage-${f.id}" style="height:430px;background-size:20px 20px">
+          <div class="layer" id="layer-${f.id}"><svg class="canvas" id="svg-${f.id}" width="6000" height="4000"></svg></div>
+        </div>
+        <div class="legend">
+          <span><span class="pill p5">Inicio / Fin</span></span>
+          <span><span class="pill p1">Proceso</span></span>
+          <span><span class="pill p8">Decisión</span></span>
+          <span><span class="pill" style="background:#fdecea;color:#c62828">Excepción</span></span>
+        </div>
+      </div>
+    </div>
+  </article>`).join('');
+}
+renderFichas();
+
+/* ---------- layout + render de flujos ---------- */
+const NODEH = s => s.t==='dec'?104 : (s.t==='start'||s.t==='end')?54 : (s.t==='err'?66 : 40 + wrap(s.text,38).length*17);
+
+function wrap(text,max){
+  const words=String(text).split(/\s+/); const lines=[]; let cur='';
+  words.forEach(w=>{ if((cur+' '+w).trim().length>max){ if(cur)lines.push(cur); cur=w; } else cur=(cur+' '+w).trim(); });
+  if(cur)lines.push(cur); return lines.length?lines:[''];
+}
+
+function layoutFlow(steps){
+  const pos={}; let y=0, i=0; const seen=new Set();
+  while(i!=null && !seen.has(i)){
+    seen.add(i); pos[i]={col:0,y,h:NODEH(steps[i])};
+    y += NODEH(steps[i]); i = steps[i].next!=null? steps[i].next : null;
+  }
+  let col=1;
+  steps.forEach((s,idx)=>{
+    if(s.no!=null && !seen.has(s.no)){
+      const c=col++; let j=s.no, by=(pos[idx]?pos[idx].y:0)+56; const s2=new Set();
+      while(j!=null && !s2.has(j)){
+        s2.add(j); pos[j]={col:c,y:by,h:NODEH(steps[j])};
+        by += NODEH(steps[j]); j = steps[j].next!=null? steps[j].next : null;
+      }
+    }
+  });
+  return pos;
+}
+
+function buildFlow(f){
+  const svg = document.getElementById('svg-'+f.id);
+  if(!svg) return null;
+  const steps=f.steps, pos=layoutFlow(steps), GAPX=330, GAP=64;
+  const COL = c => c*GAPX;
+  let minC=0,maxC=0; Object.values(pos).forEach(p=>{minC=Math.min(minC,p.col);maxC=Math.max(maxC,p.col);});
+  const totalH = Math.max(...Object.values(pos).map(p=>p.y+p.h)) + 40;
+  const totalW = (maxC-minC)*GAPX + 420;
+  const OX = 200 - minC*GAPX, OY = 60;
+
+  const P = i => ({x:COL(pos[i].col)+OX, y:pos[i].y+OY, h:pos[i].h});
+  const parts=[];
+
+  /* --- aristas --- */
+  steps.forEach((s,i)=>{
+    if(s.next!=null && pos[s.next] && pos[s.next].col===0){
+      const a=P(i), b=P(s.next);
+      parts.push(`<path d="M${a.x},${a.y+a.h} L${b.x},${b.y-9}" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#ar-${f.id})"/>`);
+      if(s.t==='dec') parts.push(`<text x="${a.x+9}" y="${a.y+a.h+20}" font-size="11.5" font-weight="700" fill="#2e7d32">Sí</text>`);
+    }
+    if(s.no!=null && pos[s.no] && pos[s.no].col!==0){
+      const a=P(i), b=P(s.no), bx=b.x;
+      const sy=a.y+a.h/2;
+      parts.push(`<path d="M${a.x+ (s.t==='dec'?132:135)},${sy} L${bx},${sy} L${bx},${b.y-9}" stroke="#c62828" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#arr-${f.id})"/>`);
+      parts.push(`<text x="${(a.x+132+bx)/2}" y="${sy-7}" font-size="11.5" font-weight="700" fill="#c62828" text-anchor="middle">No</text>`);
+    }
+  });
+
+  /* --- nodos --- */
+  steps.forEach((s,i)=>{
+    const p=P(i); const cx=p.x, cy=p.y+p.h/2; const lines=wrap(s.text, s.t==='dec'?26:38);
+    let g='';
+    if(s.t==='start'||s.t==='end'){
+      const col = s.t==='start'?'#2e7d32':'#1565c0';
+      g=`<rect x="${cx-115}" y="${p.y}" width="230" height="${p.h}" rx="27" fill="${col}"/>
+         <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">${esc(s.text)}</text>`;
+    } else if(s.t==='dec'){
+      const w=270,h=p.h;
+      g=`<polygon points="${cx},${p.y} ${cx+w/2},${cy} ${cx},${p.y+h} ${cx-w/2},${cy}" fill="#fff8e1" stroke="#f9a825" stroke-width="2.2"/>`;
+      g+=`<text x="${cx}" y="${cy-(lines.length-1)*7+4}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5d4037">`+
+         lines.map((l,k)=>`<tspan x="${cx}" dy="${k?15:0}">${esc(l)}</tspan>`).join('')+`</text>`;
+    } else if(s.t==='err'){
+      const w=280;
+      g=`<rect x="${cx-w/2}" y="${p.y}" width="${w}" height="${p.h}" rx="9" fill="#fdecea" stroke="#c62828" stroke-width="2"/>`;
+      g+=`<text x="${cx}" y="${cy-(lines.length-1)*7+4}" text-anchor="middle" font-size="12" fill="#b71c1c">`+
+         lines.map((l,k)=>`<tspan x="${cx}" dy="${k?16:0}">${esc(l)}</tspan>`).join('')+`</text>`;
+    } else {
+      const w=300;
+      g=`<rect x="${cx-w/2}" y="${p.y}" width="${w}" height="${p.h}" rx="9" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.8"/>`;
+      g+=`<text x="${cx}" y="${cy-(lines.length-1)*7+4}" text-anchor="middle" font-size="12.4" fill="#0d3270">`+
+         lines.map((l,k)=>`<tspan x="${cx}" dy="${k?16:0}">${esc(l)}</tspan>`).join('')+`</text>`;
+    }
+    parts.push(`<g class="flownode hit" data-i="${i}" style="cursor:move">${g}</g>`);
+  });
+
+  svg.innerHTML = `
+   <defs>
+     <marker id="ar-${f.id}" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+       <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/></marker>
+     <marker id="arr-${f.id}" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+       <path d="M0,0 L9,4.5 L0,9 z" fill="#c62828"/></marker>
+   </defs>
+   <g id="fg-${f.id}">${parts.join('')}</g>`;
+
+  return {w:totalW,h:totalH};
+}
+
+/* ---------- visor genérico de flujos (pan/zoom) ---------- */
+function attachFlowView(id){
+  const stage=document.getElementById('stage-'+id), layer=document.getElementById('layer-'+id);
+  if(!stage) return {fit(){},userMoved:false};
+  let k=1,tx=40,ty=20,drag=null,userMoved=false;
+  const apply=()=>layer.style.transform=`translate(${tx}px,${ty}px) scale(${k})`;
+  stage.addEventListener('wheel',e=>{
+    e.preventDefault();
+    userMoved=true;
+    const r=stage.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    const nk=Math.min(2.4,Math.max(.25,k*(e.deltaY<0?1.12:.89)));
+    tx=mx-(mx-tx)*(nk/k); ty=my-(my-ty)*(nk/k); k=nk; apply();
+  },{passive:false});
+  stage.addEventListener('pointerdown',e=>{
+    const n=e.target.closest('.flownode');
+    drag={x:e.clientX,y:e.clientY,tx,ty,node:n,moved:false}; stage.setPointerCapture(e.pointerId);
+    stage.classList.add('grabbing');
+    if(n){ n.dataset.ox=0; }
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    if(Math.abs(dx)+Math.abs(dy)>3){ drag.moved=true; userMoved=true; }
+    if(drag.node){
+      const g=drag.node.querySelector('g')||drag.node;
+      const cur=drag.node.getAttribute('transform')||'translate(0,0)';
+      const m=/translate\(([-\d.]+),([-\d.]+)\)/.exec(cur);
+      const ox=m?parseFloat(m[1]):0, oy=m?parseFloat(m[2]):0;
+      drag.node.setAttribute('transform',`translate(${ox+dx/k},${oy+dy/k})`);
+      drag.x=e.clientX; drag.y=e.clientY;
+    } else { tx=drag.tx+dx; ty=drag.ty+dy; apply(); }
+  });
+  const up=()=>{drag=null;stage.classList.remove('grabbing');};
+  stage.addEventListener('pointerup',up); stage.addEventListener('pointercancel',up);
+  const group=()=>document.getElementById('fg-'+id);   /* el <g> real del SVG */
+  return {
+    get userMoved(){ return userMoved; },
+    fit(){
+      const r=stage.getBoundingClientRect();
+      if(!r.width||!r.height) return;                  /* pestaña oculta: no ajustar aún */
+      const g=group(); if(!g||!g.getBBox) return;
+      let b; try{ b=g.getBBox(); }catch(e){ return; }
+      if(!b.width||!b.height) return;
+      k=Math.min((r.width-70)/b.width,(r.height-70)/b.height,1.3);
+      tx=(r.width-b.width*k)/2-b.x*k; ty=(r.height-b.height*k)/2-b.y*k;
+      userMoved=false; apply();
+    }
+  };
+}
+
+/* ============================================================
+   VISOR UML INTERACTIVO
+   ============================================================ */
+const COLORS = {actor:'#5c6bc0',uc:'#1e88e5',class:'#1e88e5',enum:'#8e24aa',note:'#f9a825'};
+
+class Viewer{
+  constructor(o){
+    Object.assign(this,o);
+    this.stage=$('#'+o.stageId); this.layer=$('#'+o.layerId); this.svg=$('#'+o.svgId);
+    this.side=$('#'+o.sideId);
+    this.k=1; this.tx=40; this.ty=30;
+    this.userMoved=false;
+    this.hidden=new Set(); this.flags={}; this.query='';
+    this.layoutMode='hier';
+    this.nodes=[]; this.edges=[]; this.notes=[];
+    this._bind();
+  }
+
+  /* ---------- datos ---------- */
+  setCU(d){
+    this.diagram=d.file; this.mode='cu';
+    const n=[],e=[];
+    d.actors.forEach(a=>n.push({id:'a:'+a.id,kind:'actor',name:a.name,x:0,y:0,w:110,h:86}));
+    d.usecases.forEach(u=>n.push({id:'u:'+u.id,kind:'uc',name:(u.code?u.code+': ':'')+u.name,x:0,y:0,w:196,h:74}));
+    d.actor_links.forEach(l=>e.push({from:'a:'+l.from,to:'u:'+l.to,kind:'assoc'}));
+    d.uc_links.forEach(l=>e.push({from:'u:'+l.from,to:'u:'+l.to,kind:l.kind}));
+    this.nodes=n; this.edges=e; this.notes=[]; this.title=d.title;
+    this.hidden.clear(); this.query='';
+    this.buildSide();
+    this.reset(true);
+  }
+  setClases(d,group){
+    this.diagram=(group||'')+'/'+d.file; this.mode='cl';
+    const n=[],e=[];
+    d.classes.forEach(c=>n.push({
+      id:'c:'+c.name, kind:c.stereo==='enum'?'enum':'class', name:c.name,
+      attrs:c.attrs||[], methods:c.methods||[], color:c.color, x:0,y:0,w:210,h:60
+    }));
+    d.rels.forEach(r=>e.push({from:'c:'+r.from,to:'c:'+r.to,kind:r.kind,cf:r.cf||'',ct:r.ct||'',label:r.label||''}));
+    (d.notes||[]).forEach((nt,i)=>n.push({id:'n:'+i,kind:'note',target:nt.target? 'c:'+nt.target:'',name:nt.text,x:0,y:0,w:250,h:90}));
+    this.nodes=n; this.edges=e; this.notes=[]; this.title=d.file;
+    this.hidden.clear(); this.query='';
+    this.buildSide();
+    this.reset(true);
+  }
+
+  /* ---------- geometría ---------- */
+  measure(){
+    this.nodes.forEach(n=>{
+      if(n.kind==='actor'){ n.w=112; n.h=92; return; }
+      if(n.kind==='uc'){ n.w=Math.max(180,Math.min(250,Math.ceil(n.name.length*6.6)+34)); n.h=76; return; }
+      if(n.kind==='note'){ n.w=264; n.h=Math.max(72,26+wrap(n.name,34).length*15); return; }
+      const showA=this.flags.attrs!==false, showM=this.flags.methods!==false;
+      const aw=Math.max(...n.attrs.map(a=>(a.name+' : '+(a.type||'')).length),10);
+      const mw=Math.max(...n.methods.map(m=>(m.name+'('+m.params+')'+(m.ret?': '+m.ret:'')).length),10);
+      n.w=Math.max(210,Math.ceil(Math.max(aw,mw)*6.35)+30);
+      let h=34;
+      if(showA) h+=n.attrs.length*15.5+6;
+      if(showM) h+=n.methods.length*15.5+6;
+      n.h=Math.max(46,h);
+    });
+  }
+
+  /* ---------- auto-ordenado ---------- */
+  auto(){
+    this.measure();
+    if(this.mode==='cu'){
+      const acts=this.nodes.filter(n=>n.kind==='actor');
+      const ucs =this.nodes.filter(n=>n.kind==='uc');
+      const ah=Math.max(...acts.map(a=>a.h),90);
+      const total=acts.length*ah; let y=-total/2;
+      acts.forEach(a=>{ a.x=-420; a.y=y; y+=ah; });
+      const cols=3, cw=290, rh=118;
+      ucs.forEach((u,i)=>{ u.x=(i%cols)*cw; u.y=Math.floor(i/cols)*rh - (Math.ceil(ucs.length/cols)*rh)/2; });
+    } else if(this.layoutMode==='grid'){
+      const cs=this.nodes.filter(n=>n.kind==='class'||n.kind==='enum');
+      const nt=this.nodes.filter(n=>n.kind==='note');
+      const cols=Math.max(2,Math.ceil(Math.sqrt(cs.length)));
+      cs.forEach((c,i)=>{ c.x=(i%cols)*320; c.y=Math.floor(i/cols)*230; });
+      nt.forEach((n,i)=>{ const t=this.nodes.find(x=>x.id===n.target);
+        if(t){ n.x=t.x+30; n.y=t.y+t.h+18; } else { n.x=(i%cols)*320+40; n.y=520+i*40; } });
+    } else {
+      this.layoutHier();
+    }
+    this.render(); this.fit();
+  }
+
+  /* ---------- layout jerárquico vertical ----------
+     Raíz = clase sin padre (herencia/composición) con más conexiones
+     (Usuario en el diagrama general). Desciende nivel por nivel vía BFS;
+     los hijos quedan agrupados debajo de su padre (tidy tree horizontal). */
+  layoutHier(){
+    const cs=this.nodes.filter(n=>n.kind==='class'||n.kind==='enum');
+    const nt=this.nodes.filter(n=>n.kind==='note');
+    if(!cs.length) return;
+    const byId=Object.fromEntries(this.nodes.map(n=>[n.id,n]));
+    const idx=Object.fromEntries(cs.map((c,i)=>[c.id,i]));
+    const nameTo=Object.fromEntries(cs.map(c=>[c.name,c]));
+
+    /* grafo no dirigido entre clases: relaciones + tipos de atributos (rol : Rol) */
+    const adj=new Map(cs.map(c=>[c.id,[]]));
+    const link=(a,b)=>{
+      if(!a||!b||a.id===b.id) return;                 /* sin self-loops en el árbol */
+      if(!adj.get(a.id).includes(b.id)) adj.get(a.id).push(b.id);
+      if(!adj.get(b.id).includes(a.id)) adj.get(b.id).push(a.id);
+    };
+    this.edges.forEach(e=>{
+      const a=byId[e.from], b=byId[e.to];
+      if(a&&b&&(a.kind==='class'||a.kind==='enum')&&(b.kind==='class'||b.kind==='enum')) link(a,b);
+    });
+    cs.forEach(c=>(c.attrs||[]).forEach(at=>{
+      const t=(at.type||'').trim();
+      if(nameTo[t]) link(c,nameTo[t]);               /* enum colgado de su clase */
+    }));
+
+    /* candidatos a raíz: sin padre por herencia/composición; gana el más conectado */
+    const hasParent=new Set();
+    this.edges.forEach(e=>{
+      if(e.kind==='inherit') hasParent.add(e.from);      /* el hijo tiene padre */
+      else if(e.kind==='compose') hasParent.add(e.to);   /* la parte tiene dueño */
+    });
+    const deg=id=>adj.get(id).length;
+    const cands=cs.filter(c=>!hasParent.has(c.id))
+                  .sort((a,b)=>deg(b.id)-deg(a.id)||idx[a.id]-idx[b.id]);
+
+    /* BFS por componentes (raíz primero, luego el resto) */
+    const level=new Map(), kids=new Map(cs.map(c=>[c.id,[]])), roots=[];
+    const bfs=r=>{
+      roots.push(r.id); level.set(r.id,0);
+      const q=[r.id];
+      while(q.length){
+        const u=q.shift();
+        adj.get(u).filter(v=>!level.has(v)).sort((a,b)=>idx[a]-idx[b])
+          .forEach(v=>{ level.set(v,level.get(u)+1); kids.get(u).push(v); q.push(v); });
+      }
+    };
+    cands.forEach(c=>{ if(!level.has(c.id)) bfs(c); });
+    cs.forEach(c=>{ if(!level.has(c.id)) bfs(c); });
+
+    /* tidy tree: ancho de subárbol y colocación de izquierda a derecha */
+    const GAPX=54, width=new Map();
+    const wOf=id=>{
+      const ch=kids.get(id);
+      if(!ch.length){ width.set(id,byId[id].w); return byId[id].w; }
+      let s=0; ch.forEach((c,i)=>{ s+=wOf(c)+(i?GAPX:0); });
+      const w=Math.max(s, byId[id].w+40);
+      width.set(id,w); return w;
+    };
+    const place=(id,left)=>{
+      const n=byId[id], ch=kids.get(id), W=width.get(id);
+      n.x=left+W/2;
+      if(!ch.length) return;
+      let sum=0; ch.forEach((c,i)=>{ sum+=width.get(c)+(i?GAPX:0); });
+      let cur=left+(W-sum)/2;
+      ch.forEach(c=>{ place(c,cur); cur+=width.get(c)+GAPX; });
+    };
+    roots.forEach(r=>wOf(r));
+    let cursor=0;
+    roots.forEach(r=>{ place(r,cursor); cursor+=width.get(r)+170; });
+
+    /* y por niveles, con hueco extra cuando cuelga una nota */
+    const rows=[];
+    cs.forEach(c=>{ const l=level.get(c.id); (rows[l]=rows[l]||[]).push(c); });
+    const noteOf=new Map();
+    nt.forEach(n=>{ if(n.target&&byId[n.target]) noteOf.set(n.target,n); });
+    let y=0, prevH=0, prevExtra=0;
+    rows.forEach((arr,l)=>{
+      const h=Math.max(...arr.map(n=>n.h));
+      if(l===0) y=h/2; else y+=prevH/2+prevExtra+115+h/2;
+      arr.forEach(n=>n.y=y);
+      prevH=h;
+      prevExtra=Math.max(0,...arr.map(n=>{ const t=noteOf.get(n.id); return t?t.h+22:0; }));
+    });
+
+    /* notas debajo de su clase */
+    nt.forEach(n=>{
+      const t=n.target?byId[n.target]:null;
+      if(t){ n.x=t.x; n.y=t.y+t.h/2+16+n.h/2; }
+      else { n.x=0; n.y=y+260; }
+    });
+
+    /* centrar todo en x=0 */
+    const all=cs.concat(nt);
+    const mid=(Math.min(...all.map(n=>n.x-n.w/2))+Math.max(...all.map(n=>n.x+n.w/2)))/2;
+    all.forEach(n=>n.x-=mid);
+  }
+
+  /* ---------- filtros ---------- */
+  visible(n){
+    if(this.hidden.has(n.id)) return false;
+    if(this.query){
+      const q=this.query.toLowerCase();
+      const hay=(n.name||'').toLowerCase()+(n.kind==='note'?' '+n.target.toLowerCase():'');
+      if(!hay.includes(q)) return false;
+    }
+    if(n.kind==='note' && this.flags.notes===false) return false;
+    if((n.kind==='class'||n.kind==='enum') && this.flags.nodes===false) return false;
+    return true;
+  }
+  edgeVisible(e){
+    const a=this.nodes.find(n=>n.id===e.from), b=this.nodes.find(n=>n.id===e.to);
+    if(!a||!b) return false;
+    if(!this.visible(a)||!this.visible(b)) return false;
+    if(e.kind==='include'&&this.flags.include===false) return false;
+    if(e.kind==='extend'&&this.flags.extend===false) return false;
+    if(e.kind==='assoc'&&this.mode==='cu'&&this.flags.links===false) return false;
+    if(['inherit','assoc','compose','depend'].includes(e.kind)&&this.mode==='cl'&&this.flags[e.kind]===false) return false;
+    if(this.query){
+      const q=this.query.toLowerCase();
+      const hit=(a.name||'').toLowerCase().includes(q)||(b.name||'').toLowerCase().includes(q);
+      if(!hit) return false;
+    }
+    return true;
+  }
+
+  /* ---------- panel de filtros ---------- */
+  buildSide(){
+    const F=this.flags;
+    const box=(t,inner)=>`<div class="box"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#64748b;font-weight:700;margin-bottom:6px">${t}</div>${inner}</div>`;
+    let h=`<input class="search" id="${this.sideId}-q" placeholder="🔍 Buscar en el diagrama…" value="${esc(this.query)}">`;
+
+    if(this.mode==='cu'){
+      const acts=this.nodes.filter(n=>n.kind==='actor');
+      const ucs =this.nodes.filter(n=>n.kind==='uc');
+      h+=`<h5>Actores (${acts.length})</h5>`+acts.map(a=>
+        `<label><input type="checkbox" data-id="${a.id}" ${this.hidden.has(a.id)?'':'checked'}><span class="swatch" style="background:${COLORS.actor}"></span>${esc(a.name)}</label>`).join('');
+      h+=`<h5>Casos de uso (${ucs.length})</h5><div style="max-height:230px;overflow:auto">`+ucs.map(u=>
+        `<label><input type="checkbox" data-id="${u.id}" ${this.hidden.has(u.id)?'':'checked'}><span class="swatch" style="background:${COLORS.uc}"></span><span style="font-size:11.8px">${esc(u.name)}</span></label>`).join('')+`</div>`;
+      h+=`<h5>Relaciones</h5>`+
+        `<label><input type="checkbox" data-flag="links" ${F.links===false?'':'checked'}>Asociación actor → CU</label>`+
+        `<label><input type="checkbox" data-flag="include" ${F.include===false?'':'checked'}>&lt;&lt;include&gt;&gt;</label>`+
+        `<label><input type="checkbox" data-flag="extend" ${F.extend===false?'':'checked'}>&lt;&lt;extend&gt;&gt;</label>`;
+      h+=`<h5>Selección rápida</h5>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn" data-sel="all" style="font-size:11.5px;padding:5px 9px">Todo</button>
+          <button class="btn" data-sel="none" style="font-size:11.5px;padding:5px 9px">Nada</button>
+          <button class="btn" data-sel="actors" style="font-size:11.5px;padding:5px 9px">Solo actores</button>
+          <button class="btn" data-sel="ucs" style="font-size:11.5px;padding:5px 9px">Solo CU</button>
+        </div>`;
+    } else {
+      const cs=this.nodes.filter(n=>n.kind==='class'||n.kind==='enum');
+      const nt=this.nodes.filter(n=>n.kind==='note');
+      h+=box('Nodos',
+        `<label><input type="checkbox" data-flag="nodes" ${F.nodes===false?'':'checked'}>Mostrar clases (${cs.length})</label>`+
+        `<label><input type="checkbox" data-flag="attrs" ${F.attrs===false?'':'checked'}>Mostrar atributos</label>`+
+        `<label><input type="checkbox" data-flag="methods" ${F.methods===false?'':'checked'}>Mostrar métodos</label>`+
+        (nt.length?`<label><input type="checkbox" data-flag="notes" ${F.notes===false?'':'checked'}>Mostrar notas (${nt.length})</label>`:''));
+      h+=box('Relaciones',
+        `<label><input type="checkbox" data-flag="inherit" ${F.inherit===false?'':'checked'}><span class="swatch" style="background:#43a047"></span>Herencia</label>`+
+        `<label><input type="checkbox" data-flag="assoc" ${F.assoc===false?'':'checked'}><span class="swatch" style="background:#78909c"></span>Asociación</label>`+
+        `<label><input type="checkbox" data-flag="compose" ${F.compose===false?'':'checked'}><span class="swatch" style="background:#8e24aa"></span>Composición</label>`+
+        `<label><input type="checkbox" data-flag="depend" ${F.depend===false?'':'checked'}><span class="swatch" style="background:#ef6c00"></span>Dependencia</label>`);
+      h+=box('Clases',`<div style="max-height:250px;overflow:auto">`+cs.map(c=>
+        `<label><input type="checkbox" data-id="${c.id}" ${this.hidden.has(c.id)?'':'checked'}><span class="swatch" style="background:${c.kind==='enum'?COLORS.enum:COLORS.class}"></span><span style="font-size:11.8px">${esc(c.name)}</span></label>`).join('')+`</div>`);
+      h+=box('Selección rápida',
+        `<div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn" data-sel="all" style="font-size:11.5px;padding:5px 9px">Todo</button>
+          <button class="btn" data-sel="none" style="font-size:11.5px;padding:5px 9px">Nada</button>
+          <button class="btn" data-sel="core" style="font-size:11.5px;padding:5px 9px">Solo entidades</button>
+        </div>`);
+    }
+    this.side.innerHTML=h;
+
+    const q=$('#'+this.sideId+'-q');
+    q.oninput=()=>{ this.query=q.value.trim(); this.render(); };
+    $$('input[data-id]',this.side).forEach(cb=>cb.onchange=()=>{
+      cb.checked?this.hidden.delete(cb.dataset.id):this.hidden.add(cb.dataset.id); this.render();
+    });
+    $$('input[data-flag]',this.side).forEach(cb=>cb.onchange=()=>{
+      this.flags[cb.dataset.flag]=cb.checked;
+      if(cb.dataset.flag==='attrs'||cb.dataset.flag==='methods'){ this.measure(); this.render(); }
+      else this.render();
+    });
+    $$('button[data-sel]',this.side).forEach(b=>b.onclick=()=>{
+      const m=b.dataset.sel;
+      this.nodes.forEach(n=>{
+        if(n.kind==='note') return;
+        let show=true;
+        if(m==='none') show=false;
+        else if(m==='actors') show=(n.kind==='actor');
+        else if(m==='ucs') show=(n.kind==='uc');
+        else if(m==='core') show=(n.kind==='class'||n.kind==='enum');
+        show?this.hidden.delete(n.id):this.hidden.add(n.id);
+      });
+      this.buildSide(); this.render();
+    });
+  }
+
+  /* geometría de una arista (soporta self-loops: Materia --> Materia) */
+  edgeGeom(e,byId){
+    const a=byId[e.from], b=byId[e.to];
+    if(e.from===e.to){
+      const hw=a.w/2, hh=a.h/2;
+      const A={x:a.x+hw*.6,y:a.y-hh*.5}, B={x:a.x+hw*.6,y:a.y+hh*.5};
+      return {A,B,mx:a.x+hw+62,my:a.y,
+        path:`M${A.x},${A.y} C${a.x+hw+76},${a.y-hh} ${a.x+hw+76},${a.y+hh} ${B.x},${B.y}`};
+    }
+    const A=this.anchor(a,b), B=this.anchor(b,a);
+    return {A,B,mx:(A.x+B.x)/2,my:(A.y+B.y)/2,path:`M${A.x},${A.y} L${B.x},${B.y}`};
+  }
+
+  /* ---------- render ---------- */
+  render(){
+    this.measure();
+    const NS='http://www.w3.org/2000/svg';
+    this.svg.innerHTML=`<defs>
+      <marker id="m-${this.sideId}-assoc" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10" fill="none" stroke="#78909c" stroke-width="1.6"/></marker>
+      <marker id="m-${this.sideId}-inherit" markerWidth="13" markerHeight="13" refX="12" refY="6.5" orient="auto">
+        <path d="M0,0 L13,6.5 L0,13 z" fill="#fff" stroke="#43a047" stroke-width="1.6"/></marker>
+      <marker id="m-${this.sideId}-include" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10" fill="none" stroke="#43a047" stroke-width="1.8"/></marker>
+      <marker id="m-${this.sideId}-extend" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10" fill="none" stroke="#fb8c00" stroke-width="1.8"/></marker>
+      <marker id="m-${this.sideId}-compose" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto">
+        <path d="M1,1 L1,11 L11,6 z" fill="#8e24aa"/></marker>
+      <marker id="m-${this.sideId}-depend" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10" fill="none" stroke="#ef6c00" stroke-width="1.7"/></marker>
+    </defs><g id="edges-${this.sideId}"></g><g id="nodes-${this.sideId}"></g>`;
+
+    const eg=this.svg.querySelector('#edges-'+this.sideId);
+    const ng=this.svg.querySelector('#nodes-'+this.sideId);
+    const byId=Object.fromEntries(this.nodes.map(n=>[n.id,n]));
+
+    /* --- aristas --- */
+    this.edges.forEach((e,i)=>{
+      if(!this.edgeVisible(e)) return;
+      const a=byId[e.from], b=byId[e.to];
+      const {A,B,mx,my,path}=this.edgeGeom(e,byId);
+      const dx=B.x-A.x, dy=B.y-A.y, len=Math.hypot(dx,dy)||1;
+      const curve = (e.kind==='assoc'||e.kind==='inherit')?0:0;
+      const color = e.kind==='include'?'#43a047': e.kind==='extend'?'#fb8c00':
+                    e.kind==='inherit'?'#43a047': e.kind==='compose'?'#8e24aa':
+                    e.kind==='depend'?'#ef6c00':'#78909c';
+      const dash = (e.kind==='extend'||e.kind==='depend')?'stroke-dasharray="7 5"':'';
+      const mk = ['inherit','compose','depend'].includes(e.kind)?e.kind:(e.kind==='assoc'&&this.mode==='cu'?'assoc':(e.kind==='assoc'?'assoc':e.kind));
+      let s=`<path class="hit" d="${path}" stroke="${color}" stroke-width="1.9" fill="none" ${dash} marker-end="url(#m-${this.sideId}-${mk==='assoc'&&this.mode==='cl'?'assoc':mk})"/>`;
+      if(e.kind==='inherit'){ s=s.replace(/marker-end="[^"]*"/,`marker-end="url(#m-${this.sideId}-inherit)"`); }
+      if(e.label||['include','extend'].includes(e.kind)){
+        const lab = e.label || ('<<'+e.kind+'>>');
+        const w=lab.length*6.2+12;
+        s+=`<g transform="translate(${mx},${my})"><rect x="${-w/2}" y="-9" width="${w}" height="17" rx="4" fill="#fff" stroke="${color}" stroke-opacity=".35"/>
+            <text x="0" y="3.5" text-anchor="middle" font-size="10.6" font-weight="700" fill="${color}">${esc(lab)}</text></g>`;
+      }
+      if(e.cf) s+=`<text x="${A.x+dx*.18}" y="${A.y+dy*.18-5}" font-size="10.5" fill="#64748b" text-anchor="middle">${esc(e.cf)}</text>`;
+      if(e.ct) s+=`<text x="${A.x+dx*.82}" y="${A.y+dy*.82-5}" font-size="10.5" fill="#64748b" text-anchor="middle">${esc(e.ct)}</text>`;
+      eg.insertAdjacentHTML('beforeend',s);
+    });
+
+    /* --- nodos --- */
+    this.nodes.forEach(n=>{
+      if(!this.visible(n)) return;
+      ng.insertAdjacentHTML('beforeend',this.nodeSVG(n));
+    });
+
+    /* --- drag de nodos --- */
+    $$('g.uml-node',ng).forEach(g=>{
+      g.addEventListener('pointerdown',ev=>{
+        ev.stopPropagation();
+        const n=this.nodes.find(x=>x.id===g.dataset.id); if(!n) return;
+        const sx=ev.clientX, sy=ev.clientY, ox=n.x, oy=n.y;
+        g.setPointerCapture(ev.pointerId);
+        const mv=e2=>{ n.x=ox+(e2.clientX-sx)/this.k; n.y=oy+(e2.clientY-sy)/this.k;
+          g.setAttribute('transform',`translate(${n.x},${n.y})`); this.drawEdges(); };
+        const up=()=>{ g.removeEventListener('pointermove',mv); g.removeEventListener('pointerup',up);
+          this.save(true); };
+        g.addEventListener('pointermove',mv); g.addEventListener('pointerup',up);
+      });
+      g.addEventListener('dblclick',ev=>{ ev.stopPropagation();
+        const n=this.nodes.find(x=>x.id===g.dataset.id); if(n) this.center(n); });
+    });
+
+    this.apply();
+    const visN=this.nodes.filter(n=>this.visible(n)).length;
+    const visE=this.edges.filter(e=>this.edgeVisible(e)).length;
+    $('#'+this.countId).textContent=`${visN} nodos · ${visE} relaciones`;
+  }
+
+  drawEdges(){
+    /* redesibuja solo las aristas tras mover un nodo */
+    const eg=this.svg.querySelector('#edges-'+this.sideId);
+    if(!eg) return;
+    const keep=eg.innerHTML;
+    const tmp=this.edges.slice();
+    eg.innerHTML='';
+    const byId=Object.fromEntries(this.nodes.map(n=>[n.id,n]));
+    /* reutiliza la misma lógica invocando render completo ligero */
+    const visN=this.nodes.filter(n=>this.visible(n));
+    this.edges.forEach(e=>{
+      if(!this.edgeVisible(e)) return;
+      const a=byId[e.from], b=byId[e.to]; if(!a||!b) return;
+      const {A,B,mx,my,path}=this.edgeGeom(e,byId);
+      const color = e.kind==='include'?'#43a047': e.kind==='extend'?'#fb8c00':
+                    e.kind==='inherit'?'#43a047': e.kind==='compose'?'#8e24aa':
+                    e.kind==='depend'?'#ef6c00':'#78909c';
+      const dash=(e.kind==='extend'||e.kind==='depend')?'stroke-dasharray="7 5"':'';
+      const mk = e.kind==='inherit'?'inherit':e.kind==='compose'?'compose':e.kind==='depend'?'depend':
+                 (e.kind==='assoc'&&this.mode==='cu')?'assoc':(e.kind==='assoc'?'assoc':e.kind);
+      let s=`<path class="hit" d="${path}" stroke="${color}" stroke-width="1.9" fill="none" ${dash} marker-end="url(#m-${this.sideId}-${mk})"/>`;
+      if(e.label||['include','extend'].includes(e.kind)){
+        const lab=e.label||('<<'+e.kind+'>>'); const w=lab.length*6.2+12;
+        s+=`<g transform="translate(${mx},${my})"><rect x="${-w/2}" y="-9" width="${w}" height="17" rx="4" fill="#fff" stroke="${color}" stroke-opacity=".35"/>
+            <text x="0" y="3.5" text-anchor="middle" font-size="10.6" font-weight="700" fill="${color}">${esc(lab)}</text></g>`;
+      }
+      if(e.cf) s+=`<text x="${A.x+(B.x-A.x)*.18}" y="${A.y+(B.y-A.y)*.18-5}" font-size="10.5" fill="#64748b" text-anchor="middle">${esc(e.cf)}</text>`;
+      if(e.ct) s+=`<text x="${A.x+(B.x-A.x)*.82}" y="${A.y+(B.y-A.y)*.82-5}" font-size="10.5" fill="#64748b" text-anchor="middle">${esc(e.ct)}</text>`;
+      eg.insertAdjacentHTML('beforeend',s);
+    });
+  }
+
+  nodeSVG(n){
+    const x=n.x,y=n.y;
+    if(n.kind==='actor'){
+      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+        <circle cx="0" cy="-24" r="12" fill="#e8eaf6" stroke="${COLORS.actor}" stroke-width="2.4"/>
+        <path d="M0,-12 L0,14 M-17,0 L17,0 M0,14 L-15,38 M0,14 L15,38" stroke="${COLORS.actor}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <text x="0" y="58" text-anchor="middle" font-size="12.4" font-weight="700" fill="#283593">${esc(n.name)}</text></g>`;
+    }
+    if(n.kind==='uc'){
+      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+        <ellipse cx="0" cy="0" rx="${n.w/2}" ry="${n.h/2}" fill="#e3f2fd" stroke="${COLORS.uc}" stroke-width="2.2"/>
+        <text x="0" y="${n.name.length>30?-2:4}" text-anchor="middle" font-size="11.8" fill="#0d3270" font-weight="600">${
+          wrap(n.name,30).map((l,i)=>`<tspan x="0" dy="${i?14:0}">${esc(l)}</tspan>`).join('')}</text></g>`;
+    }
+    if(n.kind==='note'){
+      const lines=wrap(n.name,34);
+      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+        <g transform="translate(${-n.w/2},${-n.h/2})">
+        <path d="M0,0 H${n.w-14} L${n.w},14 V${n.h} H0 Z" fill="#fffde7" stroke="#f9a825" stroke-width="1.6"/>
+        <path d="M${n.w-14},0 V14 H${n.w}" fill="none" stroke="#f9a825" stroke-width="1.6"/>
+        <text x="12" y="24" font-size="11.2" fill="#5d4037">${lines.map((l,i)=>`<tspan x="12" dy="${i?15:0}">${esc(l)}</tspan>`).join('')}</text></g></g>`;
+    }
+    /* clase / enum */
+    const showA=this.flags.attrs!==false, showM=this.flags.methods!==false;
+    const isEnum=n.kind==='enum';
+    const head=isEnum?'#8e24aa':(n.color||'#1e88e5');
+    let yy=34, rows='';
+    if(showA){
+      rows+=`<line x1="0" y1="${yy-8}" x2="${n.w}" y2="${yy-8}" stroke="#cfd8dc" stroke-width="1"/>`;
+      n.attrs.forEach(a=>{
+        const t=(a.vis&&a.vis.trim()?a.vis:'')+' '+a.name+(a.type?' : '+a.type:'');
+        rows+=`<text x="11" y="${yy+4}" font-size="11.3" fill="#37474f" font-family="Consolas,monospace">${esc(t.trim())}</text>`;
+        yy+=15.5;
+      });
+    }
+    if(showM && n.methods.length){
+      yy+=6;
+      rows+=`<line x1="0" y1="${yy-8}" x2="${n.w}" y2="${yy-8}" stroke="#cfd8dc" stroke-width="1"/>`;
+      n.methods.forEach(m=>{
+        const t=(m.vis||'+')+' '+m.name+'('+(m.params||'')+')'+(m.ret?': '+m.ret:'');
+        rows+=`<text x="11" y="${yy+4}" font-size="11.3" fill="#1b5e20" font-family="Consolas,monospace">${esc(t)}</text>`;
+        yy+=15.5;
+      });
+    }
+    return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+      <g transform="translate(${-n.w/2},${-n.h/2})">
+      <rect x="0" y="0" width="${n.w}" height="${n.h}" rx="7" fill="#fff" stroke="${head}" stroke-width="2"/>
+      <rect x="0" y="0" width="${n.w}" height="30" rx="7" fill="${head}"/>
+      <rect x="0" y="16" width="${n.w}" height="14" fill="${head}"/>
+      <text x="${n.w/2}" y="20" text-anchor="middle" font-size="12.6" font-weight="700" fill="#fff">${esc(n.name)}</text>
+      ${isEnum?'<text x="'+(n.w-9)+'" y="20" text-anchor="end" font-size="9.4" fill="#ffffffaa">«enum»</text>':''}
+      ${rows}</g></g>`;
+  }
+
+  anchor(n,t){
+    const cx=n.x, cy=n.y;
+    if(n.kind==='actor') return {x:cx, y:cy+34};
+    if(n.kind==='uc'){
+      const tx=t.x, ty=t.y; const dx=tx-cx, dy=ty-cy;
+      const rx=n.w/2, ry=n.h/2; const d=Math.hypot(dx,dy)||1;
+      return {x:cx+dx/d*rx, y:cy+dy/d*ry};
+    }
+    /* rectángulo: intersección con el borde */
+    const hw=n.w/2, hh=n.h/2, dx=t.x-cx, dy=t.y-cy;
+    if(!dx&&!dy) return {x:cx,y:cy+hh};
+    const sx=dx?hw/Math.abs(dx):Infinity, sy=dy?hh/Math.abs(dy):Infinity;
+    const s=Math.min(sx,sy);
+    return {x:cx+dx*s, y:cy+dy*s};
+  }
+
+  /* ---------- transform ---------- */
+  apply(){
+    this.layer.style.transform=`translate(${this.tx}px,${this.ty}px) scale(${this.k})`;
+    $('#'+this.zoomId).textContent=Math.round(this.k*100)+'%';
+  }
+  fit(){
+    const vis=this.nodes.filter(n=>this.visible(n)); if(!vis.length) return;
+    const minX=Math.min(...vis.map(n=>n.x-(n.kind==='actor'?60:n.w/2)));
+    const maxX=Math.max(...vis.map(n=>n.x+(n.kind==='actor'?60:n.w/2)));
+    const minY=Math.min(...vis.map(n=>n.y-(n.kind==='actor'?50:n.h/2)));
+    const maxY=Math.max(...vis.map(n=>n.y+(n.kind==='actor'?45:n.h/2)));
+    const r=this.stage.getBoundingClientRect();
+    if(!r.width||!r.height) return;          /* pestaña oculta: no ajustar aún */
+    const w=maxX-minX+80, h=maxY-minY+80;
+    this.k=Math.max(.18,Math.min(1.5,Math.min(r.width/w,r.height/h)));
+    this.tx=(r.width-(maxX-minX)*this.k)/2-minX*this.k;
+    this.ty=(r.height-(maxY-minY)*this.k)/2-minY*this.k;
+    this.userMoved=false;
+    this.apply();
+  }
+  center(n){
+    const r=this.stage.getBoundingClientRect();
+    this.tx=r.width/2-n.x*this.k; this.ty=r.height/2-n.y*this.k;
+    this.userMoved=true; this.apply();
+  }
+
+  /* ---------- persistencia ---------- */
+  key(){ return 'umlpos_'+this.diagram.replace(/[^\w]/g,'_'); }
+  save(silent){
+    const p={}; this.nodes.forEach(n=>p[n.id]=[Math.round(n.x),Math.round(n.y)]);
+    try{ localStorage.setItem(this.key(),JSON.stringify(p)); if(!silent) this.toast('Posiciones guardadas ✓'); }catch(e){}
+  }
+  load(){
+    try{
+      const raw=localStorage.getItem(this.key()); if(!raw){ this.toast('No hay posiciones guardadas'); return false; }
+      const p=JSON.parse(raw); let ok=0;
+      this.nodes.forEach(n=>{ if(p[n.id]){ n.x=p[n.id][0]; n.y=p[n.id][1]; ok++; } });
+      this.render(); this.toast(`${ok} elementos restaurados ✓`); return true;
+    }catch(e){ return false; }
+  }
+  clear(){ try{localStorage.removeItem(this.key());}catch(e){} this.auto(); this.toast('Posiciones borradas'); }
+  reset(auto){
+    if(!this.load()) this.auto(); else this.render();
+  }
+  toast(msg){
+    let t=document.getElementById('toast');
+    if(!t){ t=document.createElement('div'); t.id='toast';
+      t.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0d47a1;color:#fff;padding:10px 20px;border-radius:9px;font-size:13px;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.25);transition:.3s';
+      document.body.appendChild(t); }
+    t.textContent=msg; t.style.opacity='1';
+    clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity='0',1700);
+  }
+
+  /* ---------- interacción lienzo ---------- */
+  _bind(){
+    this.stage.addEventListener('wheel',e=>{
+      e.preventDefault();
+      this.userMoved=true;
+      const r=this.stage.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+      const nk=Math.min(3,Math.max(.15,this.k*(e.deltaY<0?1.13:.885)));
+      this.tx=mx-(mx-this.tx)*(nk/this.k); this.ty=my-(my-this.ty)*(nk/this.k);
+      this.k=nk; this.apply();
+    },{passive:false});
+
+    this.stage.addEventListener('pointerdown',e=>{
+      if(e.target.closest('.uml-node')) return;
+      this.userMoved=true;
+      const sx=e.clientX, sy=e.clientY, tx=this.tx, ty=this.ty;
+      this.stage.classList.add('grabbing'); this.stage.setPointerCapture(e.pointerId);
+      const mv=e2=>{ this.tx=tx+(e2.clientX-sx); this.ty=ty+(e2.clientY-sy); this.apply(); };
+      const up=()=>{ this.stage.classList.remove('grabbing');
+        this.stage.removeEventListener('pointermove',mv); this.stage.removeEventListener('pointerup',up); };
+      this.stage.addEventListener('pointermove',mv); this.stage.addEventListener('pointerup',up);
+    });
+  }
+}
+
+/* ============================================================
+   ARMADO DE LOS DOS VISORES
+   ============================================================ */
+const vCU = new Viewer({stageId:'cuStage',layerId:'cuLayer',svgId:'cuSvg',sideId:'cuSide',
+                        zoomId:'cuZoom',countId:'cuVisible'});
+const vCL = new Viewer({stageId:'clStage',layerId:'clLayer',svgId:'clSvg',sideId:'clSide',
+                        zoomId:'clZoom',countId:'clVisible'});
+
+/* --- selector de diagramas CU --- */
+(()=>{
+  const sel=$('#cuDiagram');
+  sel.innerHTML=DATA.cu.map((d,i)=>`<option value="${i}">${esc(d.file.replace('.puml',''))} — ${esc(d.title)}</option>`).join('');
+  const load=()=>{ vCU.setCU(DATA.cu[+sel.value]); };
+  sel.onchange=load; load();
+})();
+
+/* --- selector de diagramas de clases --- */
+(()=>{
+  const grp=$('#clGroup'), sel=$('#clDiagram');
+  const fill=()=>{
+    const list = grp.value==='paquete'?DATA.clases:DATA.detalle;
+    sel.innerHTML=list.map((d,i)=>`<option value="${i}">${esc(d.file.replace('.puml',''))}</option>`).join('');
+    vCL.setClases(list[+sel.value||0],grp.value);
+  };
+  grp.onchange=fill; sel.onchange=()=>{ const list=grp.value==='paquete'?DATA.clases:DATA.detalle; vCL.setClases(list[+sel.value],grp.value); };
+  fill();
+})();
+
+/* --- selector de diseño (jerárquico / rejilla) --- */
+(()=>{
+  const lay=$('#clLayout');
+  if(!lay) return;
+  lay.onchange=()=>{ vCL.layoutMode=lay.value; vCL.auto(); };
+})();
+
+/* --- botones de herramientas --- */
+$$('button[data-act]').forEach(b=>{
+  b.onclick=()=>{
+    const v = b.dataset.v==='cu'?vCU:vCL;
+    const a = b.dataset.act;
+    if(a==='auto') v.auto();
+    else if(a==='fit') v.fit();
+    else if(a==='save') v.save(false);
+    else if(a==='load') v.load();
+    else if(a==='clear') v.clear();
+  };
+});
+
+/* --- botones de los flujos (una vez renderizadas las fichas) --- */
+$$('button[data-flow]').forEach(b=>{ b.onclick=()=>{ const fv=FLOWVIEWS[b.dataset.flow]; if(fv) fv.fit(); }; });
+
+/* --- enlazar visores de flujo --- */
+const FLOWVIEWS={};
+FICHAS.forEach(f=>{ const m=buildFlow(f); if(m) FLOWVIEWS[f.id]=attachFlowView(f.id); });
+requestAnimationFrame(()=>{ FICHAS.forEach(f=>{ const v=FLOWVIEWS[f.id]; if(v) v.fit(); }); vCU.fit(); vCL.fit(); });
+
+</script>
+</body>
+</html>
