@@ -32,7 +32,9 @@ CREATE TABLE isft189.usuarios (
     CONSTRAINT ck_usuarios_nombre_no_vacio
         CHECK (length(btrim(nombre)) > 0),
     CONSTRAINT ck_usuarios_email_valido
-        CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+        CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    CONSTRAINT ck_usuarios_rol_valido
+        CHECK (rol IN ('ALUMNO', 'DOCENTE', 'PRECEPTOR', 'ADMINISTRADOR'))
 );
 
 CREATE INDEX idx_usuarios_email
@@ -58,6 +60,9 @@ CREATE INDEX idx_documentos_tipo
 
 CREATE INDEX idx_documentos_carrera
     ON isft189.documentos_metadata (carrera);
+
+CREATE INDEX idx_documentos_activo
+    ON isft189.documentos_metadata (activo);
 
 -- Tabla 3: documentos_vectoriales (fragmentos de texto y embeddings vectoriales)
 CREATE TABLE isft189.documentos_vectoriales (
