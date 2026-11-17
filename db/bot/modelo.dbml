@@ -39,6 +39,7 @@ Table documentos_metadata {
   indexes {
     tipo_documento [name: 'idx_documentos_tipo']
     carrera [name: 'idx_documentos_carrera']
+    activo [name: 'idx_documentos_activo']
   }
 
   Note: 'Registro de documentos oficiales cargados e indexados.'
