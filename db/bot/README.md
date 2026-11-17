@@ -45,29 +45,39 @@ db/
     ├── 02_dml.sql            # Datos iniciales y embeddings multilingües (384-d)
     ├── er.drawio             # Diagrama Entidad-Relación conceptual
     ├── modelo.dbml           # Modelo físico en formato DBML
-    ├── requirements.txt      # Dependencias Python
+    ├── pyproject.toml        # Configuración de Ruff (linter) y Pytest
+    ├── requirements.txt      # Dependencias Python de ejecución
+    ├── requirements-dev.txt  # Dependencias de desarrollo (pytest, ruff)
     ├── .env.example          # Plantilla de variables de entorno
-    ├── tests/
-    │   └── test_app.py       # Pruebas unitarias e integración (JWT, RBAC, PDF, RAG)
     └── app/
         ├── .venv/            # Entorno virtual Python
-        ├── config.py         # Configuración (DB, JWT, CORS, LLM, Embeddings)
-        ├── database.py       # Motor asíncrono SQLAlchemy + asyncpg
-        ├── models.py         # Modelos ORM esquema isft189
-        ├── institute_models.py # Modelos ORM esquema instituto
-        ├── security.py       # Bcrypt, JWT y ControladorAcceso (RBAC)
-        ├── schemas.py        # Esquemas Pydantic v2 con validaciones
-        ├── embeddings.py     # FastEmbed multilingüe 384-d + wrappers async
-        ├── llm.py            # Cliente Groq / OpenRouter con Tool Calling
-        ├── services/
-        │   ├── academic.py   # Consultas parametrizadas RBAC sobre instituto
-        │   ├── ingestion.py  # Chunking seguro, extracción PDF y vectorización
-        │   └── rag.py        # Búsqueda híbrida HNSW + herramientas académicas
-        ├── routes/
-        │   ├── auth.py       # /api/v1/auth/login, /token y /me
-        │   ├── academic.py   # /api/v1/academic/*
-        │   ├── documents.py  # /api/v1/documents/* (JSON y PDF)
-        │   └── chat.py       # /api/v1/chat/ y /history (aislado por rol)
+        ├── core/             # Configuración, motor DB y seguridad (JWT + RBAC)
+        │   ├── config.py
+        │   ├── database.py
+        │   └── security.py
+        ├── models/           # Modelos ORM SQLAlchemy (isft189 + instituto)
+        │   ├── bot.py
+        │   └── institute.py
+        ├── schemas/          # Esquemas Pydantic v2 con validaciones
+        │   ├── academic.py
+        │   ├── auth.py
+        │   ├── chat.py
+        │   └── documents.py
+        ├── clients/          # Integraciones externas (FastEmbed + Groq/OpenRouter)
+        │   ├── embeddings.py
+        │   └── llm.py
+        ├── services/         # Lógica de negocio (académica, ingesta, RAG)
+        │   ├── academic.py
+        │   ├── ingestion.py
+        │   └── rag.py
+        ├── routes/           # Endpoints FastAPI (/api/v1/*)
+        │   ├── auth.py
+        │   ├── academic.py
+        │   ├── documents.py
+        │   └── chat.py
+        ├── tests/            # Pruebas unitarias e integración (JWT, RBAC, PDF, RAG)
+        │   ├── test_unit.py
+        │   └── test_api.py
         └── main.py           # Aplicación FastAPI, lifespan y /health
 ```
 
@@ -106,7 +116,7 @@ PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=
 cd db/bot
 python3 -m venv app/.venv
 source app/.venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp .env.example .env
 ```
 
@@ -118,8 +128,9 @@ Configurar en `.env` tu clave de **Groq** o **OpenRouter** y un `JWT_SECRET_KEY`
 # Desde db/bot (o desde db/bot/app usando uvicorn main:app)
 app/.venv/bin/uvicorn app.main:app --reload --port 8000
 
-# Ejecutar suite de pruebas
-app/.venv/bin/pytest -v tests/test_app.py
+# Ejecutar linter (Ruff) y suite de pruebas
+app/.venv/bin/ruff check .
+app/.venv/bin/pytest -v
 ```
 
 Documentación interactiva (Swagger UI con botón **Authorize** integrado): `http://localhost:8000/docs`

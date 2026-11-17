@@ -1,10 +1,11 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
-from app.institute_models import (
+from app.core.security import ROLE_FROM_DB
+from app.models.institute import (
     AcademicCycle,
     Attendance,
     Career,
@@ -23,7 +24,6 @@ from app.institute_models import (
     SubjectAssignment,
     Teacher,
 )
-from app.security import ROLE_FROM_DB
 
 PERIOD_TYPE_FROM_DB = {"CURSADA": "COURSE", "EXAMEN": "EXAM"}
 PERIOD_TYPE_TO_DB = {v: k for k, v in PERIOD_TYPE_FROM_DB.items()}
@@ -41,12 +41,12 @@ BOARD_ROLE_FROM_DB = {"TITULAR": "CHAIR", "OBSERVADOR": "OBSERVER"}
 
 async def get_careers_with_subjects(
     db: AsyncSession,
-    search: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    search: str | None = None,
+) -> list[dict[str, Any]]:
     """
     Return active careers with their current study plan metadata and a nested list of subjects.
     """
-    career_stmt = select(Career).where(Career.active == True).order_by(Career.name)
+    career_stmt = select(Career).where(Career.active .is_(True)).order_by(Career.name)
     if search:
         career_stmt = career_stmt.where(Career.name.ilike(f"%{search.strip()}%"))
 
@@ -57,16 +57,16 @@ async def get_careers_with_subjects(
     career_ids = [c.id for c in careers]
     plans_stmt = (
         select(StudyPlan)
-        .where(StudyPlan.career_id.in_(career_ids), StudyPlan.active == True)
+        .where(StudyPlan.career_id.in_(career_ids), StudyPlan.active .is_(True))
         .order_by(StudyPlan.year.desc())
     )
     plans = (await db.execute(plans_stmt)).scalars().all()
-    active_plan_by_career: Dict[int, StudyPlan] = {}
+    active_plan_by_career: dict[int, StudyPlan] = {}
     for plan in plans:
         active_plan_by_career.setdefault(plan.career_id, plan)
 
     plan_ids = [p.id for p in active_plan_by_career.values()]
-    subjects_by_plan: Dict[int, List[Dict[str, Any]]] = {}
+    subjects_by_plan: dict[int, list[dict[str, Any]]] = {}
     if plan_ids:
         subj_stmt = (
             select(Subject)
@@ -100,7 +100,7 @@ async def get_active_notices(
     db: AsyncSession,
     db_role: str,
     limit: int = 10,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Return institution-wide notices or notices targeted to the user's role."""
     stmt = (
         select(Notice)
@@ -123,8 +123,8 @@ async def get_active_notices(
 
 async def get_enrollment_periods(
     db: AsyncSession,
-    period_type: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    period_type: str | None = None,
+) -> list[dict[str, Any]]:
     """Return enrollment periods for open academic cycles, optionally filtered by COURSE or EXAM."""
     stmt = (
         select(
@@ -157,9 +157,9 @@ async def get_enrollment_periods(
 
 async def get_exam_boards_overview(
     db: AsyncSession,
-    subject_id: Optional[int] = None,
-    subject_name: Optional[str] = None,
-) -> Dict[str, Any]:
+    subject_id: int | None = None,
+    subject_name: str | None = None,
+) -> dict[str, Any]:
     """Return ONLY EXAM enrollment periods in open cycles together with scheduled exam boards."""
     if subject_id is not None:
         exists = (await db.execute(select(Subject.id).where(Subject.id == subject_id))).scalar_one_or_none()
@@ -224,7 +224,7 @@ async def get_exam_boards_overview(
 async def get_student_history(
     db: AsyncSession,
     student_id: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Consolidated academic history for a student (RF-038)."""
     student = (await db.execute(select(Student).where(Student.id == student_id))).scalar_one_or_none()
     if not student:
@@ -271,7 +271,7 @@ async def get_student_history(
         .where(CourseEnrollment.student_id == student_id)
         .order_by(PartialGrade.instance, PartialGrade.instance_number)
     )
-    grades_map: Dict[int, List[Dict[str, Any]]] = {}
+    grades_map: dict[int, list[dict[str, Any]]] = {}
     for g in (await db.execute(grades_stmt)).mappings().all():
         grades_map.setdefault(g["course_enrollment_id"], []).append({
             "instance": "MIDTERM" if g["instance"] == "PARCIAL" else "PRACTICAL_WORK",
@@ -345,9 +345,9 @@ async def get_student_history(
 async def get_student_attendance(
     db: AsyncSession,
     student_id: int,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Calculate accumulated attendance percentage per subject for a student (RF-029)."""
-    present_expr = func.sum(case((Attendance.present == True, 1), else_=0))
+    present_expr = func.sum(case((Attendance.present .is_(True), 1), else_=0))
     total_expr = func.count(Attendance.id)
 
     stmt = (
@@ -384,9 +384,9 @@ async def get_student_attendance(
 async def check_student_prerequisites(
     db: AsyncSession,
     student_id: int,
-    subject_name: Optional[str] = None,
-    subject_id: Optional[int] = None,
-) -> Dict[str, Any]:
+    subject_name: str | None = None,
+    subject_id: int | None = None,
+) -> dict[str, Any]:
     """
     Validate TO_ENROLL and TO_TAKE_EXAM prerequisites for a student (RF-021 / RF-026),
     considering regular/promoted courses and passed final exams (>= 4.00).
@@ -400,7 +400,7 @@ async def check_student_prerequisites(
         )
         .join(StudyPlan, Subject.study_plan_id == StudyPlan.id)
         .join(Career, StudyPlan.career_id == Career.id)
-        .where(Career.active == True, StudyPlan.active == True)
+        .where(Career.active .is_(True), StudyPlan.active .is_(True))
         .order_by(Career.name, Subject.name)
     )
     if subject_id is not None:
@@ -424,7 +424,7 @@ async def check_student_prerequisites(
             .where(CourseEnrollment.student_id == student_id)
         )
     ).all()
-    conditions_by_subject: Dict[int, set[str]] = {}
+    conditions_by_subject: dict[int, set[str]] = {}
     for sid, cond in course_rows:
         conditions_by_subject.setdefault(sid, set()).add(cond)
 
@@ -439,7 +439,7 @@ async def check_student_prerequisites(
             )
         )
     ).all()
-    passed_finals: Dict[int, float] = {}
+    passed_finals: dict[int, float] = {}
     for sid, grade in final_rows:
         passed_finals[sid] = max(passed_finals.get(sid, 0.0), float(grade))
 
@@ -504,9 +504,9 @@ async def check_student_prerequisites(
 async def get_teacher_course_rosters(
     db: AsyncSession,
     teacher_id: int,
-    subject_id: Optional[int] = None,
-    subject_name: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    subject_id: int | None = None,
+    subject_name: str | None = None,
+) -> list[dict[str, Any]]:
     """Return subjects assigned to the teacher and enrolled student rosters (RF-014 / RF-015)."""
     if subject_id is not None:
         exists = (await db.execute(select(Subject.id).where(Subject.id == subject_id))).scalar_one_or_none()
@@ -579,7 +579,7 @@ async def get_teacher_course_rosters(
 async def get_teacher_exam_boards(
     db: AsyncSession,
     teacher_id: int,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Return exam boards where the authenticated teacher serves as chair or observer (RF-017)."""
     stmt = (
         select(
@@ -620,9 +620,9 @@ async def get_teacher_exam_boards(
 
 async def get_student_admin_detail(
     db: AsyncSession,
-    file_number: Optional[int] = None,
-    dni: Optional[str] = None,
-) -> Dict[str, Any]:
+    file_number: int | None = None,
+    dni: str | None = None,
+) -> dict[str, Any]:
     """Lookup student record, history, and attendance for PRECEPTOR or ADMIN (RF-003)."""
     stmt = select(Student)
     if file_number is not None:

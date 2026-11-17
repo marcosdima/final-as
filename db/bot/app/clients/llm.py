@@ -1,10 +1,11 @@
 import json
 import logging
-from typing import Any, Awaitable, Callable, Dict, List, Optional
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from openai import AsyncOpenAI
 
-from app.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -21,22 +22,20 @@ Instrucciones estrictas:
 6. Sé claro, conciso, formal y empático.
 """
 
-ToolExecutor = Callable[[str, Dict[str, Any]], Awaitable[str]]
+ToolExecutor = Callable[[str, dict[str, Any]], Awaitable[str]]
 
 
 class LLMService:
     def __init__(self) -> None:
-        self._client: Optional[AsyncOpenAI] = None
+        self._client: AsyncOpenAI | None = None
 
     def has_valid_api_key(self) -> bool:
         _, api_key, _ = settings.get_llm_credentials()
         if not api_key:
             return False
-        if api_key.startswith("gsk_tu_clave") or api_key.startswith("sk-or-v1-tu_clave"):
-            return False
-        return True
+        return not api_key.startswith(("gsk_tu_clave", "sk-or-v1-tu_clave"))
 
-    def _get_client(self) -> Optional[AsyncOpenAI]:
+    def _get_client(self) -> AsyncOpenAI | None:
         if not self.has_valid_api_key():
             return None
         base_url, api_key, _ = settings.get_llm_credentials()
@@ -52,12 +51,12 @@ class LLMService:
         self,
         query: str,
         user_context: str,
-        context_fragments: List[str],
-        tools: List[Dict[str, Any]],
+        context_fragments: list[str],
+        tools: list[dict[str, Any]],
         tool_executor: ToolExecutor,
         temperature: float = 0.2,
         max_rounds: int = 5,
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Execute RAG generation with OpenAI-compatible Tool Calling (Groq / OpenRouter).
         Returns None when no API key is configured so local fallback can run.
@@ -79,15 +78,15 @@ class LLMService:
             f"USER QUESTION:\n{query}"
         )
 
-        messages: List[Dict[str, Any]] = [
+        messages: list[dict[str, Any]] = [
             {"role": "system", "content": SYSTEM_PROMPT_ISFT189},
             {"role": "user", "content": user_prompt},
         ]
-        collected_tool_outputs: List[str] = []
+        collected_tool_outputs: list[str] = []
 
         try:
             for _ in range(max_rounds):
-                kwargs: Dict[str, Any] = {
+                kwargs: dict[str, Any] = {
                     "model": model_name,
                     "temperature": temperature,
                     "messages": messages,
@@ -141,7 +140,7 @@ class LLMService:
             synthesis_prompt = (
                 f"AUTHENTICATED USER:\n{user_context}\n\n"
                 f"RETRIEVED DOCUMENT CONTEXT:\n{context_block}\n\n"
-                f"ACADEMIC TOOL RESULTS:\n" + "\n\n".join(collected_tool_outputs) + "\n\n"
+                "ACADEMIC TOOL RESULTS:\n" + "\n\n".join(collected_tool_outputs) + "\n\n"
                 f"USER QUESTION:\n{query}\n\n"
                 "Redactá la respuesta final directamente en texto claro para el usuario sin invocar herramientas."
             )

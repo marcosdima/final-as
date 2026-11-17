@@ -4,3 +4,7 @@ CU/output/*
 *.py[cod]
 *$py.class
 .env
+.ruff_cache/
+**/.ruff_cache/
+.pytest_cache/
+**/.pytest_cache/

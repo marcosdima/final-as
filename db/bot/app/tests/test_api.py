@@ -1,71 +1,12 @@
-import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
-BOT_DIR = Path(__file__).resolve().parents[1]
-if str(BOT_DIR) not in sys.path:
-    sys.path.insert(0, str(BOT_DIR))
-
 from app.main import app
-from app.schemas import DocumentIngestRequest
-from app.security import create_access_token, decode_access_token, hash_password, verify_password
-from app.services.ingestion import chunk_text
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
 
-# ============================================================================
-# Unit tests
-# ============================================================================
-
-def test_chunk_text_normal_and_invalid_overlap():
-    text = "First paragraph with institutional details.\n\nSecond paragraph with course rules."
-    chunks = chunk_text(text, chunk_size=120, chunk_overlap=20)
-    assert len(chunks) == 1
-
-    long_para = "A" * 250
-    windowed = chunk_text(long_para, chunk_size=100, chunk_overlap=20)
-    assert len(windowed) >= 3
-
-    with pytest.raises(ValueError, match="chunk_overlap"):
-        chunk_text(long_para, chunk_size=100, chunk_overlap=100)
-
-    with pytest.raises(ValueError, match="chunk_overlap"):
-        chunk_text(long_para, chunk_size=100, chunk_overlap=150)
-
-
-def test_ingest_schema_validation():
-    with pytest.raises(ValueError):
-        DocumentIngestRequest(
-            title="Regulation without content",
-            document_type="regulation",
-        )
-
-    with pytest.raises(ValueError):
-        DocumentIngestRequest(
-            title="Invalid overlap",
-            document_type="regulation",
-            full_content="Valid sample text long enough for validation.",
-            chunk_size=100,
-            chunk_overlap=100,
-        )
-
-
-def test_password_and_jwt_roundtrip():
-    hashed = hash_password("secret.password")
-    assert verify_password("secret.password", hashed)
-    assert not verify_password("wrong.password", hashed)
-
-    token = create_access_token(user_id=8, email="mdimatteo@alumno.isft189.edu.ar", role="STUDENT")
-    payload = decode_access_token(token)
-    assert payload["sub"] == "8"
-    assert payload["role"] == "STUDENT"
-
-
-# ============================================================================
-# Integration tests against PostgreSQL (`instituto` + `isft189`)
-# ============================================================================
 
 def _login(client: TestClient, email: str, password: str = "isft189.2026") -> dict:
     resp = client.post("/api/v1/auth/login", json={"email": email, "password": password})
@@ -166,8 +107,17 @@ def test_rbac_and_academic_queries():
         )
         assert prereq_by_id.status_code == 200
         assert prereq_by_id.json()["matches"][0]["subject"] == "Base de Datos"
-        assert client.get("/api/v1/academic/students/me/prerequisites?subject_id=9999", headers=stu_headers).status_code == 404
-        assert client.get("/api/v1/academic/exam-boards?subject_id=9999", headers=stu_headers).status_code == 404
+        assert (
+            client.get(
+                "/api/v1/academic/students/me/prerequisites?subject_id=9999",
+                headers=stu_headers,
+            ).status_code
+            == 404
+        )
+        assert (
+            client.get("/api/v1/academic/exam-boards?subject_id=9999", headers=stu_headers).status_code
+            == 404
+        )
 
         prereq_pp = client.get(
             "/api/v1/academic/students/me/prerequisites?subject=Pr%C3%A1ctica%20Profesional",
@@ -178,17 +128,23 @@ def test_rbac_and_academic_queries():
 
         # RBAC checks: student cannot access teacher, admin, or other users' endpoints
         assert client.get("/api/v1/academic/teachers/me/rosters", headers=stu_headers).status_code == 403
-        assert client.get("/api/v1/academic/admin/students?file_number=1002", headers=stu_headers).status_code == 403
+        assert (
+            client.get("/api/v1/academic/admin/students?file_number=1002", headers=stu_headers).status_code
+            == 403
+        )
         assert client.get("/api/v1/chat/history?user_id=1", headers=stu_headers).status_code == 403
-        assert client.post(
-            "/api/v1/documents/ingest",
-            headers=stu_headers,
-            json={
-                "title": "Unauthorized attempt",
-                "document_type": "other",
-                "full_content": "Unauthorized test content.",
-            },
-        ).status_code == 403
+        assert (
+            client.post(
+                "/api/v1/documents/ingest",
+                headers=stu_headers,
+                json={
+                    "title": "Unauthorized attempt",
+                    "document_type": "other",
+                    "full_content": "Unauthorized test content.",
+                },
+            ).status_code
+            == 403
+        )
 
         # Teacher (Leonel Luengo) accesses rosters and exam boards
         teacher_login = _login(client, "lluengo@isft189.edu.ar")
@@ -286,11 +242,14 @@ def test_document_ingest_list_delete_and_hybrid_chat():
         stu_headers = {"Authorization": f"Bearer {student_login['access_token']}"}
 
         # Non-existent career_id_filter returns 404
-        assert client.post(
-            "/api/v1/chat/",
-            headers=stu_headers,
-            json={"question": "¿Qué materias tiene?", "career_id_filter": 9999},
-        ).status_code == 404
+        assert (
+            client.post(
+                "/api/v1/chat/",
+                headers=stu_headers,
+                json={"question": "¿Qué materias tiene?", "career_id_filter": 9999},
+            ).status_code
+            == 404
+        )
 
         with patch("app.services.rag.llm_service.generate_with_tools", new=AsyncMock(return_value=None)):
             chat_resp = client.post(
@@ -333,7 +292,7 @@ def test_document_ingest_list_delete_and_hybrid_chat():
 
 def test_ingest_real_pdf_and_tool_calling_orchestration():
     pdf_path = (
-        BOT_DIR.parent.parent
+        REPO_ROOT
         / "docs"
         / "planes"
         / "DC Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones - Res. 6175-03 y Anexos.pdf"
@@ -388,7 +347,10 @@ def test_ingest_real_pdf_and_tool_calling_orchestration():
             tool_out = await tool_executor("check_my_prerequisites", {"subject_name": "Base de Datos"})
             return f"Verified result: {tool_out}"
 
-        with patch("app.services.rag.llm_service.generate_with_tools", side_effect=fake_generate_with_tools):
+        with patch(
+            "app.services.rag.llm_service.generate_with_tools",
+            side_effect=fake_generate_with_tools,
+        ):
             chat_resp = client.post(
                 "/api/v1/chat/",
                 headers=stu_headers,

@@ -1,13 +1,13 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.database import get_db
-from app.institute_models import InstituteUser
-from app.schemas import LoginRequest, TokenResponse, UserProfileResponse
-from app.security import (
+from app.core.config import settings
+from app.core.database import get_db
+from app.core.security import (
     ROLE_FROM_DB,
     AuthenticatedUser,
     create_access_token,
@@ -15,6 +15,8 @@ from app.security import (
     resolve_academic_profile,
     verify_password,
 )
+from app.models.institute import InstituteUser
+from app.schemas.auth import LoginRequest, TokenResponse, UserProfileResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication & RBAC"])
 
@@ -69,7 +71,7 @@ async def _authenticate_and_issue_token(
 )
 async def login(
     request: LoginRequest,
-    db: AsyncSession = Depends(get_db),
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Authenticate credentials against `instituto.usuario` (bcrypt) and issue an RBAC JWT."""
     return await _authenticate_and_issue_token(request.email, request.password, db)
@@ -81,8 +83,8 @@ async def login(
     summary="OAuth2 form login for Swagger UI Authorize button",
 )
 async def login_oauth2_form(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: AsyncSession = Depends(get_db),
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """OAuth2PasswordBearer-compatible endpoint used directly by Swagger UI (/docs)."""
     return await _authenticate_and_issue_token(form_data.username, form_data.password, db)
@@ -94,7 +96,7 @@ async def login_oauth2_form(
     summary="Get authenticated user profile",
 )
 async def get_me(
-    current_user: AuthenticatedUser = Depends(get_current_user),
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
 ):
     return UserProfileResponse(
         id=current_user.user_id,

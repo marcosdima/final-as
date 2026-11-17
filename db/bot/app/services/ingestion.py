@@ -1,15 +1,14 @@
 import io
 import re
-from typing import List, Optional
 
 from pypdf import PdfReader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.embeddings import embed_texts_async
-from app.institute_models import Career
-from app.models import DocumentChunk, DocumentMetadata
-from app.schemas import DocumentIngestRequest, DocumentIngestResponse
+from app.clients.embeddings import embed_texts_async
+from app.models.bot import DocumentChunk, DocumentMetadata
+from app.models.institute import Career
+from app.schemas.documents import DocumentIngestRequest, DocumentIngestResponse
 
 DOC_TYPE_TO_DB = {
     "study_plan": "plan_estudio",
@@ -21,7 +20,7 @@ DOC_TYPE_TO_DB = {
 DOC_TYPE_FROM_DB = {v: k for k, v in DOC_TYPE_TO_DB.items()}
 
 
-def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> List[str]:
+def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> list[str]:
     """Split plain text into overlapping chunks respecting paragraph boundaries."""
     if chunk_size <= 0:
         raise ValueError("chunk_size must be greater than 0")
@@ -36,7 +35,7 @@ def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> Lis
         return [clean_text]
 
     paragraphs = [p.strip() for p in clean_text.split("\n\n") if p.strip()]
-    chunks: List[str] = []
+    chunks: list[str] = []
     current_chunk = ""
     step = chunk_size - chunk_overlap
 
@@ -82,11 +81,11 @@ async def ingest_document(
     request: DocumentIngestRequest,
 ) -> DocumentIngestResponse:
     """Validate career FK, chunk text, generate embeddings, and persist vectors."""
-    career_name: Optional[str] = None
+    career_name: str | None = None
     if request.career_id is not None:
         career_row = (
             await db.execute(
-                select(Career).where(Career.id == request.career_id, Career.active == True)
+                select(Career).where(Career.id == request.career_id, Career.active .is_(True))
             )
         ).scalar_one_or_none()
         if not career_row:
@@ -119,7 +118,7 @@ async def ingest_document(
     db.add(doc_meta)
     await db.flush()
 
-    for idx, (chunk_str, emb_vec) in enumerate(zip(chunks, embeddings)):
+    for idx, (chunk_str, emb_vec) in enumerate(zip(chunks, embeddings, strict=True)):
         chunk_metadata = {
             "title": request.title,
             "document_type": request.document_type,

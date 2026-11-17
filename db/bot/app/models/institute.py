@@ -14,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from app.core.database import Base
 
 # PostgreSQL ENUM types defined in the `instituto` schema
 UserRolePgEnum = PgEnum(

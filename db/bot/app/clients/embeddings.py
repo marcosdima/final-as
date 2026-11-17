@@ -2,13 +2,12 @@ import asyncio
 import hashlib
 import logging
 import math
-from typing import List, Optional
 
-from app.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_embedding_model: Optional[object] = None
+_embedding_model: object | None = None
 
 
 def _get_fastembed_model():
@@ -29,7 +28,7 @@ def _get_fastembed_model():
     return _embedding_model
 
 
-def _fallback_embedding(text: str, dim: int = 384) -> List[float]:
+def _fallback_embedding(text: str, dim: int = 384) -> list[float]:
     """Deterministic 384-d fallback vector generator for offline environments."""
     tokens = text.lower().split()
     vec = [0.0] * dim
@@ -46,7 +45,7 @@ def _fallback_embedding(text: str, dim: int = 384) -> List[float]:
     return [round(x / norm, 6) for x in vec]
 
 
-def embed_texts(texts: List[str]) -> List[List[float]]:
+def embed_texts(texts: list[str]) -> list[list[float]]:
     """Generate normalized embeddings for a list of texts (CPU-bound)."""
     if not texts:
         return []
@@ -62,16 +61,16 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
     return [_fallback_embedding(t, settings.EMBEDDING_DIM) for t in texts]
 
 
-def embed_query(query: str) -> List[float]:
+def embed_query(query: str) -> list[float]:
     """Generate embedding vector for a search query."""
     return embed_texts([query])[0]
 
 
-async def embed_texts_async(texts: List[str]) -> List[List[float]]:
+async def embed_texts_async(texts: list[str]) -> list[list[float]]:
     """Run text embedding generation in a worker thread to avoid blocking the event loop."""
     return await asyncio.to_thread(embed_texts, texts)
 
 
-async def embed_query_async(query: str) -> List[float]:
+async def embed_query_async(query: str) -> list[float]:
     """Run query embedding generation in a worker thread."""
     return await asyncio.to_thread(embed_query, query)

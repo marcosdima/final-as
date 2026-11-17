@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_ENV_PATH = Path(__file__).resolve().parents[1] / ".env"
+_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
@@ -23,7 +23,9 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = 120
 
     # Allowed CORS origins (comma-separated)
-    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000"
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,http://localhost:5173,http://localhost:8000,http://127.0.0.1:8000"
+    )
 
     # LLM provider
     LLM_PROVIDER: Literal["groq", "openrouter"] = "groq"

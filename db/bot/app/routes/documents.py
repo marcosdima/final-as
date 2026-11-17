@@ -1,22 +1,22 @@
 import asyncio
 import logging
-from typing import List, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from pypdf.errors import PdfReadError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
-from app.institute_models import Career
-from app.models import DocumentChunk, DocumentMetadata
-from app.schemas import (
+from app.core.database import get_db
+from app.core.security import AuthenticatedUser, get_current_user, require_roles
+from app.models.bot import DocumentChunk, DocumentMetadata
+from app.models.institute import Career
+from app.schemas.documents import (
     DocumentIngestRequest,
     DocumentIngestResponse,
     DocumentMetadataResponse,
     DocumentType,
 )
-from app.security import AuthenticatedUser, get_current_user, require_roles
 from app.services.ingestion import (
     DOC_TYPE_FROM_DB,
     DOC_TYPE_TO_DB,
@@ -38,23 +38,23 @@ router = APIRouter(prefix="/documents", tags=["Documents (RAG)"])
 )
 async def ingest_document_endpoint(
     request: DocumentIngestRequest,
-    current_user: AuthenticatedUser = Depends(require_roles("ADMIN", "PRECEPTOR")),
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[AuthenticatedUser, Depends(require_roles("ADMIN", "PRECEPTOR"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Split an institutional document into chunks, generate 384-d embeddings, and index in pgvector."""
     try:
         return await ingest_document(db, request)
     except LookupError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception as exc:
         await db.rollback()
         logger.exception("Document ingestion failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal error during document ingestion.",
-        )
+        ) from exc
 
 
 @router.post(
@@ -64,14 +64,14 @@ async def ingest_document_endpoint(
     summary="Upload and vectorize an official PDF document (Admin / Preceptor)",
 )
 async def ingest_pdf_endpoint(
-    file: UploadFile = File(..., description="Official PDF file"),
-    title: str = Form(..., min_length=3, max_length=200),
-    document_type: DocumentType = Form(...),
-    career_id: Optional[int] = Form(None, ge=1, description="Career ID from instituto.carrera"),
-    chunk_size: int = Form(500, ge=100, le=2000),
-    chunk_overlap: int = Form(50, ge=0, le=200),
-    current_user: AuthenticatedUser = Depends(require_roles("ADMIN", "PRECEPTOR")),
-    db: AsyncSession = Depends(get_db),
+    file: Annotated[UploadFile, File(description="Official PDF file")],
+    title: Annotated[str, Form(min_length=3, max_length=200)],
+    document_type: Annotated[DocumentType, Form()],
+    current_user: Annotated[AuthenticatedUser, Depends(require_roles("ADMIN", "PRECEPTOR"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    career_id: Annotated[int | None, Form(ge=1, description="Career ID from instituto.carrera")] = None,
+    chunk_size: Annotated[int, Form(ge=100, le=2000)] = 500,
+    chunk_overlap: Annotated[int, Form(ge=0, le=200)] = 50,
 ):
     filename = (file.filename or "").lower()
     if not filename.endswith(".pdf"):
@@ -110,26 +110,26 @@ async def ingest_pdf_endpoint(
     except HTTPException:
         raise
     except LookupError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (PdfReadError, ValueError) as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid PDF or parameters: {exc}")
-    except Exception:
+        raise HTTPException(status_code=400, detail=f"Invalid PDF or parameters: {exc}") from exc
+    except Exception as exc:
         await db.rollback()
         logger.exception("PDF ingestion failed")
-        raise HTTPException(status_code=500, detail="Internal error while processing the PDF file.")
+        raise HTTPException(status_code=500, detail="Internal error while processing the PDF file.") from exc
 
 
 @router.get(
     "/",
-    response_model=List[DocumentMetadataResponse],
+    response_model=list[DocumentMetadataResponse],
     summary="List indexed institutional documents",
 )
 async def list_documents(
-    document_type: Optional[DocumentType] = Query(None, description="Filter by document type"),
-    career_id: Optional[int] = Query(None, ge=1, description="Filter by career ID"),
-    active_only: bool = Query(True, description="Show active documents only"),
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    document_type: Annotated[DocumentType | None, Query(description="Filter by document type")] = None,
+    career_id: Annotated[int | None, Query(ge=1, description="Filter by career ID")] = None,
+    active_only: Annotated[bool, Query(description="Show active documents only")] = True,
 ):
     """Return registered documents along with their career name and indexed chunk count."""
     stmt = (
@@ -145,7 +145,7 @@ async def list_documents(
     )
 
     if active_only:
-        stmt = stmt.where(DocumentMetadata.active == True)
+        stmt = stmt.where(DocumentMetadata.active.is_(True))
     if document_type:
         stmt = stmt.where(DocumentMetadata.document_type == DOC_TYPE_TO_DB[document_type])
     if career_id is not None:
@@ -175,8 +175,8 @@ async def list_documents(
 )
 async def get_document(
     document_id: int,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     stmt = (
         select(
@@ -213,8 +213,8 @@ async def get_document(
 )
 async def delete_document(
     document_id: int,
-    current_user: AuthenticatedUser = Depends(require_roles("ADMIN", "PRECEPTOR")),
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[AuthenticatedUser, Depends(require_roles("ADMIN", "PRECEPTOR"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     stmt = select(DocumentMetadata).where(DocumentMetadata.id == document_id)
     doc = (await db.execute(stmt)).scalar_one_or_none()

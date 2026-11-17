@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.config import settings
-from app.database import engine
+from app.core.config import settings
+from app.core.database import engine
 from app.routes.academic import router as academic_router
 from app.routes.auth import router as auth_router
 from app.routes.chat import router as chat_router
@@ -122,7 +122,7 @@ async def health_check():
             )
             schemas_status = sorted(r[0] for r in sch_res.all())
     except Exception as exc:
-        db_status = f"error: {str(exc)}"
+        db_status = f"error: {exc!s}"
 
     healthy = db_status == "ok" and "instituto" in schemas_status and "isft189" in schemas_status
     return {

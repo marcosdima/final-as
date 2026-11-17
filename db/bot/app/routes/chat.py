@@ -1,15 +1,15 @@
 import logging
-from typing import List, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
-from app.institute_models import InstituteUser
-from app.models import BotUser, ChatHistory
-from app.schemas import ChatHistoryItemResponse, ChatQueryRequest, ChatQueryResponse
-from app.security import AuthenticatedUser, get_current_user
+from app.core.database import get_db
+from app.core.security import AuthenticatedUser, get_current_user
+from app.models.bot import BotUser, ChatHistory
+from app.models.institute import InstituteUser
+from app.schemas.chat import ChatHistoryItemResponse, ChatQueryRequest, ChatQueryResponse
 from app.services.rag import answer_chat_query
 
 logger = logging.getLogger(__name__)
@@ -25,8 +25,8 @@ router = APIRouter(prefix="/chat", tags=["Virtual Assistant (RAG)"])
 )
 async def chat_endpoint(
     request: ChatQueryRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """
     Process a natural-language query for the JWT-authenticated user, combining
@@ -35,30 +35,29 @@ async def chat_endpoint(
     try:
         return await answer_chat_query(db, request, current_user)
     except LookupError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
-    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except Exception as exc:
         await db.rollback()
         logger.exception("Error processing RAG chat query")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal error while processing assistant query.",
-        )
+        ) from exc
 
 
 @router.get(
     "/history",
-    response_model=List[ChatHistoryItemResponse],
+    response_model=list[ChatHistoryItemResponse],
     summary="Audit log: chat query history (RBAC-isolated)",
 )
 async def get_chat_history(
-    user_id: Optional[int] = Query(
-        None,
-        ge=1,
-        description="Filter by `instituto.usuario.id` (Preceptor / Admin only)",
-    ),
-    limit: int = Query(20, ge=1, le=100),
-    current_user: AuthenticatedUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user_id: Annotated[
+        int | None,
+        Query(ge=1, description="Filter by `instituto.usuario.id` (Preceptor / Admin only)"),
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     """
     Return audited interactions from `isft189.historial_consultas`:

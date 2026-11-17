@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Callable, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Annotated
 
 import bcrypt
 import jwt
@@ -9,9 +10,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.database import get_db
-from app.institute_models import InstituteUser, Student, Teacher
+from app.core.config import settings
+from app.core.database import get_db
+from app.models.institute import InstituteUser, Student, Teacher
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 
@@ -31,11 +32,11 @@ class AuthenticatedUser:
     user_id: int
     full_name: str
     email: str
-    role: str      # STUDENT | TEACHER | PRECEPTOR | ADMIN
-    db_role: str   # ALUMNO | DOCENTE | PRECEPTOR | ADMINISTRADOR
-    student_id: Optional[int] = None
-    teacher_id: Optional[int] = None
-    file_number: Optional[int] = None
+    role: str
+    db_role: str
+    student_id: int | None = None
+    teacher_id: int | None = None
+    file_number: int | None = None
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -57,10 +58,10 @@ def create_access_token(
     user_id: int,
     email: str,
     role: str,
-    expires_minutes: Optional[int] = None,
+    expires_minutes: int | None = None,
 ) -> str:
     expire_delta = timedelta(minutes=expires_minutes or settings.JWT_EXPIRE_MINUTES)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
         "email": email,
@@ -78,24 +79,24 @@ def decode_access_token(token: str) -> dict:
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
         )
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session token has expired. Please log in again.",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-    except jwt.InvalidTokenError:
+        ) from exc
+    except jwt.InvalidTokenError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token.",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from exc
 
 
 async def resolve_academic_profile(
     db: AsyncSession,
     user: InstituteUser,
-) -> tuple[Optional[int], Optional[int], Optional[int]]:
+) -> tuple[int | None, int | None, int | None]:
     """Resolve (student_id, teacher_id, file_number) for an InstituteUser."""
     if user.role == "ALUMNO":
         student = (
@@ -113,8 +114,8 @@ async def resolve_academic_profile(
 
 
 async def get_current_user(
-    token: Optional[str] = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db),
+    token: Annotated[str | None, Depends(oauth2_scheme)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> AuthenticatedUser:
     """Validate Bearer JWT and resolve the active user and academic profile."""
     if not token:
@@ -161,8 +162,9 @@ async def get_current_user(
 
 def require_roles(*allowed_roles: str) -> Callable:
     """RBAC guard restricting endpoint access to the specified roles."""
+
     async def role_checker(
-        current_user: AuthenticatedUser = Depends(get_current_user),
+        current_user: Annotated[AuthenticatedUser, Depends(get_current_user)],
     ) -> AuthenticatedUser:
         if current_user.role not in allowed_roles:
             raise HTTPException(

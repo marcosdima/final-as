@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String, Text
@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from app.core.database import Base
 
 DocumentTypePgEnum = PgEnum(
     "plan_estudio",
@@ -21,7 +21,7 @@ DocumentTypePgEnum = PgEnum(
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class BotUser(Base):

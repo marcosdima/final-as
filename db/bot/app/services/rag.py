@@ -1,18 +1,19 @@
 import json
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.embeddings import embed_query_async
-from app.institute_models import Career
-from app.llm import llm_service
-from app.models import BotUser, ChatHistory, DocumentChunk, DocumentMetadata
-from app.schemas import ChatQueryRequest, ChatQueryResponse, DocumentChunkResponse
-from app.security import AuthenticatedUser
+from app.clients.embeddings import embed_query_async
+from app.clients.llm import llm_service
+from app.core.config import settings
+from app.core.security import AuthenticatedUser
+from app.models.bot import BotUser, ChatHistory, DocumentChunk, DocumentMetadata
+from app.models.institute import Career
+from app.schemas.chat import ChatQueryRequest, ChatQueryResponse
+from app.schemas.documents import DocumentChunkResponse
 from app.services import academic
 from app.services.ingestion import DOC_TYPE_FROM_DB, DOC_TYPE_TO_DB
 
@@ -20,11 +21,11 @@ from app.services.ingestion import DOC_TYPE_FROM_DB, DOC_TYPE_TO_DB
 async def retrieve_relevant_fragments(
     db: AsyncSession,
     query: str,
-    career_id_filter: Optional[int] = None,
-    document_type_filter: Optional[str] = None,
-    metadata_filter: Optional[Dict[str, Any]] = None,
+    career_id_filter: int | None = None,
+    document_type_filter: str | None = None,
+    metadata_filter: dict[str, Any] | None = None,
     top_k: int = 4,
-) -> List[Tuple[DocumentChunk, DocumentMetadata, Optional[str], float]]:
+) -> list[tuple[DocumentChunk, DocumentMetadata, str | None, float]]:
     """
     Hybrid pgvector search combining cosine distance (<=>) with relational filters
     (`active`, `career_id`, `document_type`) and JSONB containment (`@>`).
@@ -36,7 +37,7 @@ async def retrieve_relevant_fragments(
         select(DocumentChunk, DocumentMetadata, Career.name.label("career_name"), distance_col)
         .join(DocumentMetadata, DocumentChunk.document_id == DocumentMetadata.id)
         .outerjoin(Career, DocumentMetadata.career_id == Career.id)
-        .where(DocumentMetadata.active == True)
+        .where(DocumentMetadata.active .is_(True))
     )
 
     if career_id_filter is not None:
@@ -67,7 +68,7 @@ async def retrieve_relevant_fragments(
 def _format_fragment_for_llm(
     chunk_row: DocumentChunk,
     doc_row: DocumentMetadata,
-    career_name: Optional[str],
+    career_name: str | None,
 ) -> str:
     career_label = career_name or "Institution-wide"
     doc_type_label = DOC_TYPE_FROM_DB.get(doc_row.document_type, doc_row.document_type)
@@ -77,9 +78,9 @@ def _format_fragment_for_llm(
     )
 
 
-def _build_tools_for_user(user: AuthenticatedUser) -> List[Dict[str, Any]]:
+def _build_tools_for_user(user: AuthenticatedUser) -> list[dict[str, Any]]:
     """Build the OpenAI tool catalog scoped strictly by the user's RBAC role."""
-    tools: List[Dict[str, Any]] = [
+    tools: list[dict[str, Any]] = [
         {
             "type": "function",
             "function": {
@@ -224,7 +225,7 @@ async def _ensure_bot_user_id(db: AsyncSession, user: AuthenticatedUser) -> int:
             nombre=user.full_name,
             email=user.email,
             rol=user.db_role,
-            fecha_registro=datetime.now(timezone.utc),
+            fecha_registro=datetime.now(UTC),
         )
         .on_conflict_do_update(
             index_elements=[BotUser.email],
@@ -240,8 +241,8 @@ async def _fallback_academic_lookup(
     db: AsyncSession,
     user: AuthenticatedUser,
     question: str,
-    academic_sources: List[str],
-) -> Optional[str]:
+    academic_sources: list[str],
+) -> str | None:
     """Deterministic academic lookup when no external LLM API key is configured."""
     q = question.lower()
 
@@ -273,8 +274,9 @@ async def _fallback_academic_lookup(
                 if prereqs.get("matches"):
                     return "Validación de correlatividades:\n" + json.dumps(prereqs, ensure_ascii=False, indent=2)
 
-    if user.role == "TEACHER" and user.teacher_id is not None:
-        if "nomina" in q or "nómina" in q or "alumno" in q or "materia" in q:
+    if user.role == "TEACHER" and user.teacher_id is not None and any(
+        kw in q for kw in ("nomina", "nómina", "alumno", "materia")
+    ):
             rosters = await academic.get_teacher_course_rosters(db, user.teacher_id)
             academic_sources.append("instituto.asignacion_materia / instituto.inscripcion_cursada")
             return "Tus materias y nóminas:\n" + json.dumps(rosters, ensure_ascii=False, indent=2)
@@ -306,8 +308,8 @@ async def answer_chat_query(
         top_k=top_k,
     )
 
-    collected_chunks: Dict[int, DocumentChunkResponse] = {}
-    llm_context_fragments: List[str] = []
+    collected_chunks: dict[int, DocumentChunkResponse] = {}
+    llm_context_fragments: list[str] = []
     for chunk_row, doc_row, career_name, dist in initial_results:
         collected_chunks[chunk_row.id] = DocumentChunkResponse(
             id=chunk_row.id,
@@ -318,9 +320,9 @@ async def answer_chat_query(
         )
         llm_context_fragments.append(_format_fragment_for_llm(chunk_row, doc_row, career_name))
 
-    academic_sources: List[str] = []
+    academic_sources: list[str] = []
 
-    async def execute_tool(tool_name: str, args: Dict[str, Any]) -> str:
+    async def execute_tool(tool_name: str, args: dict[str, Any]) -> str:
         if tool_name == "search_institutional_docs":
             results = await retrieve_relevant_fragments(
                 db=db,
@@ -434,7 +436,7 @@ async def answer_chat_query(
         user_id=bot_user_id,
         question=request.question,
         answer=generated_answer,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     db.add(history_entry)
     await db.commit()
