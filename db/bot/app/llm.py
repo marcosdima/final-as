@@ -56,7 +56,7 @@ class LLMService:
         tools: List[Dict[str, Any]],
         tool_executor: ToolExecutor,
         temperature: float = 0.2,
-        max_rounds: int = 3,
+        max_rounds: int = 5,
     ) -> Optional[str]:
         """
         Execute RAG generation with OpenAI-compatible Tool Calling (Groq / OpenRouter).
@@ -83,6 +83,7 @@ class LLMService:
             {"role": "system", "content": SYSTEM_PROMPT_ISFT189},
             {"role": "user", "content": user_prompt},
         ]
+        collected_tool_outputs: List[str] = []
 
         try:
             for _ in range(max_rounds):
@@ -128,16 +129,29 @@ class LLMService:
                         args = {}
 
                     tool_output = await tool_executor(tc.function.name, args)
+                    collected_tool_outputs.append(f"[{tc.function.name}]: {tool_output}")
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
                         "content": tool_output,
                     })
 
+            # Final plain-text synthesis without tool_calls history so providers like Groq
+            # cannot fail with `Tool choice is none, but model called a tool`.
+            synthesis_prompt = (
+                f"AUTHENTICATED USER:\n{user_context}\n\n"
+                f"RETRIEVED DOCUMENT CONTEXT:\n{context_block}\n\n"
+                f"ACADEMIC TOOL RESULTS:\n" + "\n\n".join(collected_tool_outputs) + "\n\n"
+                f"USER QUESTION:\n{query}\n\n"
+                "Redactá la respuesta final directamente en texto claro para el usuario sin invocar herramientas."
+            )
             final_resp = await client.chat.completions.create(
                 model=model_name,
                 temperature=temperature,
-                messages=messages,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT_ISFT189},
+                    {"role": "user", "content": synthesis_prompt},
+                ],
             )
             return (final_resp.choices[0].message.content or "").strip() or (
                 "No pude generar una respuesta a partir de los datos recuperados."

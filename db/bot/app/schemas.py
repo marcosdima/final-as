@@ -130,7 +130,11 @@ class SubjectAttendanceResponse(BaseModel):
 class DocumentIngestRequest(BaseModel):
     title: str = Field(..., min_length=3, max_length=200, description="Official document title")
     document_type: DocumentType = Field(..., description="Institutional document category")
-    career: Optional[str] = Field(None, description="Target career or NULL if institution-wide")
+    career_id: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Target career ID from `instituto.carrera`, or NULL if institution-wide",
+    )
     full_content: Optional[str] = Field(None, description="Full plain text to split automatically into chunks")
     chunks: Optional[List[str]] = Field(None, description="Optional list of pre-split chunks")
     additional_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
@@ -139,9 +143,6 @@ class DocumentIngestRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_content_and_chunking(self) -> "DocumentIngestRequest":
-        if self.career is not None:
-            self.career = self.career.strip() or None
-
         if len(self.title.strip()) < 3:
             raise ValueError("title must have at least 3 non-whitespace characters")
 
@@ -161,7 +162,7 @@ class DocumentIngestRequest(BaseModel):
             "example": {
                 "title": "Régimen de Correlatividades - Desarrollo de Software",
                 "document_type": "prerequisites",
-                "career": "Tecnicatura Superior en Desarrollo de Software",
+                "career_id": 2,
                 "full_content": "Para cursar y aprobar Desarrollo de sistemas Web se requiere Introducción a la programación, Administración y gestión de base de datos y Diseño Web.",
                 "chunk_size": 500,
                 "chunk_overlap": 50,
@@ -185,7 +186,8 @@ class DocumentMetadataResponse(BaseModel):
     title: str
     document_type: str
     uploaded_at: datetime
-    career: Optional[str]
+    career_id: Optional[int] = None
+    career_name: Optional[str] = None
     active: bool
     total_chunks: int = 0
 
@@ -196,7 +198,8 @@ class DocumentIngestResponse(BaseModel):
     document_id: int
     title: str
     document_type: str
-    career: Optional[str]
+    career_id: Optional[int] = None
+    career_name: Optional[str] = None
     chunks_created: int
     message: str
 
@@ -207,7 +210,11 @@ class DocumentIngestResponse(BaseModel):
 
 class ChatQueryRequest(BaseModel):
     question: str = Field(..., min_length=3, description="Natural-language question from the authenticated user")
-    career_filter: Optional[str] = Field(None, description="Optional career filter for vector search")
+    career_id_filter: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Optional career ID filter for vector search",
+    )
     document_type_filter: Optional[DocumentType] = Field(None, description="Optional document category filter")
     metadata_filter: Optional[Dict[str, Any]] = Field(
         None,
@@ -220,8 +227,6 @@ class ChatQueryRequest(BaseModel):
     def normalize_question(self) -> "ChatQueryRequest":
         if len(self.question.strip()) < 3:
             raise ValueError("question must have at least 3 non-whitespace characters")
-        if self.career_filter is not None:
-            self.career_filter = self.career_filter.strip() or None
         return self
 
     model_config = ConfigDict(

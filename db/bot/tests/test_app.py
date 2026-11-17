@@ -159,6 +159,16 @@ def test_rbac_and_academic_queries():
         assert bd_match["eligible_to_enroll"] is True
         assert bd_match["eligible_for_exam"] is True
 
+        # Subject lookup by FK ID and 404 for unknown ID
+        prereq_by_id = client.get(
+            f"/api/v1/academic/students/me/prerequisites?subject_id={bd_match['subject_id']}",
+            headers=stu_headers,
+        )
+        assert prereq_by_id.status_code == 200
+        assert prereq_by_id.json()["matches"][0]["subject"] == "Base de Datos"
+        assert client.get("/api/v1/academic/students/me/prerequisites?subject_id=9999", headers=stu_headers).status_code == 404
+        assert client.get("/api/v1/academic/exam-boards?subject_id=9999", headers=stu_headers).status_code == 404
+
         prereq_pp = client.get(
             "/api/v1/academic/students/me/prerequisites?subject=Pr%C3%A1ctica%20Profesional",
             headers=stu_headers,
@@ -235,6 +245,19 @@ def test_document_ingest_list_delete_and_hybrid_chat():
         admin_login = _login(client, "admin@isft189.edu.ar")
         adm_headers = {"Authorization": f"Bearer {admin_login['access_token']}"}
 
+        # Non-existent career_id FK must be rejected with 404
+        bad_career = client.post(
+            "/api/v1/documents/ingest",
+            headers=adm_headers,
+            json={
+                "title": "Invalid Career FK",
+                "document_type": "resolution",
+                "career_id": 9999,
+                "full_content": "Content referencing a non-existent career ID.",
+            },
+        )
+        assert bad_career.status_code == 404
+
         doc_id = None
         try:
             ingest_resp = client.post(
@@ -243,7 +266,7 @@ def test_document_ingest_list_delete_and_hybrid_chat():
                 json={
                     "title": "Integration Test Resolution 2026",
                     "document_type": "resolution",
-                    "career": "Tecnicatura Superior en Desarrollo de Software",
+                    "career_id": 2,
                     "full_content": "Para Prácticas Profesionalizantes III en Desarrollo de Software se requiere aprobar Desarrollo de sistemas Web.",
                     "chunk_size": 300,
                     "chunk_overlap": 30,
@@ -251,6 +274,8 @@ def test_document_ingest_list_delete_and_hybrid_chat():
             )
             assert ingest_resp.status_code == 201, ingest_resp.text
             doc_id = ingest_resp.json()["document_id"]
+            assert ingest_resp.json()["career_id"] == 2
+            assert ingest_resp.json()["career_name"] == "Tecnicatura Superior en Desarrollo de Software"
             assert ingest_resp.json()["chunks_created"] == 1
         finally:
             if doc_id is not None:
@@ -259,6 +284,13 @@ def test_document_ingest_list_delete_and_hybrid_chat():
 
         student_login = _login(client, "mdimatteo@alumno.isft189.edu.ar")
         stu_headers = {"Authorization": f"Bearer {student_login['access_token']}"}
+
+        # Non-existent career_id_filter returns 404
+        assert client.post(
+            "/api/v1/chat/",
+            headers=stu_headers,
+            json={"question": "¿Qué materias tiene?", "career_id_filter": 9999},
+        ).status_code == 404
 
         with patch("app.services.rag.llm_service.generate_with_tools", new=AsyncMock(return_value=None)):
             chat_resp = client.post(
@@ -280,7 +312,7 @@ def test_document_ingest_list_delete_and_hybrid_chat():
                 headers=stu_headers,
                 json={
                     "question": "¿Qué correlatividad pide Base de Datos en Res. 6175/03?",
-                    "career_filter": "Análisis, Desarrollo y Programación",
+                    "career_id_filter": 1,
                     "top_k": 3,
                 },
             )
@@ -291,6 +323,12 @@ def test_document_ingest_list_delete_and_hybrid_chat():
         assert hist_resp.status_code == 200
         questions = [item["question"] for item in hist_resp.json()]
         assert "¿Cuál es mi porcentaje de asistencia en las materias?" in questions
+
+        # Admin can filter history by instituto.usuario.id (Marcos = 8)
+        adm_hist = client.get("/api/v1/chat/history?user_id=8&limit=5", headers=adm_headers)
+        assert adm_hist.status_code == 200
+        assert len(adm_hist.json()) >= 1
+        assert client.get("/api/v1/chat/history?user_id=9999", headers=adm_headers).status_code == 404
 
 
 def test_ingest_real_pdf_and_tool_calling_orchestration():
@@ -324,7 +362,7 @@ def test_ingest_real_pdf_and_tool_calling_orchestration():
                     data={
                         "title": "PDF Test Res 6175/03",
                         "document_type": "study_plan",
-                        "career": "Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones",
+                        "career_id": "1",
                         "chunk_size": "800",
                         "chunk_overlap": "80",
                     },

@@ -1,11 +1,13 @@
 import io
 import re
-from typing import List
+from typing import List, Optional
 
 from pypdf import PdfReader
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.embeddings import embed_texts_async
+from app.institute_models import Career
 from app.models import DocumentChunk, DocumentMetadata
 from app.schemas import DocumentIngestRequest, DocumentIngestResponse
 
@@ -79,7 +81,18 @@ async def ingest_document(
     db: AsyncSession,
     request: DocumentIngestRequest,
 ) -> DocumentIngestResponse:
-    """Store document metadata, chunk text, generate embeddings, and persist vectors."""
+    """Validate career FK, chunk text, generate embeddings, and persist vectors."""
+    career_name: Optional[str] = None
+    if request.career_id is not None:
+        career_row = (
+            await db.execute(
+                select(Career).where(Career.id == request.career_id, Career.active == True)
+            )
+        ).scalar_one_or_none()
+        if not career_row:
+            raise LookupError(f"Active career with id={request.career_id} not found.")
+        career_name = career_row.name
+
     if request.chunks and len(request.chunks) > 0:
         chunks = [c.strip() for c in request.chunks if c.strip()]
     elif request.full_content and request.full_content.strip():
@@ -100,7 +113,7 @@ async def ingest_document(
     doc_meta = DocumentMetadata(
         title=request.title,
         document_type=db_doc_type,
-        career=request.career,
+        career_id=request.career_id,
         active=True,
     )
     db.add(doc_meta)
@@ -110,7 +123,8 @@ async def ingest_document(
         chunk_metadata = {
             "title": request.title,
             "document_type": request.document_type,
-            "career": request.career,
+            "career_id": request.career_id,
+            "career": career_name,
             "chunk_index": idx,
             "total_chunks": len(chunks),
         }
@@ -132,7 +146,8 @@ async def ingest_document(
         document_id=doc_meta.id,
         title=doc_meta.title,
         document_type=request.document_type,
-        career=doc_meta.career,
+        career_id=doc_meta.career_id,
+        career_name=career_name,
         chunks_created=len(chunks),
         message="Document chunked, vectorized, and indexed successfully.",
     )

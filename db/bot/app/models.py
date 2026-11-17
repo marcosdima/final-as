@@ -45,7 +45,13 @@ class DocumentMetadata(Base):
     title = Column("titulo", String(200), nullable=False)
     document_type = Column("tipo_documento", DocumentTypePgEnum, nullable=False, index=True)
     uploaded_at = Column("fecha_subida", DateTime(timezone=True), default=_utc_now, nullable=False)
-    career = Column("carrera", String(100), nullable=True, index=True)
+    career_id = Column(
+        "carrera_id",
+        BigInteger,
+        ForeignKey("instituto.carrera.id", ondelete="RESTRICT", onupdate="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     active = Column("activo", Boolean, nullable=False, default=True)
 
     chunks = relationship(

@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.institute_models import InstituteUser
 from app.models import BotUser, ChatHistory
 from app.schemas import ChatHistoryItemResponse, ChatQueryRequest, ChatQueryResponse
 from app.security import AuthenticatedUser, get_current_user
@@ -33,6 +34,8 @@ async def chat_endpoint(
     """
     try:
         return await answer_chat_query(db, request, current_user)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     except Exception:
         await db.rollback()
         logger.exception("Error processing RAG chat query")
@@ -50,7 +53,8 @@ async def chat_endpoint(
 async def get_chat_history(
     user_id: Optional[int] = Query(
         None,
-        description="Filter by `isft189.usuarios.id` (Preceptor / Admin only)",
+        ge=1,
+        description="Filter by `instituto.usuario.id` (Preceptor / Admin only)",
     ),
     limit: int = Query(20, ge=1, le=100),
     current_user: AuthenticatedUser = Depends(get_current_user),
@@ -59,7 +63,7 @@ async def get_chat_history(
     """
     Return audited interactions from `isft189.historial_consultas`:
     - STUDENT / TEACHER: strictly limited to their own history.
-    - PRECEPTOR / ADMIN: institution-wide audit log with optional `user_id` filter.
+    - PRECEPTOR / ADMIN: institution-wide audit log with optional `user_id` (`instituto.usuario.id`) filter.
     """
     stmt = (
         select(ChatHistory)
@@ -81,7 +85,20 @@ async def get_chat_history(
         stmt = stmt.where(ChatHistory.user_id == bot_user.id)
     elif current_user.role in ("PRECEPTOR", "ADMIN"):
         if user_id is not None:
-            stmt = stmt.where(ChatHistory.user_id == user_id)
+            inst_user = (
+                await db.execute(select(InstituteUser).where(InstituteUser.id == user_id))
+            ).scalar_one_or_none()
+            if not inst_user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Institutional user with id={user_id} not found.",
+                )
+            bot_user = (
+                await db.execute(select(BotUser).where(BotUser.email == inst_user.email))
+            ).scalar_one_or_none()
+            if not bot_user:
+                return []
+            stmt = stmt.where(ChatHistory.user_id == bot_user.id)
     else:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -63,11 +63,17 @@ async def list_enrollment_periods(
     summary="List scheduled exam boards and EXAM enrollment periods",
 )
 async def list_exam_boards(
+    subject_id: Optional[int] = Query(None, ge=1, description="Filter by subject ID from `instituto.materia`"),
     subject: Optional[str] = Query(None, description="Filter by partial subject name"),
     current_user: AuthenticatedUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await academic.get_exam_boards_overview(db, subject_name=subject)
+    try:
+        return await academic.get_exam_boards_overview(
+            db, subject_id=subject_id, subject_name=subject
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
 @router.get(
@@ -102,13 +108,21 @@ async def my_attendance(
     summary="Check prerequisites to enroll or take final exam for a subject",
 )
 async def my_prerequisites(
-    subject: str = Query(..., min_length=2, description="Subject name to validate"),
+    subject_id: Optional[int] = Query(None, ge=1, description="Subject ID from `instituto.materia`"),
+    subject: Optional[str] = Query(None, min_length=2, description="Subject name to validate"),
     current_user: AuthenticatedUser = Depends(require_roles("STUDENT")),
     db: AsyncSession = Depends(get_db),
 ):
     if current_user.student_id is None:
         raise HTTPException(status_code=404, detail="No student record is linked to this user.")
-    return await academic.check_student_prerequisites(db, current_user.student_id, subject)
+    if subject_id is None and not (subject and subject.strip()):
+        raise HTTPException(status_code=400, detail="Either subject_id or subject must be provided.")
+    try:
+        return await academic.check_student_prerequisites(
+            db, current_user.student_id, subject_name=subject, subject_id=subject_id
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
 @router.get(
@@ -116,13 +130,19 @@ async def my_prerequisites(
     summary="Get assigned courses and enrolled student rosters for authenticated teacher",
 )
 async def my_course_rosters(
+    subject_id: Optional[int] = Query(None, ge=1, description="Filter by subject ID from `instituto.materia`"),
     subject: Optional[str] = Query(None, description="Filter by partial subject name"),
     current_user: AuthenticatedUser = Depends(require_roles("TEACHER")),
     db: AsyncSession = Depends(get_db),
 ):
     if current_user.teacher_id is None:
         raise HTTPException(status_code=404, detail="No teacher record is linked to this user.")
-    return await academic.get_teacher_course_rosters(db, current_user.teacher_id, subject)
+    try:
+        return await academic.get_teacher_course_rosters(
+            db, current_user.teacher_id, subject_id=subject_id, subject_name=subject
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
 
 @router.get(

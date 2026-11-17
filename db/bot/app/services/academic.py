@@ -157,9 +157,15 @@ async def get_enrollment_periods(
 
 async def get_exam_boards_overview(
     db: AsyncSession,
+    subject_id: Optional[int] = None,
     subject_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Return ONLY EXAM enrollment periods in open cycles together with scheduled exam boards."""
+    if subject_id is not None:
+        exists = (await db.execute(select(Subject.id).where(Subject.id == subject_id))).scalar_one_or_none()
+        if exists is None:
+            raise LookupError(f"Subject with id={subject_id} not found.")
+
     exam_periods = await get_enrollment_periods(db, period_type="EXAM")
 
     ChairTeacher = aliased(Teacher)
@@ -186,7 +192,9 @@ async def get_exam_boards_overview(
         .outerjoin(ExamRecord, ExamRecord.exam_board_id == ExamBoard.id)
         .order_by(ExamBoard.exam_date.desc(), ExamBoard.exam_time)
     )
-    if subject_name:
+    if subject_id is not None:
+        boards_stmt = boards_stmt.where(Subject.id == subject_id)
+    elif subject_name:
         boards_stmt = boards_stmt.where(Subject.name.ilike(f"%{subject_name.strip()}%"))
 
     boards = [
@@ -376,7 +384,8 @@ async def get_student_attendance(
 async def check_student_prerequisites(
     db: AsyncSession,
     student_id: int,
-    subject_name: str,
+    subject_name: Optional[str] = None,
+    subject_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Validate TO_ENROLL and TO_TAKE_EXAM prerequisites for a student (RF-021 / RF-026),
@@ -391,14 +400,17 @@ async def check_student_prerequisites(
         )
         .join(StudyPlan, Subject.study_plan_id == StudyPlan.id)
         .join(Career, StudyPlan.career_id == Career.id)
-        .where(
-            Career.active == True,
-            StudyPlan.active == True,
-            Subject.name.ilike(f"%{subject_name.strip()}%"),
-        )
+        .where(Career.active == True, StudyPlan.active == True)
         .order_by(Career.name, Subject.name)
     )
+    if subject_id is not None:
+        subj_stmt = subj_stmt.where(Subject.id == subject_id)
+    elif subject_name:
+        subj_stmt = subj_stmt.where(Subject.name.ilike(f"%{subject_name.strip()}%"))
+
     subjects = (await db.execute(subj_stmt)).mappings().all()
+    if subject_id is not None and not subjects:
+        raise LookupError(f"Active subject with id={subject_id} not found.")
     if not subjects:
         return {
             "searched_subject": subject_name,
@@ -492,9 +504,15 @@ async def check_student_prerequisites(
 async def get_teacher_course_rosters(
     db: AsyncSession,
     teacher_id: int,
+    subject_id: Optional[int] = None,
     subject_name: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Return subjects assigned to the teacher and enrolled student rosters (RF-014 / RF-015)."""
+    if subject_id is not None:
+        exists = (await db.execute(select(Subject.id).where(Subject.id == subject_id))).scalar_one_or_none()
+        if exists is None:
+            raise LookupError(f"Subject with id={subject_id} not found.")
+
     assign_stmt = (
         select(
             SubjectAssignment.subject_id,
@@ -511,7 +529,9 @@ async def get_teacher_course_rosters(
         .where(SubjectAssignment.teacher_id == teacher_id)
         .order_by(AcademicCycle.year.desc(), Subject.name)
     )
-    if subject_name:
+    if subject_id is not None:
+        assign_stmt = assign_stmt.where(Subject.id == subject_id)
+    elif subject_name:
         assign_stmt = assign_stmt.where(Subject.name.ilike(f"%{subject_name.strip()}%"))
 
     assignments = (await db.execute(assign_stmt)).mappings().all()

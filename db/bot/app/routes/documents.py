@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.institute_models import Career
 from app.models import DocumentChunk, DocumentMetadata
 from app.schemas import (
     DocumentIngestRequest,
@@ -43,6 +44,8 @@ async def ingest_document_endpoint(
     """Split an institutional document into chunks, generate 384-d embeddings, and index in pgvector."""
     try:
         return await ingest_document(db, request)
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     except Exception:
@@ -64,7 +67,7 @@ async def ingest_pdf_endpoint(
     file: UploadFile = File(..., description="Official PDF file"),
     title: str = Form(..., min_length=3, max_length=200),
     document_type: DocumentType = Form(...),
-    career: Optional[str] = Form(None),
+    career_id: Optional[int] = Form(None, ge=1, description="Career ID from instituto.carrera"),
     chunk_size: int = Form(500, ge=100, le=2000),
     chunk_overlap: int = Form(50, ge=0, le=200),
     current_user: AuthenticatedUser = Depends(require_roles("ADMIN", "PRECEPTOR")),
@@ -85,7 +88,6 @@ async def ingest_pdf_endpoint(
     clean_title = title.strip()
     if len(clean_title) < 3:
         raise HTTPException(status_code=400, detail="Title must have at least 3 non-whitespace characters.")
-    clean_career = career.strip() or None if career else None
 
     try:
         extracted_text = await asyncio.to_thread(extract_text_from_pdf_bytes, pdf_bytes)
@@ -98,7 +100,7 @@ async def ingest_pdf_endpoint(
         ingest_req = DocumentIngestRequest(
             title=clean_title,
             document_type=document_type,
-            career=clean_career,
+            career_id=career_id,
             full_content=extracted_text,
             additional_metadata={"source_filename": file.filename or "document.pdf"},
             chunk_size=chunk_size,
@@ -107,6 +109,8 @@ async def ingest_pdf_endpoint(
         return await ingest_document(db, ingest_req)
     except HTTPException:
         raise
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
     except (PdfReadError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=f"Invalid PDF or parameters: {exc}")
     except Exception:
@@ -122,22 +126,21 @@ async def ingest_pdf_endpoint(
 )
 async def list_documents(
     document_type: Optional[DocumentType] = Query(None, description="Filter by document type"),
-    career: Optional[str] = Query(None, description="Filter by career"),
+    career_id: Optional[int] = Query(None, ge=1, description="Filter by career ID"),
     active_only: bool = Query(True, description="Show active documents only"),
     current_user: AuthenticatedUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Return registered documents along with their indexed chunk count."""
+    """Return registered documents along with their career name and indexed chunk count."""
     stmt = (
         select(
             DocumentMetadata,
+            Career.name.label("career_name"),
             func.count(DocumentChunk.id).label("total_chunks"),
         )
-        .outerjoin(
-            DocumentChunk,
-            DocumentMetadata.id == DocumentChunk.document_id,
-        )
-        .group_by(DocumentMetadata.id)
+        .outerjoin(Career, DocumentMetadata.career_id == Career.id)
+        .outerjoin(DocumentChunk, DocumentMetadata.id == DocumentChunk.document_id)
+        .group_by(DocumentMetadata.id, Career.name)
         .order_by(DocumentMetadata.id.desc())
     )
 
@@ -145,8 +148,8 @@ async def list_documents(
         stmt = stmt.where(DocumentMetadata.active == True)
     if document_type:
         stmt = stmt.where(DocumentMetadata.document_type == DOC_TYPE_TO_DB[document_type])
-    if career and career.strip():
-        stmt = stmt.where(DocumentMetadata.career.ilike(f"%{career.strip()}%"))
+    if career_id is not None:
+        stmt = stmt.where(DocumentMetadata.career_id == career_id)
 
     rows = (await db.execute(stmt)).all()
 
@@ -156,11 +159,12 @@ async def list_documents(
             title=doc.title,
             document_type=DOC_TYPE_FROM_DB.get(doc.document_type, doc.document_type),
             uploaded_at=doc.uploaded_at,
-            career=doc.career,
+            career_id=doc.career_id,
+            career_name=career_name,
             active=doc.active,
             total_chunks=count,
         )
-        for doc, count in rows
+        for doc, career_name, count in rows
     ]
 
 
@@ -177,26 +181,26 @@ async def get_document(
     stmt = (
         select(
             DocumentMetadata,
+            Career.name.label("career_name"),
             func.count(DocumentChunk.id).label("total_chunks"),
         )
-        .outerjoin(
-            DocumentChunk,
-            DocumentMetadata.id == DocumentChunk.document_id,
-        )
+        .outerjoin(Career, DocumentMetadata.career_id == Career.id)
+        .outerjoin(DocumentChunk, DocumentMetadata.id == DocumentChunk.document_id)
         .where(DocumentMetadata.id == document_id)
-        .group_by(DocumentMetadata.id)
+        .group_by(DocumentMetadata.id, Career.name)
     )
     row = (await db.execute(stmt)).first()
     if not row:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    doc, count = row
+    doc, career_name, count = row
     return DocumentMetadataResponse(
         id=doc.id,
         title=doc.title,
         document_type=DOC_TYPE_FROM_DB.get(doc.document_type, doc.document_type),
         uploaded_at=doc.uploaded_at,
-        career=doc.career,
+        career_id=doc.career_id,
+        career_name=career_name,
         active=doc.active,
         total_chunks=count,
     )

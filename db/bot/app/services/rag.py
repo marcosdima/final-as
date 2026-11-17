@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.embeddings import embed_query_async
+from app.institute_models import Career
 from app.llm import llm_service
 from app.models import BotUser, ChatHistory, DocumentChunk, DocumentMetadata
 from app.schemas import ChatQueryRequest, ChatQueryResponse, DocumentChunkResponse
@@ -19,33 +20,32 @@ from app.services.ingestion import DOC_TYPE_FROM_DB, DOC_TYPE_TO_DB
 async def retrieve_relevant_fragments(
     db: AsyncSession,
     query: str,
-    career_filter: Optional[str] = None,
+    career_id_filter: Optional[int] = None,
     document_type_filter: Optional[str] = None,
     metadata_filter: Optional[Dict[str, Any]] = None,
     top_k: int = 4,
-) -> List[Tuple[DocumentChunk, DocumentMetadata, float]]:
+) -> List[Tuple[DocumentChunk, DocumentMetadata, Optional[str], float]]:
     """
     Hybrid pgvector search combining cosine distance (<=>) with relational filters
-    (`active`, `career`, `document_type`) and JSONB containment (`@>`).
+    (`active`, `career_id`, `document_type`) and JSONB containment (`@>`).
     """
     query_vec = await embed_query_async(query)
     distance_col = DocumentChunk.embedding.cosine_distance(query_vec).label("distance")
 
     stmt = (
-        select(DocumentChunk, DocumentMetadata, distance_col)
+        select(DocumentChunk, DocumentMetadata, Career.name.label("career_name"), distance_col)
         .join(DocumentMetadata, DocumentChunk.document_id == DocumentMetadata.id)
+        .outerjoin(Career, DocumentMetadata.career_id == Career.id)
         .where(DocumentMetadata.active == True)
     )
 
-    if career_filter:
-        clean_career = career_filter.strip()
-        if clean_career:
-            stmt = stmt.where(
-                or_(
-                    DocumentMetadata.career.ilike(f"%{clean_career}%"),
-                    DocumentMetadata.career.is_(None),
-                )
+    if career_id_filter is not None:
+        stmt = stmt.where(
+            or_(
+                DocumentMetadata.career_id == career_id_filter,
+                DocumentMetadata.career_id.is_(None),
             )
+        )
 
     if document_type_filter:
         db_doc_type = DOC_TYPE_TO_DB.get(document_type_filter, document_type_filter)
@@ -58,14 +58,18 @@ async def retrieve_relevant_fragments(
 
     records = (await db.execute(stmt)).all()
     return [
-        (chunk_row, doc_row, float(dist))
-        for chunk_row, doc_row, dist in records
+        (chunk_row, doc_row, career_name, float(dist))
+        for chunk_row, doc_row, career_name, dist in records
         if dist <= settings.MAX_COSINE_DISTANCE
     ]
 
 
-def _format_fragment_for_llm(chunk_row: DocumentChunk, doc_row: DocumentMetadata) -> str:
-    career_label = doc_row.career or "Institution-wide"
+def _format_fragment_for_llm(
+    chunk_row: DocumentChunk,
+    doc_row: DocumentMetadata,
+    career_name: Optional[str],
+) -> str:
+    career_label = career_name or "Institution-wide"
     doc_type_label = DOC_TYPE_FROM_DB.get(doc_row.document_type, doc_row.document_type)
     return (
         f"[Fuente: {doc_row.title} | Tipo: {doc_type_label} | Carrera: {career_label}]\n"
@@ -88,10 +92,10 @@ def _build_tools_for_user(user: AuthenticatedUser) -> List[Dict[str, Any]]:
                     "type": "object",
                     "properties": {
                         "query": {"type": "string", "description": "Semantic search text"},
-                        "career_filter": {"type": "string", "description": "Optional career name"},
+                        "career_id_filter": {"type": ["integer", "null"], "description": "Optional career ID from instituto.carrera"},
                         "document_type_filter": {
-                            "type": "string",
-                            "enum": ["study_plan", "regulation", "prerequisites", "resolution", "other"],
+                            "type": ["string", "null"],
+                            "enum": ["study_plan", "regulation", "prerequisites", "resolution", "other", None],
                         },
                     },
                     "required": ["query"],
@@ -114,7 +118,7 @@ def _build_tools_for_user(user: AuthenticatedUser) -> List[Dict[str, Any]]:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "career": {"type": "string", "description": "Optional partial career name"},
+                        "career": {"type": ["string", "null"], "description": "Optional partial career name"},
                     },
                 },
             },
@@ -127,7 +131,7 @@ def _build_tools_for_user(user: AuthenticatedUser) -> List[Dict[str, Any]]:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "subject": {"type": "string", "description": "Optional partial subject name"},
+                        "subject": {"type": ["string", "null"], "description": "Optional partial subject name"},
                     },
                 },
             },
@@ -178,7 +182,7 @@ def _build_tools_for_user(user: AuthenticatedUser) -> List[Dict[str, Any]]:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "subject_name": {"type": "string", "description": "Optional partial subject name"},
+                            "subject_name": {"type": ["string", "null"], "description": "Optional partial subject name"},
                         },
                     },
                 },
@@ -202,8 +206,8 @@ def _build_tools_for_user(user: AuthenticatedUser) -> List[Dict[str, Any]]:
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "file_number": {"type": "integer", "description": "Student file number (legajo)"},
-                        "dni": {"type": "string", "description": "Student national ID (DNI)"},
+                        "file_number": {"type": ["integer", "null"], "description": "Student file number (legajo)"},
+                        "dni": {"type": ["string", "null"], "description": "Student national ID (DNI)"},
                     },
                 },
             },
@@ -284,12 +288,19 @@ async def answer_chat_query(
     user: AuthenticatedUser,
 ) -> ChatQueryResponse:
     """Orchestrate hybrid vector search, RBAC academic tools, LLM synthesis, and audit logging."""
+    if request.career_id_filter is not None:
+        career_exists = (
+            await db.execute(select(Career.id).where(Career.id == request.career_id_filter))
+        ).scalar_one_or_none()
+        if career_exists is None:
+            raise LookupError(f"Career with id={request.career_id_filter} not found.")
+
     top_k = request.top_k or settings.TOP_K
 
     initial_results = await retrieve_relevant_fragments(
         db=db,
         query=request.question,
-        career_filter=request.career_filter,
+        career_id_filter=request.career_id_filter,
         document_type_filter=request.document_type_filter,
         metadata_filter=request.metadata_filter,
         top_k=top_k,
@@ -297,7 +308,7 @@ async def answer_chat_query(
 
     collected_chunks: Dict[int, DocumentChunkResponse] = {}
     llm_context_fragments: List[str] = []
-    for chunk_row, doc_row, dist in initial_results:
+    for chunk_row, doc_row, career_name, dist in initial_results:
         collected_chunks[chunk_row.id] = DocumentChunkResponse(
             id=chunk_row.id,
             document_id=chunk_row.document_id,
@@ -305,7 +316,7 @@ async def answer_chat_query(
             metadata=chunk_row.meta,
             cosine_distance=round(dist, 4),
         )
-        llm_context_fragments.append(_format_fragment_for_llm(chunk_row, doc_row))
+        llm_context_fragments.append(_format_fragment_for_llm(chunk_row, doc_row, career_name))
 
     academic_sources: List[str] = []
 
@@ -314,14 +325,14 @@ async def answer_chat_query(
             results = await retrieve_relevant_fragments(
                 db=db,
                 query=args.get("query", request.question),
-                career_filter=args.get("career_filter") or request.career_filter,
+                career_id_filter=args.get("career_id_filter") or request.career_id_filter,
                 document_type_filter=args.get("document_type_filter") or request.document_type_filter,
                 top_k=top_k,
             )
             if not results:
                 return "No relevant document fragments were found for that search."
             blocks = []
-            for c_row, d_row, dist in results:
+            for c_row, d_row, c_name, dist in results:
                 collected_chunks[c_row.id] = DocumentChunkResponse(
                     id=c_row.id,
                     document_id=c_row.document_id,
@@ -329,7 +340,7 @@ async def answer_chat_query(
                     metadata=c_row.meta,
                     cosine_distance=round(dist, 4),
                 )
-                blocks.append(_format_fragment_for_llm(c_row, d_row))
+                blocks.append(_format_fragment_for_llm(c_row, d_row, c_name))
             return "\n\n".join(blocks)
 
         if tool_name == "get_institutional_notices":
