@@ -1,94 +1,79 @@
-# TPI Base de Datos — ISFT 189: Asistente Virtual Académico (RAG)
+# TPI Base de Datos & Análisis de Sistemas — ISFT 189: Sistema Integrado y Asistente Virtual (RAG)
 
-Servicio backend de Asistente Virtual Inteligente basado en **Generación Aumentada por Recuperación (RAG)** para el Instituto Superior de Formación Técnica N° 189.
+Servicio backend unificado para el **Sistema Integral de Gestión Académica** (esquema `instituto`) y el **Asistente Virtual Inteligente basado en RAG + Tool Calling** (esquema `isft189`) del Instituto Superior de Formación Técnica N° 189.
 
-Desarrollado con **FastAPI**, **PostgreSQL 16 + pgvector** (embeddings de 384 dimensiones e índice **HNSW**) y compatibilidad nativa con proveedores LLM en la nube (**Groq** y **OpenRouter**).
-
----
-
-## 1. Arquitectura del Módulo
-
-El sistema resuelve la ingesta documental, segmentación de texto (chunking), representación semántica vectorial y generación de respuestas contextualizadas a partir de documentos oficiales institucionales (planes de estudio, correlatividades, régimen de asistencia y reglamentos).
-
-```
-[Documento PDF / Texto]
-         │
-         ▼
-[ Ingesta y Chunking ] ──> [ Embeddings 384-d ] ──> [ PostgreSQL + pgvector ]
-                                                      (isft189.documentos_vectoriales)
-                                                      (Índice HNSW: vector_cosine_ops)
-                                                                     │
-[ Estudiante / Docente ]                                             │
-         │                                                           ▼
-         ▼                                                  [ Búsqueda Híbrida ]
-[ Consulta /chat ] ──────> [ Embedding Consulta ] ────────> (Filtros + Operador <=>)
-                                                                     │
-                                                                     ▼
-[ Respuesta Final ] <───── [ LLM: Groq / OpenRouter ] <──── [ Top-k Fragmentos ]
-```
+Desarrollado con **FastAPI**, **PostgreSQL 16 + pgvector** (embeddings multilingües de 384 dimensiones e índice **HNSW**), **JWT + RBAC** (`ControladorAcceso`) y compatibilidad nativa con proveedores LLM en la nube (**Groq** y **OpenRouter**).
 
 ---
 
-## 2. Estructura de Base de Datos (`isft189`)
+## 1. Arquitectura Unificada
 
-El esquema `isft189` implementa las especificaciones solicitadas en la consigna de cátedra:
+Los entregables SQL de ambas materias se mantienen **separados académicamente** (`db/instituto/` y `db/bot/`), pero conviven en la misma base PostgreSQL y son consumidos de forma integrada por la API:
 
-1. **`isft189.usuarios`**:
-   - `id`, `nombre`, `email` (UNIQUE), `rol` ('ALUMNO', 'DOCENTE', 'ADMIN', etc.), `fecha_registro`.
-2. **`isft189.documentos_metadata`**:
-   - `id`, `titulo`, `tipo_documento` (ENUM: `plan_estudio`, `reglamento`, `correlatividades`, `resolucion`, `otro`), `fecha_subida`, `carrera` (NULL para documentos institucionales comunes), `activo`.
-3. **`isft189.documentos_vectoriales`**:
-   - `id`, `documento_id` (FK ON DELETE CASCADE), `contenido` (TEXT), `metadata` (JSONB con índice GIN), `embedding` (`VECTOR(384)` con índice **HNSW**).
-4. **`isft189.historial_consultas`**:
-   - `id`, `usuario_id` (FK ON DELETE SET NULL), `pregunta`, `respuesta`, `fecha_consulta`.
-
-### Índice HNSW y Búsqueda de Coseno
-
-Se utiliza el operador de distancia de coseno (`<=>`) y un índice HNSW para garantizar recuperación con complejidad $O(\log N)$ en lugar de escaneos secuenciales:
-
-```sql
-CREATE INDEX idx_vectoriales_hnsw
-    ON isft189.documentos_vectoriales
-    USING hnsw (embedding vector_cosine_ops)
-    WITH (m = 16, ef_construction = 64);
+```
+                   ┌──────────────────────────────────────────┐
+                   │   Cliente Web / Swagger / App Móvil      │
+                   └────────────────────┬─────────────────────┘
+                                        │ Bearer JWT (RBAC)
+                                        ▼
+                   ┌──────────────────────────────────────────┐
+                   │      FastAPI Backend (db/bot/app/)       │
+                   │  • Auth & RBAC (ControladorAcceso)       │
+                   │  • Orquestador RAG + Tool Calling        │
+                   └──────┬───────────────────────────┬───────┘
+                          │                           │
+       ┌──────────────────▼──────────┐     ┌──────────▼──────────────────────┐
+       │   Esquema: isft189 (RAG)    │     │ Esquema: instituto (Académico)  │
+       │  • documentos_metadata      │     │  • usuario, alumno, docente     │
+       │  • documentos_vectoriales   │     │  • carrera, plan_estudio        │
+       │    (VECTOR(384), HNSW, GIN) │     │  • materia, correlatividad      │
+       │  • historial_consultas      │     │  • cursadas, asistencias, actas │
+       └─────────────────────────────┘     └─────────────────────────────────┘
 ```
 
 ---
 
-## 3. Estructura del Proyecto
+## 2. Estructura del Proyecto
 
 ```
-db/bot/
-├── 01_ddl.sql              # Definición de esquema, pgvector, tablas, tipos e índices
-├── 02_dml.sql              # Carga inicial, vectores normalizados y consultas híbridas
-├── modelo.dbml             # Modelo físico en formato DBML
-├── README.md               # Esta documentación
-├── requirements.txt        # Dependencias Python
-├── .env.example            # Plantilla de variables de entorno
-└── app/
-    ├── __init__.py
-    ├── config.py           # Configuración con Pydantic Settings
-    ├── database.py         # Motor asíncrono SQLAlchemy + asyncpg
-    ├── models.py           # Modelos ORM (pgvector Vector(384), JSONB)
-    ├── schemas.py          # Esquemas de validación Pydantic v2
-    ├── embeddings.py       # Generador de embeddings (FastEmbed 384-d / fallback)
-    ├── llm.py              # Cliente OpenAI compatible para Groq y OpenRouter
-    ├── services/
-    │   ├── ingestion.py    # Chunking de documentos y almacenamiento
-    │   └── rag.py          # Búsqueda híbrida con <=> y armado de prompt
-    ├── routes/
-    │   ├── documents.py    # Endpoints de ingesta y gestión documental
-    │   └── chat.py         # Endpoints de consulta RAG y auditoría
-    └── main.py             # Aplicación FastAPI, lifespan y healthcheck
+db/
+├── instituto/                # Esquema relacional académico global (19 tablas)
+│   ├── 01_ddl.sql
+│   └── 02_dml.sql            # Planes oficiales (Res. 6175/03 y Desarrollo de Software 2019)
+└── bot/
+    ├── 01_ddl.sql            # Esquema isft189, pgvector, tablas e índices HNSW/GIN
+    ├── 02_dml.sql            # Datos iniciales y embeddings multilingües (384-d)
+    ├── er.drawio             # Diagrama Entidad-Relación conceptual
+    ├── modelo.dbml           # Modelo físico en formato DBML
+    ├── requirements.txt      # Dependencias Python
+    ├── .env.example          # Plantilla de variables de entorno
+    ├── tests/
+    │   └── test_app.py       # Pruebas unitarias e integración (JWT, RBAC, PDF, RAG)
+    └── app/
+        ├── .venv/            # Entorno virtual Python
+        ├── config.py         # Configuración (DB, JWT, CORS, LLM, Embeddings)
+        ├── database.py       # Motor asíncrono SQLAlchemy + asyncpg
+        ├── models.py         # Modelos ORM esquema isft189
+        ├── institute_models.py # Modelos ORM esquema instituto
+        ├── security.py       # Bcrypt, JWT y ControladorAcceso (RBAC)
+        ├── schemas.py        # Esquemas Pydantic v2 con validaciones
+        ├── embeddings.py     # FastEmbed multilingüe 384-d + wrappers async
+        ├── llm.py            # Cliente Groq / OpenRouter con Tool Calling
+        ├── services/
+        │   ├── academic.py   # Consultas parametrizadas RBAC sobre instituto
+        │   ├── ingestion.py  # Chunking seguro, extracción PDF y vectorización
+        │   └── rag.py        # Búsqueda híbrida HNSW + herramientas académicas
+        ├── routes/
+        │   ├── auth.py       # /api/v1/auth/login, /token y /me
+        │   ├── academic.py   # /api/v1/academic/*
+        │   ├── documents.py  # /api/v1/documents/* (JSON y PDF)
+        │   └── chat.py       # /api/v1/chat/ y /history (aislado por rol)
+        └── main.py           # Aplicación FastAPI, lifespan y /health
 ```
 
 ---
 
-## 4. Puesta en Marcha
-
-### Requisitos
-- Docker (o PostgreSQL 16 con `pgvector` instalado)
-- Python 3.10 o superior
+## 3. Puesta en Marcha
 
 ### Paso 1: Levantar PostgreSQL con pgvector
 
@@ -101,101 +86,81 @@ docker run -d --name tpi-isft189 \
   pgvector/pgvector:pg16
 ```
 
-### Paso 2: Ejecutar DDL y DML
+### Paso 2: Cargar ambos esquemas (`instituto` + `isft189`)
 
 ```bash
-# Crear tablas e índices HNSW
-PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -f db/bot/01_ddl.sql
+# 1. Esquema académico del instituto
+PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f db/instituto/01_ddl.sql
+PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f db/instituto/02_dml.sql
 
-# Cargar datos de prueba y ejecutar validaciones híbridas
-PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -f db/bot/02_dml.sql
+# 2. Esquema vectorial del bot RAG
+PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f db/bot/01_ddl.sql
+PGPASSWORD=tpi123 psql -h localhost -p 55432 -U tpi -d isft189 -v ON_ERROR_STOP=1 -f db/bot/02_dml.sql
 ```
 
-### Paso 3: Configurar el Entorno Python
+### Paso 3: Entorno Python y Variables de Entorno
 
 ```bash
 cd db/bot
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv app/.venv
+source app/.venv/bin/activate
 pip install -r requirements.txt
-```
-
-Copia la plantilla `.env.example` a `.env` y configura tu API Key de **Groq** o **OpenRouter**:
-
-```bash
 cp .env.example .env
 ```
 
-Ejemplo para **Groq**:
-```env
-LLM_PROVIDER=groq
-GROQ_API_KEY=gsk_tu_clave_real_de_groq
-LLM_MODEL=llama-3.3-70b-versatile
-DATABASE_URL=postgresql+asyncpg://tpi:tpi123@localhost:55432/isft189
-```
+Configurar en `.env` tu clave de **Groq** o **OpenRouter** y un `JWT_SECRET_KEY` seguro.
 
-Ejemplo para **OpenRouter**:
-```env
-LLM_PROVIDER=openrouter
-OPENROUTER_API_KEY=sk-or-v1-tu_clave_de_openrouter
-LLM_MODEL=meta-llama/llama-3.3-70b-instruct
-DATABASE_URL=postgresql+asyncpg://tpi:tpi123@localhost:55432/isft189
-```
-
-### Paso 4: Iniciar el Servidor FastAPI
+### Paso 4: Iniciar Servidor y Ejecutar Tests
 
 ```bash
-uvicorn app.main:app --reload --port 8000
+# Desde db/bot (o desde db/bot/app usando uvicorn main:app)
+app/.venv/bin/uvicorn app.main:app --reload --port 8000
+
+# Ejecutar suite de pruebas
+app/.venv/bin/pytest -v tests/test_app.py
 ```
 
-Documentación interactiva disponible en:
-- Swagger UI: `http://localhost:8000/docs`
-- Redoc: `http://localhost:8000/redoc`
+Documentación interactiva (Swagger UI con botón **Authorize** integrado): `http://localhost:8000/docs`
 
 ---
 
-## 5. Endpoints de la API
+## 4. Credenciales de Prueba (`db/instituto/02_dml.sql`)
 
-| Método | Endpoint | Descripción |
+Contraseña para todos los usuarios de prueba: **`isft189.2026`**
+
+| Rol | Email | Perfil / Legajo |
 |---|---|---|
-| `GET` | `/health` | Chequeo de estado de PostgreSQL y extensión `pgvector` |
-| `POST` | `/api/v1/documents/ingest` | Ingesta, chunking y vectorización de un documento |
-| `GET` | `/api/v1/documents/` | Listado de documentos y conteo de fragmentos |
-| `GET` | `/api/v1/documents/{id}` | Detalle de un documento específico |
-| `DELETE` | `/api/v1/documents/{id}` | Eliminación en cascada de documento y sus vectores |
-| `POST` | `/api/v1/chat/` | Consulta al asistente académico (RAG con Groq/OpenRouter) |
-| `GET` | `/api/v1/chat/history` | Historial de preguntas y respuestas auditadas |
+| `ADMIN` | `admin@isft189.edu.ar` | Nora Gómez |
+| `PRECEPTOR` | `rpaz@isft189.edu.ar` | Roberto Paz |
+| `TEACHER` | `lluengo@isft189.edu.ar` | Leonel Luengo (Legajo 201) |
+| `TEACHER` | `jcromero@isft189.edu.ar` | Juan Carlos Romero (Legajo 202) |
+| `STUDENT` | `mdimatteo@alumno.isft189.edu.ar` | Marcos Di Matteo (Legajo 1001 - Análisis y Desarrollo) |
+| `STUDENT` | `nquinonez@alumno.isft189.edu.ar` | Nahuel Quiñonez (Legajo 1002 - Análisis y Desarrollo) |
+| `STUDENT` | `salvarez@alumno.isft189.edu.ar` | Sofía Álvarez (Legajo 1004 - Desarrollo de Software) |
 
 ---
 
-## 6. Ejemplos de Uso con cURL
+## 5. Endpoints Principales (`/api/v1`)
 
-### Ingestar un documento
-```bash
-curl -X POST http://localhost:8000/api/v1/documents/ingest \
-  -H "Content-Type: application/json" \
-  -d '{
-    "titulo": "Régimen de Correlatividades de Sistemas 2024",
-    "tipo_documento": "correlatividades",
-    "carrera": "Tecnicatura Superior en Desarrollo de Software",
-    "contenido_completo": "Para cursar Arquitectura Web se debe tener aprobada Programación II. Para rendir el examen final de Base de Datos II es requisito haber aprobado el final de Base de Datos I.",
-    "chunk_size": 300,
-    "chunk_overlap": 30
-  }'
-```
-
-### Realizar una consulta académica (RAG)
-```bash
-curl -X POST http://localhost:8000/api/v1/chat/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "pregunta": "¿Qué correlatividad necesito para rendir Base de Datos II?",
-    "filtro_carrera": "Tecnicatura Superior en Desarrollo de Software",
-    "top_k": 3
-  }'
-```
-
-### Ver historial de consultas auditadas
-```bash
-curl -X GET "http://localhost:8000/api/v1/chat/history?limit=5"
-```
+| Método | Endpoint | Acceso RBAC | Descripción |
+|---|---|---|---|
+| `GET` | `/health` | Público | Estado de PostgreSQL, `pgvector` y esquemas `instituto`/`isft189` |
+| `POST` | `/api/v1/auth/login` | Público | Autenticación bcrypt (JSON) y emisión de JWT |
+| `POST` | `/api/v1/auth/token` | Público | Login OAuth2 para botón **Authorize** en Swagger `/docs` |
+| `GET` | `/api/v1/auth/me` | Autenticado | Perfil y legajo del usuario del token |
+| `GET` | `/api/v1/academic/careers` | Autenticado | Carreras vigentes con sus materias anidadas (`subjects`) |
+| `GET` | `/api/v1/academic/notices` | Autenticado | Avisos filtrados por rol |
+| `GET` | `/api/v1/academic/enrollment-periods` | Autenticado | Ventanas de inscripción (`COURSE` o `EXAM`) |
+| `GET` | `/api/v1/academic/exam-boards` | Autenticado | Mesas de examen y períodos exclusivamente de tipo `EXAM` |
+| `GET` | `/api/v1/academic/students/me/history` | `STUDENT` | Historia académica y promedio propio |
+| `GET` | `/api/v1/academic/students/me/attendance` | `STUDENT` | Porcentaje de asistencia por materia |
+| `GET` | `/api/v1/academic/students/me/prerequisites` | `STUDENT` | Validación de correlativas `TO_ENROLL` y `TO_TAKE_EXAM` |
+| `GET` | `/api/v1/academic/teachers/me/rosters` | `TEACHER` | Cátedras asignadas y nómina de alumnos |
+| `GET` | `/api/v1/academic/teachers/me/exam-boards` | `TEACHER` | Mesas donde integra tribunal |
+| `GET` | `/api/v1/academic/admin/students` | `PRECEPTOR`, `ADMIN` | Consulta de legajo por `file_number` o `dni` |
+| `POST` | `/api/v1/documents/ingest` | `PRECEPTOR`, `ADMIN` | Ingesta de texto, chunking y vectorización |
+| `POST` | `/api/v1/documents/ingest-pdf` | `PRECEPTOR`, `ADMIN` | Subida e indexación directa de PDFs |
+| `GET` | `/api/v1/documents/` | Autenticado | Listado de documentos y conteo de chunks |
+| `DELETE` | `/api/v1/documents/{document_id}` | `PRECEPTOR`, `ADMIN` | Eliminación en cascada |
+| `POST` | `/api/v1/chat/` | Autenticado | Asistente híbrido (RAG vectorial + tools sobre `instituto`) |
+| `GET` | `/api/v1/chat/history` | Autenticado (aislado) | Historial propio (`STUDENT`/`TEACHER`) o auditoría (`PRECEPTOR`/`ADMIN`) |
