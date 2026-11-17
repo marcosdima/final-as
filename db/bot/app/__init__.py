@@ -1,4 +1,5 @@
 """
-ISFT 189 - Asistente Virtual Inteligente (FastAPI + pgvector + Groq/OpenRouter)
+ISFT 189 - Unified Academic & Virtual Assistant API (FastAPI + pgvector + Groq/OpenRouter)
 """
-__version__ = "1.0.0"
+
+__version__ = "2.0.0"

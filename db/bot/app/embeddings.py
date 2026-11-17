@@ -1,7 +1,9 @@
+import asyncio
+import hashlib
 import logging
 import math
-import hashlib
 from typing import List, Optional
+
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -10,34 +12,30 @@ _embedding_model: Optional[object] = None
 
 
 def _get_fastembed_model():
-    """
-    Carga diferida (lazy load) del modelo FastEmbed para optimizar el arranque.
-    """
+    """Lazy-load FastEmbed model to keep application startup fast."""
     global _embedding_model
     if _embedding_model is None:
         try:
             from fastembed import TextEmbedding
-            logger.info("Cargando modelo de embeddings: %s", settings.EMBEDDING_MODEL)
+
+            logger.info("Loading embedding model: %s", settings.EMBEDDING_MODEL)
             _embedding_model = TextEmbedding(model_name=settings.EMBEDDING_MODEL)
-        except Exception as e:
+        except Exception as exc:
             logger.warning(
-                "No se pudo inicializar FastEmbed (%s). Se usará el generador determinista fallback.", e
+                "Could not initialize FastEmbed (%s). Using deterministic fallback generator.",
+                exc,
             )
             _embedding_model = False
     return _embedding_model
 
 
 def _fallback_embedding(text: str, dim: int = 384) -> List[float]:
-    """
-    Generador determinista pseudo-semántico de 384 dimensiones.
-    Garantiza que el servicio funcione sin conexión o sin descargar pesos.
-    """
+    """Deterministic 384-d fallback vector generator for offline environments."""
     tokens = text.lower().split()
     vec = [0.0] * dim
     for tok in tokens:
         h = int(hashlib.sha256(tok.encode("utf-8")).hexdigest(), 16)
         for i in range(dim):
-            # Proyección pseudoaleatoria basada en bits de hash
             bit = (h >> (i % 64)) & 1
             weight = 1.0 if bit else -1.0
             vec[i] += weight / (1.0 + (i % 7))
@@ -49,9 +47,7 @@ def _fallback_embedding(text: str, dim: int = 384) -> List[float]:
 
 
 def embed_texts(texts: List[str]) -> List[List[float]]:
-    """
-    Genera embeddings normalizados para una lista de textos.
-    """
+    """Generate normalized embeddings for a list of texts (CPU-bound)."""
     if not texts:
         return []
 
@@ -59,17 +55,23 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
     if model:
         try:
             generator = model.embed(texts)
-            embeddings = [list(map(float, vec)) for vec in generator]
-            return embeddings
-        except Exception as e:
-            logger.error("Error al generar embeddings con FastEmbed: %s. Aplicando fallback.", e)
+            return [list(map(float, vec)) for vec in generator]
+        except Exception as exc:
+            logger.error("FastEmbed embedding error (%s). Falling back.", exc)
 
     return [_fallback_embedding(t, settings.EMBEDDING_DIM) for t in texts]
 
 
 def embed_query(query: str) -> List[float]:
-    """
-    Genera el vector de embedding para una consulta de búsqueda.
-    """
-    vectors = embed_texts([query])
-    return vectors[0]
+    """Generate embedding vector for a search query."""
+    return embed_texts([query])[0]
+
+
+async def embed_texts_async(texts: List[str]) -> List[List[float]]:
+    """Run text embedding generation in a worker thread to avoid blocking the event loop."""
+    return await asyncio.to_thread(embed_texts, texts)
+
+
+async def embed_query_async(query: str) -> List[float]:
+    """Run query embedding generation in a worker thread."""
+    return await asyncio.to_thread(embed_query, query)

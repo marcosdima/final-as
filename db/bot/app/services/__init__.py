@@ -1,3 +1,3 @@
 """
-Servicios de ingesta, vectorización y generación RAG
+Service layer for academic queries, document ingestion, and hybrid RAG orchestration.
 """

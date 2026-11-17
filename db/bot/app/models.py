@@ -1,21 +1,14 @@
-from datetime import datetime
-from typing import Optional
-from sqlalchemy import (
-    BigInteger,
-    Boolean,
-    Column,
-    DateTime,
-    ForeignKey,
-    String,
-    Text
-)
-from sqlalchemy.dialects.postgresql import ENUM as PgEnum, JSONB
-from sqlalchemy.orm import relationship
+from datetime import datetime, timezone
+
 from pgvector.sqlalchemy import Vector
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import ENUM as PgEnum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
-TipoDocumentoEnum = PgEnum(
+DocumentTypePgEnum = PgEnum(
     "plan_estudio",
     "reglamento",
     "correlatividades",
@@ -23,74 +16,79 @@ TipoDocumentoEnum = PgEnum(
     "otro",
     name="tipo_documento",
     schema="isft189",
-    create_type=False
+    create_type=False,
 )
 
 
-class Usuario(Base):
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+class BotUser(Base):
     __tablename__ = "usuarios"
     __table_args__ = {"schema": "isft189"}
 
     id = Column(BigInteger, primary_key=True, index=True)
-    nombre = Column(String(100), nullable=False)
+    full_name = Column("nombre", String(100), nullable=False)
     email = Column(String(100), nullable=False, unique=True, index=True)
-    rol = Column(String(20), nullable=False, default="ALUMNO")
-    fecha_registro = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    role = Column("rol", String(20), nullable=False, default="ALUMNO")
+    registered_at = Column("fecha_registro", DateTime(timezone=True), default=_utc_now, nullable=False)
 
-    consultas = relationship("HistorialConsulta", back_populates="usuario")
+    queries = relationship("ChatHistory", back_populates="user")
 
 
-class DocumentoMetadata(Base):
+class DocumentMetadata(Base):
     __tablename__ = "documentos_metadata"
     __table_args__ = {"schema": "isft189"}
 
     id = Column(BigInteger, primary_key=True, index=True)
-    titulo = Column(String(200), nullable=False)
-    tipo_documento = Column(TipoDocumentoEnum, nullable=False, index=True)
-    fecha_subida = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    carrera = Column(String(100), nullable=True, index=True)
-    activo = Column(Boolean, nullable=False, default=True)
+    title = Column("titulo", String(200), nullable=False)
+    document_type = Column("tipo_documento", DocumentTypePgEnum, nullable=False, index=True)
+    uploaded_at = Column("fecha_subida", DateTime(timezone=True), default=_utc_now, nullable=False)
+    career = Column("carrera", String(100), nullable=True, index=True)
+    active = Column("activo", Boolean, nullable=False, default=True)
 
-    fragmentos = relationship(
-        "DocumentoVectorial",
-        back_populates="documento",
-        cascade="all, delete-orphan"
+    chunks = relationship(
+        "DocumentChunk",
+        back_populates="document",
+        cascade="all, delete-orphan",
     )
 
 
-class DocumentoVectorial(Base):
+class DocumentChunk(Base):
     __tablename__ = "documentos_vectoriales"
     __table_args__ = {"schema": "isft189"}
 
     id = Column(BigInteger, primary_key=True, index=True)
-    documento_id = Column(
+    document_id = Column(
+        "documento_id",
         BigInteger,
         ForeignKey("isft189.documentos_metadata.id", ondelete="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
-    contenido = Column(Text, nullable=False)
-    # Mapeo a la columna SQL "metadata" sin colisionar con Base.metadata
+    content = Column("contenido", Text, nullable=False)
     meta = Column("metadata", JSONB, nullable=False, default=dict)
     embedding = Column(Vector(384), nullable=False)
-    fecha_creacion = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column("fecha_creacion", DateTime(timezone=True), default=_utc_now, nullable=False)
 
-    documento = relationship("DocumentoMetadata", back_populates="fragmentos")
+    document = relationship("DocumentMetadata", back_populates="chunks")
 
 
-class HistorialConsulta(Base):
+class ChatHistory(Base):
     __tablename__ = "historial_consultas"
     __table_args__ = {"schema": "isft189"}
 
     id = Column(BigInteger, primary_key=True, index=True)
-    usuario_id = Column(
+    user_id = Column(
+        "usuario_id",
         BigInteger,
         ForeignKey("isft189.usuarios.id", ondelete="SET NULL"),
         nullable=True,
-        index=True
+        index=True,
     )
-    pregunta = Column(Text, nullable=False)
-    respuesta = Column(Text, nullable=False)
-    fecha_consulta = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    question = Column("pregunta", Text, nullable=False)
+    answer = Column("respuesta", Text, nullable=False)
+    created_at = Column("fecha_consulta", DateTime(timezone=True), default=_utc_now, nullable=False)
 
-    usuario = relationship("Usuario", back_populates="consultas")
+    user = relationship("BotUser", back_populates="queries")

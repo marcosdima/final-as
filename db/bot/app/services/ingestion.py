@@ -1,15 +1,31 @@
+import io
 import re
 from typing import List
+
+from pypdf import PdfReader
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.embeddings import embed_texts
-from app.models import DocumentoMetadata, DocumentoVectorial
-from app.schemas import DocumentoIngestRequest, DocumentoIngestResponse
+
+from app.embeddings import embed_texts_async
+from app.models import DocumentChunk, DocumentMetadata
+from app.schemas import DocumentIngestRequest, DocumentIngestResponse
+
+DOC_TYPE_TO_DB = {
+    "study_plan": "plan_estudio",
+    "regulation": "reglamento",
+    "prerequisites": "correlatividades",
+    "resolution": "resolucion",
+    "other": "otro",
+}
+DOC_TYPE_FROM_DB = {v: k for k, v in DOC_TYPE_TO_DB.items()}
 
 
 def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> List[str]:
-    """
-    Divide un texto en fragmentos respetando oraciones y párrafos.
-    """
+    """Split plain text into overlapping chunks respecting paragraph boundaries."""
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be greater than 0")
+    if chunk_overlap < 0 or chunk_overlap >= chunk_size:
+        raise ValueError("chunk_overlap must be >= 0 and strictly less than chunk_size")
+
     clean_text = re.sub(r"\r\n|\r", "\n", text).strip()
     if not clean_text:
         return []
@@ -18,25 +34,29 @@ def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> Lis
         return [clean_text]
 
     paragraphs = [p.strip() for p in clean_text.split("\n\n") if p.strip()]
-    chunks = []
+    chunks: List[str] = []
     current_chunk = ""
+    step = chunk_size - chunk_overlap
 
-    for p in paragraphs:
-        if len(current_chunk) + len(p) + 2 <= chunk_size:
-            current_chunk = f"{current_chunk}\n\n{p}".strip()
+    for paragraph in paragraphs:
+        if len(current_chunk) + len(paragraph) + 2 <= chunk_size:
+            current_chunk = f"{current_chunk}\n\n{paragraph}".strip()
         else:
             if current_chunk:
                 chunks.append(current_chunk)
-            # Si el párrafo individual es mayor a chunk_size, se parte por ventana
-            if len(p) > chunk_size:
+            if len(paragraph) > chunk_size:
                 start = 0
-                while start < len(p):
-                    end = min(start + chunk_size, len(p))
-                    chunks.append(p[start:end].strip())
-                    start += chunk_size - chunk_overlap
+                while start < len(paragraph):
+                    end = min(start + chunk_size, len(paragraph))
+                    segment = paragraph[start:end].strip()
+                    if segment:
+                        chunks.append(segment)
+                    if end >= len(paragraph):
+                        break
+                    start += step
                 current_chunk = ""
             else:
-                current_chunk = p
+                current_chunk = paragraph
 
     if current_chunk:
         chunks.append(current_chunk)
@@ -44,66 +64,75 @@ def chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> Lis
     return chunks
 
 
+def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
+    """Extract plain text from raw PDF bytes for chunking and indexing."""
+    reader = PdfReader(io.BytesIO(pdf_bytes))
+    pages_text = []
+    for page in reader.pages:
+        text = (page.extract_text() or "").strip()
+        if text:
+            pages_text.append(text)
+    return "\n\n".join(pages_text)
+
+
 async def ingest_document(
     db: AsyncSession,
-    request: DocumentoIngestRequest
-) -> DocumentoIngestResponse:
-    """
-    Registra metadatos, fragmenta el contenido, calcula embeddings y almacena en PostgreSQL.
-    """
-    # 1. Determinar fragmentos
-    if request.fragmentos and len(request.fragmentos) > 0:
-        chunks = [f.strip() for f in request.fragmentos if f.strip()]
-    elif request.contenido_completo:
+    request: DocumentIngestRequest,
+) -> DocumentIngestResponse:
+    """Store document metadata, chunk text, generate embeddings, and persist vectors."""
+    if request.chunks and len(request.chunks) > 0:
+        chunks = [c.strip() for c in request.chunks if c.strip()]
+    elif request.full_content and request.full_content.strip():
         chunks = chunk_text(
-            request.contenido_completo,
+            request.full_content,
             chunk_size=request.chunk_size,
-            chunk_overlap=request.chunk_overlap
+            chunk_overlap=request.chunk_overlap,
         )
     else:
-        chunks = [request.titulo]
+        raise ValueError("Document contains no valid text to vectorize.")
 
-    # 2. Generar embeddings vectoriales
-    embeddings = embed_texts(chunks)
+    if not chunks:
+        raise ValueError("No non-empty chunks were produced from the provided content.")
 
-    # 3. Insertar metadatos principales
-    doc_meta = DocumentoMetadata(
-        titulo=request.titulo,
-        tipo_documento=request.tipo_documento,
-        carrera=request.carrera,
-        activo=True
+    embeddings = await embed_texts_async(chunks)
+    db_doc_type = DOC_TYPE_TO_DB[request.document_type]
+
+    doc_meta = DocumentMetadata(
+        title=request.title,
+        document_type=db_doc_type,
+        career=request.career,
+        active=True,
     )
     db.add(doc_meta)
-    await db.flush()  # Obtener el id generado
+    await db.flush()
 
-    # 4. Insertar cada fragmento en documentos_vectoriales
     for idx, (chunk_str, emb_vec) in enumerate(zip(chunks, embeddings)):
         chunk_metadata = {
-            "titulo": request.titulo,
-            "tipo_documento": request.tipo_documento,
-            "carrera": request.carrera,
+            "title": request.title,
+            "document_type": request.document_type,
+            "career": request.career,
             "chunk_index": idx,
-            "total_chunks": len(chunks)
+            "total_chunks": len(chunks),
         }
-        if request.metadata_adicional:
-            chunk_metadata.update(request.metadata_adicional)
+        if request.additional_metadata:
+            chunk_metadata.update(request.additional_metadata)
 
-        vector_record = DocumentoVectorial(
-            documento_id=doc_meta.id,
-            contenido=chunk_str,
+        vector_record = DocumentChunk(
+            document_id=doc_meta.id,
+            content=chunk_str,
             meta=chunk_metadata,
-            embedding=emb_vec
+            embedding=emb_vec,
         )
         db.add(vector_record)
 
     await db.commit()
     await db.refresh(doc_meta)
 
-    return DocumentoIngestResponse(
-        documento_id=doc_meta.id,
-        titulo=doc_meta.titulo,
-        tipo_documento=doc_meta.tipo_documento,
-        carrera=doc_meta.carrera,
-        fragmentos_creados=len(chunks),
-        mensaje="Documento fragmentado, vectorizado e indexado correctamente."
+    return DocumentIngestResponse(
+        document_id=doc_meta.id,
+        title=doc_meta.title,
+        document_type=request.document_type,
+        career=doc_meta.career,
+        chunks_created=len(chunks),
+        message="Document chunked, vectorized, and indexed successfully.",
     )

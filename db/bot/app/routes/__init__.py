@@ -1,3 +1,3 @@
 """
-Rutas API para documentos y chat RAG
+API route modules for authentication, academic management, documents, and RAG chat.
 """

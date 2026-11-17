@@ -1,72 +1,92 @@
+import logging
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import HistorialConsulta
-from app.schemas import ChatQueryRequest, ChatQueryResponse
+from app.models import BotUser, ChatHistory
+from app.schemas import ChatHistoryItemResponse, ChatQueryRequest, ChatQueryResponse
+from app.security import AuthenticatedUser, get_current_user
 from app.services.rag import answer_chat_query
 
-router = APIRouter(prefix="/chat", tags=["Consultas y RAG"])
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/chat", tags=["Virtual Assistant (RAG)"])
 
 
 @router.post(
     "/",
     response_model=ChatQueryResponse,
     status_code=status.HTTP_200_OK,
-    summary="Consultar asistente virtual académico (RAG)"
+    summary="Query the academic virtual assistant (RAG + Institute DB with RBAC)",
 )
 async def chat_endpoint(
     request: ChatQueryRequest,
-    db: AsyncSession = Depends(get_db)
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    Recibe una consulta de un estudiante o docente, recupera los fragmentos
-    institucionales más relevantes utilizando búsqueda híbrida en pgvector,
-    genera la respuesta mediante Groq u OpenRouter y registra la interacción en el historial.
+    Process a natural-language query for the JWT-authenticated user, combining
+    hybrid pgvector search with RBAC-scoped queries over the `instituto` schema.
     """
     try:
-        response = await answer_chat_query(db, request)
-        return response
-    except Exception as e:
+        return await answer_chat_query(db, request, current_user)
+    except Exception:
         await db.rollback()
+        logger.exception("Error processing RAG chat query")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al procesar consulta RAG: {str(e)}"
+            detail="Internal error while processing assistant query.",
         )
 
 
 @router.get(
     "/history",
-    summary="Auditoría: Historial de consultas"
+    response_model=List[ChatHistoryItemResponse],
+    summary="Audit log: chat query history (RBAC-isolated)",
 )
 async def get_chat_history(
-    usuario_id: Optional[int] = Query(None, description="Filtrar por ID de usuario"),
+    user_id: Optional[int] = Query(
+        None,
+        description="Filter by `isft189.usuarios.id` (Preceptor / Admin only)",
+    ),
     limit: int = Query(20, ge=1, le=100),
-    db: AsyncSession = Depends(get_db)
+    current_user: AuthenticatedUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """
-    Devuelve las consultas y respuestas auditadas en isft189.historial_consultas.
+    Return audited interactions from `isft189.historial_consultas`:
+    - STUDENT / TEACHER: strictly limited to their own history.
+    - PRECEPTOR / ADMIN: institution-wide audit log with optional `user_id` filter.
     """
     stmt = (
-        select(HistorialConsulta)
-        .order_by(HistorialConsulta.fecha_consulta.desc())
+        select(ChatHistory)
+        .order_by(ChatHistory.created_at.desc())
         .limit(limit)
     )
-    if usuario_id is not None:
-        stmt = stmt.where(HistorialConsulta.usuario_id == usuario_id)
+
+    if current_user.role in ("STUDENT", "TEACHER"):
+        if user_id is not None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to view another user's chat history.",
+            )
+        bot_user = (
+            await db.execute(select(BotUser).where(BotUser.email == current_user.email))
+        ).scalar_one_or_none()
+        if not bot_user:
+            return []
+        stmt = stmt.where(ChatHistory.user_id == bot_user.id)
+    elif current_user.role in ("PRECEPTOR", "ADMIN"):
+        if user_id is not None:
+            stmt = stmt.where(ChatHistory.user_id == user_id)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Role not authorized to inspect chat history.",
+        )
 
     result = await db.execute(stmt)
-    records = result.scalars().all()
-
-    return [
-        {
-            "id": r.id,
-            "usuario_id": r.usuario_id,
-            "pregunta": r.pregunta,
-            "respuesta": r.respuesta,
-            "fecha_consulta": r.fecha_consulta
-        }
-        for r in records
-    ]
+    return list(result.scalars().all())
