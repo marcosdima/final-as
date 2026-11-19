@@ -485,6 +485,7 @@ class Viewer{
     this.userMoved=false;
     this.hidden=new Set(); this.flags={}; this.query='';
     this.layoutMode='hier';
+    this.static=!!o.staticLayout;   /* diseño fijo: sin drag de nodos ni posiciones guardadas */
     this.nodes=[]; this.edges=[]; this.notes=[];
     this._bind();
   }
@@ -983,22 +984,23 @@ class Viewer{
     const p={}; this.nodes.forEach(n=>p[n.id]=[Math.round(n.x),Math.round(n.y)]);
     try{ localStorage.setItem(this.key(),JSON.stringify(p)); if(!silent) this.toast('Posiciones guardadas ✓'); }catch(e){}
   }
-  load(){
+  load(silent){
     try{
-      const raw=localStorage.getItem(this.key()); if(!raw){ this.toast('No hay posiciones guardadas'); return false; }
+      const raw=localStorage.getItem(this.key());
+      if(!raw){ if(!silent) this.toast('No hay posiciones guardadas'); return false; }
       const p=JSON.parse(raw); let ok=0;
       this.nodes.forEach(n=>{ if(p[n.id]){ n.x=p[n.id][0]; n.y=p[n.id][1]; ok++; } });
-      this.render(); this.toast(`${ok} elementos restaurados ✓`); return true;
+      this.render(); if(!silent) this.toast(`${ok} elementos restaurados ✓`); return true;
     }catch(e){ return false; }
   }
   clear(){ try{localStorage.removeItem(this.key());}catch(e){} this.auto(); this.toast('Posiciones borradas'); }
   reset(auto){
-    if(!this.load()) this.auto(); else this.render();
+    if(!this.load(true)) this.auto(); else this.render();
   }
   toast(msg){
     let t=document.getElementById('toast');
     if(!t){ t=document.createElement('div'); t.id='toast';
-      t.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0d47a1;color:#fff;padding:10px 20px;border-radius:9px;font-size:13px;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.25);transition:.3s';
+      t.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#0d47a1;color:#fff;padding:9px 20px;border-radius:9px;font-size:13px;z-index:999;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.25);transition:.3s';
       document.body.appendChild(t); }
     t.textContent=msg; t.style.opacity='1';
     clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity='0',1700);
@@ -1034,7 +1036,7 @@ class Viewer{
 const vCU = new Viewer({stageId:'cuStage',layerId:'cuLayer',svgId:'cuSvg',sideId:'cuSide',
                         zoomId:'cuZoom',countId:'cuVisible'});
 const vCL = new Viewer({stageId:'clStage',layerId:'clLayer',svgId:'clSvg',sideId:'clSide',
-                        zoomId:'clZoom',countId:'clVisible'});
+                        zoomId:'clZoom',countId:'clVisible',staticLayout:true});
 
 /* --- selector de diagramas CU --- */
 (()=>{
@@ -1083,3 +1085,359 @@ $$('button[data-flow]').forEach(b=>{ b.onclick=()=>{ const fv=FLOWVIEWS[b.datase
 const FLOWVIEWS={};
 FICHAS.forEach(f=>{ const m=buildFlow(f); if(m) FLOWVIEWS[f.id]=attachFlowView(f.id); });
 requestAnimationFrame(()=>{ FICHAS.forEach(f=>{ const v=FLOWVIEWS[f.id]; if(v) v.fit(); }); vCU.fit(); vCL.fit(); });
+
+/* ============================================================
+   ASISTENTE VIRTUAL — consultas a la BD vía backend RAG (JWT+RBAC)
+   Modo por defecto: POST /api/v1/chat/ (RAG pgvector + tools instituto)
+   Modo alternativo: Groq directo con contexto del documento (demo)
+   ============================================================ */
+const CHAT = (()=>{
+  const log=$('#chatLog'), input=$('#chatInput'), send=$('#chatSend'),
+        net=$('#chatNet'), netTxt=$('#chatNetTxt'), modeLbl=$('#chatMode'),
+        prov=$('#chatProv'), modelSel=$('#chatModel'), keyIn=$('#chatKey'),
+        localBox=$('#localBox'), groqBox=$('#groqBox'), hint=$('#chatHint'),
+        userLbl=$('#chatUser'), docsUrl=$('#chatDocsUrl');
+
+  const LS_KEY='isft189_groq_key', LS_MODEL='isft189_groq_model',
+        LS_TOKEN='isft189_jwt', LS_USER='isft189_user', LS_API='isft189_api';
+  const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
+  let busy=false, history=[], session=null;   /* session: {full_name, role, file_number} */
+
+  const getKey = ()=> (localStorage.getItem(LS_KEY)||'').trim() || (GROQ_KEY_DEFAULT||'').trim();
+  const getModel = ()=> localStorage.getItem(LS_MODEL) || modelSel.value;
+  const apiBase = ()=> ($('#chatApi').value||'http://127.0.0.1:8000').replace(/\/$/,'');
+  const isLocal = ()=> prov.value==='local';
+
+  /* ---------- contexto del documento (solo modo demo Groq) ---------- */
+  const CONTEXT = (()=>{
+    const pkgs={};
+    CATALOG.forEach(c=>{ (pkgs[c.pkg]=pkgs[c.pkg]||{n:0,name:c.pkgName}); pkgs[c.pkg].n++; });
+    const pkgTxt=Object.entries(pkgs).map(([k,v])=>`${k} — ${v.name} (${v.n} CU)`).join('\n');
+    const cuTxt=CATALOG.map(c=>`${c.code} ${c.name} [${c.pkg}] actor:${c.actor} RF:${c.rf}`).join('\n');
+    const fichaTxt=FICHAS.map(f=>{
+      const steps=f.steps.map((s,i)=>`  ${i+1}. ${s.text}`).join('\n');
+      return `${f.id} — ${f.title} (${f.pkgName})\nActor: ${f.actor} · RF: ${f.rf}\n${f.desc.replace(/\s+/g,' ').trim()}\nFlujo:\n${steps}`;
+    }).join('\n\n');
+    const classNames=[...new Set(DATA.clases.flatMap(d=>d.classes.map(c=>c.name)))].sort();
+    return {pkgTxt,cuTxt,fichaTxt,classNames};
+  })();
+
+  const SYSTEM = `Sos el asistente virtual académico del Instituto Superior de Formación Técnica N° 189 (ISFT 189), dentro de un documento interactivo de casos de uso y UML.
+Respondé en español, claro, conciso y formal. Fundamentá en el CONTEXTO de abajo (catálogo de casos de uso, fichas descriptivas y modelo de clases). Si la respuesta no está en el contexto, aclará que no disponés de esa información en el documento y recomendá consultar en Secretaría. Mencioná los códigos (CU-xx, RF-xxx, PK-xxx) cuando corresponda.
+
+=== PAQUETES FUNCIONALES ===
+${CONTEXT.pkgTxt}
+
+=== CATÁLOGO COMPLETO (49 casos de uso) ===
+${CONTEXT.cuTxt}
+
+=== FICHAS DESCRIPTIVAS (con flujo) ===
+${CONTEXT.fichaTxt}
+
+=== CLASES DEL MODELO ===
+${CONTEXT.classNames.join(', ')}`;
+
+  /* ---------- UI ---------- */
+  function addMsg(role, html, cls){
+    const d=document.createElement('div');
+    d.className='msg '+(role==='u'?'u':('a '+(cls||'')));
+    d.innerHTML=html;
+    log.appendChild(d); log.scrollTop=log.scrollHeight;
+    return d;
+  }
+  const typing=()=>addMsg('a','<span class="typing"><i></i><i></i><i></i></span>');
+  const escMd = s => esc(s);
+
+  /* render mínimo: negrita, código, tablas, listas, headings, citas, saltos */
+  function md(t){
+    let h=esc(t)
+      .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>')
+      .replace(/`([^`]+)`/g,'<code>$1</code>');
+    const lines=h.split('\n');
+    let out='', inL=false, nL=false, tbl=null;
+
+    const flushL=()=>{
+      if(inL){out+='</ul>';inL=false;}
+      if(nL){out+='</ol>';nL=false;}
+    };
+    const flushTbl=()=>{
+      if(!tbl) return;
+      const rows=tbl.filter(r=>!/^\s*\|[\s\-:|]+\|\s*$/.test(r))
+        .map(r=>r.replace(/^\s*\||\|\s*$/g,'').split('|').map(c=>c.trim()));
+      if(rows.length){
+        out+='<table style="margin:6px 0;font-size:12.4px"><thead><tr>'+
+          rows[0].map(c=>`<th style="padding:4px 9px;background:#0d47a1;color:#fff;border:0">${c}</th>`).join('')+
+          '</tr></thead><tbody>'+
+          rows.slice(1).map(r=>'<tr>'+r.map(c=>`<td style="padding:4px 9px;border-bottom:1px solid #e2e8f0">${c}</td>`).join('')+'</tr>').join('')+
+          '</tbody></table>';
+      }
+      tbl=null;
+    };
+
+    for(const raw of lines){
+      const ln=raw.trimEnd();
+      if(/^\s*\|.*\|\s*$/.test(ln)){          /* fila de tabla */
+        flushL();
+        (tbl=tbl||[]).push(ln);
+        continue;
+      }
+      flushTbl();
+      if(/^\s*(---+|\*\*\*+|___+)\s*$/.test(ln)){ flushL(); out+='<hr style="border:0;border-top:1px solid #e2e8f0;margin:9px 0">'; continue; }
+      const hd=ln.match(/^\s*(#{1,6})\s+(.*)$/);
+      if(hd){ flushL(); const sz=Math.max(12.6,15.2-hd[1].length*0.9);
+        out+=`<p style="font-size:${sz}px;margin:9px 0 4px"><b>${hd[2]}</b></p>`; continue; }
+      const bq=ln.match(/^\s*&gt;\s?(.*)$/);
+      if(bq){ flushL(); out+=`<p style="border-left:3px solid #90caf9;padding-left:9px;color:#455a64;margin:5px 0"><i>${bq[1]}</i></p>`; continue; }
+      const om=ln.match(/^\s*(\d+)[.)]\s+(.*)$/);
+      if(om){ if(inL){out+='</ul>';inL=false;} if(!nL){out+='<ol style="margin:5px 0 3px;padding-left:21px">';nL=true;}
+        out+=`<li>${om[2]}</li>`; continue; }
+      const m=ln.match(/^\s*[-•]\s+(.*)$/);
+      if(m){ if(nL){out+='</ol>';nL=false;} if(!inL){out+='<ul>';inL=true;} out+=`<li>${m[1]}</li>`; continue; }
+      flushL();
+      if(ln.trim()) out+='<p>'+ln+'</p>';
+    }
+    flushL();
+    flushTbl();
+    return out.replace(/<p><\/p>/g,'');
+  }
+
+  function setNet(ok,txt){ net.classList.toggle('off',!ok); netTxt.textContent=txt; }
+  function setMode(){
+    modeLbl.textContent = isLocal()
+      ? 'RAG + BD institucional · JWT + RBAC'
+      : `Groq directo · ${getModel()} · contexto del documento`;
+  }
+
+  /* ---------- sesión JWT en el backend ---------- */
+  async function login(silent){
+    const base=apiBase();
+    const r=await fetch(base+'/api/v1/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:$('#chatEmail').value.trim(),password:$('#chatPass').value})
+    });
+    if(!r.ok) throw new Error('Login rechazado ('+r.status+') — verificá email/contraseña o el backend.');
+    const j=await r.json();
+    localStorage.setItem(LS_TOKEN,j.access_token);
+    localStorage.setItem(LS_USER,JSON.stringify(j.user));
+    localStorage.setItem(LS_API,base);
+    session=j.user;
+    userLbl.innerHTML=`<b>${esc(j.user.full_name)}</b> · ${esc(j.user.role)}`+
+      (j.user.file_number? ` · Legajo ${j.user.file_number}`:'')+
+      ` <span style="opacity:.7">(JWT activo)</span>`;
+    setNet(true, 'bd: '+j.user.role.toLowerCase());
+    if(!silent) addMsg('a',md(
+      `**Sesión iniciada** como ${j.user.full_name} (\`${j.user.role}\`).\n`+
+      'Ahora mis consultas se resuelven contra la **base de datos real** con tus permisos: '+
+      'carreras y planes, materias, correlatividades, mesas de examen, historial y asistencias.'));
+    return j;
+  }
+
+  async function health(){
+    try{
+      const r=await fetch(apiBase()+'/health',{cache:'no-store'});
+      if(!r.ok) return false;
+      const j=await r.json();
+      return j.status==='healthy';
+    }catch(e){ return false; }
+  }
+
+  /* ---------- Backend: RAG pgvector + tools académicos sobre la BD ---------- */
+  async function askLocal(question, bub){
+    const base=apiBase();
+    let tok=localStorage.getItem(LS_TOKEN);
+    const call=async(t)=>{
+      const r=await fetch(base+'/api/v1/chat/',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},
+        body:JSON.stringify({question,top_k:4})
+      });
+      if(r.status===401) return null;
+      if(!r.ok){
+        let d=''; try{ d=(await r.json()).detail||''; }catch(e){}
+        throw new Error(`Backend respondió ${r.status}. ${typeof d==='string'?d:JSON.stringify(d)}`);
+      }
+      return r.json();
+    };
+    let j = tok? await call(tok) : null;
+    if(!j){ await login(true); tok=localStorage.getItem(LS_TOKEN); j=await call(tok); }
+    if(!j) throw new Error('Sesión rechazada por el backend. Volvé a iniciar sesión.');
+
+    /* fuentes: tablas académicas consultadas + documentos RAG recuperados */
+    const acad=(j.academic_sources||[]);
+    const docs=[...new Set((j.retrieved_chunks||[]).map(c=>{
+      const m=c.metadata||{};
+      const bits=[m.tipo,m.carrera,m.materia,m.articulo,m.requisito].filter(Boolean);
+      return bits.length? bits.join(' · ') : null;
+    }).filter(Boolean))].slice(0,4);
+    const bits=[
+      acad.length? `<b>Tablas BD:</b> ${esc(acad.join(' · '))}`:'',
+      docs.length? `<b>Docs RAG:</b> ${esc(docs.join(' || '))}`:'',
+      j.model? `<b>Modelo:</b> ${esc(j.model)} vía ${esc(j.llm_provider||'groq')}`:''
+    ].filter(Boolean);
+    const suffix = bits.length? '\n\n<small class="src">'+bits.join('<br>')+'</small>' : '';
+    bub.innerHTML=md(j.answer)+suffix;
+    log.scrollTop=log.scrollHeight;
+    return j.answer;
+  }
+
+  /* ---------- Groq directo con streaming (modo demo, sin BD) ---------- */
+  async function askGroq(question, bub){
+    const key=getKey();
+    if(!key){ throw new Error('Falta la API key de Groq. Pegala en el panel derecho y guardá.'); }
+    const msgs=[{role:'system',content:SYSTEM},
+                ...history.slice(-10),
+                {role:'user',content:question}];
+
+    const res=await fetch(GROQ_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model:getModel(),messages:msgs,temperature:0.3,
+                           max_tokens:6000,stream:true})
+    });
+    if(!res.ok){
+      let d=''; try{ d=(await res.json()).error?.message||''; }catch(e){}
+      if(res.status===401) throw new Error('API key inválida o revocada. ' + d);
+      if(res.status===429) throw new Error('Límite de uso de Groq alcanzado, probá en unos minutos. ' + d);
+      throw new Error(`Error Groq (${res.status}). ${d}`);
+    }
+
+    /* SSE de OpenAI-compatible: la respuesta crece en la misma burbuja */
+    bub.innerHTML='';
+    let acc='';
+    const reader=res.body.getReader(), dec=new TextDecoder();
+    let buf='';
+    while(true){
+      const {done,value}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const parts=buf.split('\n'); buf=parts.pop();
+      for(const line of parts){
+        const m=/^data:\s*(.*)$/.exec(line.trim()); if(!m) continue;
+        if(m[1]==='[DONE]') continue;
+        try{
+          const j=JSON.parse(m[1]);
+          const d=j.choices?.[0]?.delta?.content;
+          if(d){ acc+=d; bub.innerHTML=md(acc); log.scrollTop=log.scrollHeight; }
+        }catch(e){}
+      }
+    }
+    if(!acc){ bub.remove(); throw new Error('Groq devolvió una respuesta vacía. Probá con otro modelo.'); }
+    return acc;
+  }
+
+  /* ---------- flujo de envío ---------- */
+  async function ask(text){
+    if(busy||!text.trim()) return;
+    busy=true; send.disabled=true; input.value='';
+    addMsg('u',escMd(text).replace(/\n/g,'<br>'));
+    const t=typing();
+    try{
+      setMode();
+      const ans = isLocal()? await askLocal(text,t) : await askGroq(text,t);
+      history.push({role:'user',content:text},{role:'assistant',content:ans});
+      if(history.length>20) history=history.slice(-20);
+      if(isLocal()) setNet(true,'bd en línea'); else setNet(true,'groq en línea');
+    }catch(err){
+      t.remove();
+      addMsg('a','⚠️ '+esc(err.message||String(err)),'err');
+      setNet(false,isLocal()?'backend caído':'sin conexión');
+    }finally{
+      busy=false; send.disabled=false; input.focus();
+    }
+  }
+
+  /* ---------- eventos ---------- */
+  send.onclick=()=>ask(input.value);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); ask(input.value); }
+  });
+  $$('#chatChips .chipq').forEach(b=>b.onclick=()=>ask(b.textContent.trim()));
+  $('#chatClear').onclick=()=>{ history=[]; log.innerHTML=''; greet(); };
+
+  prov.onchange=()=>{
+    const loc=isLocal();
+    groqBox.classList.toggle('apioff',loc);
+    localBox.classList.toggle('apioff',!loc);
+    setMode();
+    hint.innerHTML = loc
+      ? 'Cada consulta llama a <code>POST /api/v1/chat/</code>: recuperación vectorial (pgvector) + tools académicos sobre las tablas <code>instituto.*</code>, con el rol del JWT. Mismo flujo que el Swagger.'
+      : 'Modo demo: el HTML consulta <code>api.groq.com</code> directamente con el contexto de este documento (49 CU, fichas, clases). <b>No toca la base de datos.</b>';
+    if(loc) probeBackend(); else probeGroq();
+  };
+  modelSel.onchange=()=>{ localStorage.setItem(LS_MODEL,modelSel.value); setMode(); };
+  keyIn.value=getKey();
+  $('#chatKeySave').onclick=()=>{
+    const k=keyIn.value.trim();
+    if(!k){ localStorage.removeItem(LS_KEY); setNet(false,'sin key'); return; }
+    localStorage.setItem(LS_KEY,k);
+    setNet(true,'key guardada ✓');
+    setTimeout(()=>probeGroq(),600);
+  };
+  $('#chatLogin').onclick=async()=>{
+    const btn=$('#chatLogin'); btn.disabled=true; btn.textContent='⏳ Iniciando…';
+    try{ await login(false); }
+    catch(err){
+      setNet(false,'backend caído');
+      addMsg('a','⚠️ '+esc(err.message)+' — levantá el stack: Docker (<code>tpi-isft189</code>) + <code>uvicorn app.main:app --port 8000</code>.','err');
+    }finally{ btn.disabled=false; btn.textContent='🔑 Iniciar sesión'; }
+  };
+  $('#chatApi').addEventListener('change',()=>{ if(isLocal()) probeBackend(); });
+
+  async function probeGroq(){
+    const key=getKey();
+    if(!key){ setNet(false,'sin key'); return; }
+    try{
+      const r=await fetch('https://api.groq.com/openai/v1/models',
+        {headers:{'Authorization':'Bearer '+key}});
+      setNet(r.ok, r.ok?'groq en línea':'key rechazada');
+    }catch(e){ setNet(false,'sin conexión'); }
+  }
+
+  async function probeBackend(){
+    setNet(false,'verificando…');
+    if(!(await health())){
+      setNet(false,'backend caído');
+      userLbl.innerHTML='Backend no responde en <code>'+esc(apiBase())+'</code>. Levantá Docker + uvicorn.';
+      return;
+    }
+    /* ¿hay JWT guardado todavía válido? */
+    const tok=localStorage.getItem(LS_TOKEN);
+    if(tok){
+      try{
+        const r=await fetch(apiBase()+'/api/v1/auth/me',{headers:{'Authorization':'Bearer '+tok}});
+        if(r.ok){
+          const u=await r.json();
+          session=u;
+          userLbl.innerHTML=`<b>${esc(u.full_name||u.email)}</b> · ${esc(u.role||'')}`+
+            (u.file_number? ` · Legajo ${u.file_number}`:'')+
+            ` <span style="opacity:.7">(JWT activo)</span>`;
+          setNet(true,'bd: '+(u.role||'').toLowerCase());
+          return;
+        }
+      }catch(e){}
+      localStorage.removeItem(LS_TOKEN);
+    }
+    try{ await login(true); }catch(e){
+      setNet(false,'sin sesión');
+      userLbl.innerHTML='Backend en línea pero sin sesión. Cargá credenciales y tocá <b>Iniciar sesión</b>.';
+    }
+  }
+
+  function greet(){
+    addMsg('a',md(
+      '**Hola 👋 Soy el asistente virtual del ISFT 189.**\n'+
+      'Consulto la **base de datos real** del sistema (igual que el Swagger): carreras y planes de estudio, materias y correlatividades, mesas de examen, historial académico, asistencias y avisos.\n'+
+      'Todo se resuelve con **JWT + RBAC**: veo solo lo que tu rol permite.\n\n'+
+      'Probá una de las consultas sugeridas abajo o escribí la tuya.'));
+  }
+
+  /* init: recordar URL del backend, sincronizar UI y levantar sesión */
+  const savedApi=localStorage.getItem(LS_API); if(savedApi) $('#chatApi').value=savedApi;
+  if(docsUrl) docsUrl.innerHTML=`<a href="${esc(apiBase())}/docs" target="_blank" rel="noopener">${esc(apiBase())}/docs</a>`;
+  $('#chatApi').addEventListener('change',()=>{ if(docsUrl) docsUrl.innerHTML=`<a href="${esc(apiBase())}/docs" target="_blank" rel="noopener">${esc(apiBase())}/docs</a>`; });
+  prov.value='local';
+  prov.onchange();
+  greet();
+  probeBackend();
+  return {ask};
+})();

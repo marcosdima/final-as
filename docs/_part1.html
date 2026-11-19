@@ -137,8 +137,53 @@ svg text{user-select:none}
 .hint{margin-left:auto;font-style:italic;opacity:.85}
 .zoomlbl{font-family:Consolas,monospace;font-size:12px;background:#eef2f7;border:1px solid var(--line);padding:3px 9px;border-radius:7px;font-weight:700;color:var(--navy)}
 
+/* ---------- asistente virtual (chatbot) ---------- */
+.chatgrid{display:grid;grid-template-columns:minmax(0,1fr) 302px;gap:14px;align-items:start}
+@media(max-width:900px){.chatgrid{grid-template-columns:1fr}}
+.chatbox{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);display:flex;flex-direction:column;height:610px;overflow:hidden}
+.chathead{display:flex;align-items:center;gap:11px;padding:11px 15px;background:linear-gradient(100deg,#0d47a1,#1565c0);color:#fff}
+.chathead .av{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:17px;flex:none}
+.chathead .tt{flex:1;min-width:0}
+.chathead .tt b{font-size:14px;display:block}
+.chathead .tt small{opacity:.8;font-size:11px}
+.cbadge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:3px 10px;border-radius:12px;font-size:11px;white-space:nowrap}
+.cbadge i{width:7px;height:7px;border-radius:50%;background:#69f0ae;flex:none}
+.cbadge.off i{background:#ffab91}
+.chatlog{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:11px;background:#f7f9fc}
+.msg{max-width:84%;padding:10px 13px;border-radius:13px;font-size:13.3px;line-height:1.62;word-wrap:break-word;animation:fade .2s ease}
+.msg.u{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.a p{margin:0 0 6px}.msg.a p:last-child{margin:0}
+.msg.a code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-family:Consolas,monospace;font-size:12.3px}
+.msg.a ul,.msg.a ol{margin:5px 0 3px;padding-left:19px}
+.msg.a li{margin:2px 0}
+.msg .src{margin-top:8px;padding-top:7px;border-top:1px dashed var(--line);font-size:11.2px;color:var(--muted)}
+.msg .src b{color:var(--navy)}
+.msg.err{background:#fdecea;border-color:#f5c6cb;color:#b71c1c}
+.typing{display:inline-flex;gap:4px;align-items:center;padding:3px 2px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#90caf9;animation:tp 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes tp{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.chips{display:flex;gap:7px;flex-wrap:wrap;padding:10px 13px;border-top:1px solid var(--line);background:#fbfcfe}
+.chipq{background:#eef2f7;border:1px solid var(--line);border-radius:15px;padding:5px 11px;font-size:12px;cursor:pointer;transition:.15s;font-family:inherit}
+.chipq:hover{background:#e3f2fd;border-color:#90caf9;color:var(--navy)}
+.chatin{display:flex;gap:9px;padding:12px 13px;border-top:1px solid var(--line);background:#fff}
+.chatin textarea{flex:1;resize:none;height:47px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:13.4px}
+.chatin textarea:focus{outline:2px solid #bbdefb;border-color:var(--navy2)}
+.chatin button{height:47px;padding:0 20px}
+.chatcfg{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px 15px;font-size:12.6px}
+.chatcfg h5{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:5px}
+.chatcfg h5:not(:first-child){margin-top:14px}
+.chatcfg .field{margin-top:9px}
+.chatcfg .field label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:3px;font-weight:700}
+.chatcfg .field input,.chatcfg .field select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:7px;font-size:12.6px;font-family:inherit;background:#fff;color:var(--ink)}
+.chatcfg .field input:focus,.chatcfg .field select:focus{outline:2px solid #bbdefb;border-color:var(--navy2)}
+.chatcfg .note{font-size:11.4px;color:var(--muted);line-height:1.5;margin-top:8px}
+.chatcfg .btn{width:100%;margin-top:9px}
+.apioff{opacity:.55;pointer-events:none}
+
 footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
-@media (max-width:900px){ .vbody{flex-direction:column;height:auto} .side{width:100%;border-right:0;border-bottom:1px solid var(--line)} .stage{height:440px} }
+@media (max-width:900px){ .vbody{flex-direction:column;height:auto} .side{width:100%;border-right:0;border-bottom:1px solid var(--line);max-height:250px} .stage{flex:none;height:470px} }
 </style>
 </head>
 <body>
@@ -159,6 +204,7 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
     <button data-tab="fichas">Fichas descriptivas <span class="cnt">5</span></button>
     <button data-tab="umlcu">UML · Casos de Uso <span class="cnt">8</span></button>
     <button data-tab="umlcl">UML · Clases <span class="cnt">9 + 26</span></button>
+    <button data-tab="chat">🤖 Asistente virtual</button>
   </nav>
 </header>
 
@@ -281,13 +327,11 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
         <option value="hier">↕ Jerárquico vertical</option>
         <option value="grid">▦ Rejilla</option>
       </select>
-      <button class="btn primary" data-v="cl" data-act="auto">↻ Auto-ordenar</button>
-      <button class="btn" data-v="cl" data-act="fit">⛶ Ajustar</button>
-      <button class="btn" data-v="cl" data-act="save">💾 Guardar</button>
-      <button class="btn" data-v="cl" data-act="load">📂 Cargar</button>
-      <button class="btn" data-v="cl" data-act="clear">🗑 Borrar posiciones</button>
+      <button class="btn primary" data-v="cl" data-act="auto">↻ Recalcular orden</button>
+      <button class="btn" data-v="cl" data-act="fit">⛶ Ajustar a pantalla</button>
       <span class="zoomlbl" id="clZoom">100%</span>
       <span class="count" id="clVisible"></span>
+      <span class="hint" style="margin-left:auto;font-size:11.5px;color:var(--muted)">📐 Diseño fijo: solo zoom y desplazamiento</span>
     </div>
     <div class="vbody">
       <aside class="side" id="clSide"></aside>
@@ -304,12 +348,100 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
     </div>
   </div>
 </section>
+
+<!-- ==================== ASISTENTE VIRTUAL ==================== -->
+<section class="tab" id="tab-chat">
+  <h2 class="sec">Asistente virtual — consultas en vivo a la base de datos</h2>
+  <p class="lead">Chat conectado al <b>backend real del sistema</b> (<code>POST /api/v1/chat/</code>, igual que el Swagger de
+  <code>localhost:8000/docs</code>): combinación de <b>RAG vectorial</b> (reglamentos, planes, correlatividades indexados con pgvector)
+  + <b>tools académicos sobre la BD <code>instituto</code></b> (carreras y planes, materias, mesas de examen, correlatividades,
+  asistencias, historial) con <b>JWT + RBAC</b>: cada respuesta respeta el rol del usuario logueado. La síntesis del texto la hace
+  Groq (<code>openai/gpt-oss-120b</code>) del lado del servidor.</p>
+
+  <div class="chatgrid">
+    <div class="chatbox">
+      <div class="chathead">
+        <div class="av">🤖</div>
+        <div class="tt">
+          <b>Asistente ISFT 189</b>
+          <small id="chatMode">RAG + BD institucional · tiempo real</small>
+        </div>
+        <span class="cbadge" id="chatNet"><i></i><span id="chatNetTxt">conectando…</span></span>
+        <button class="cbadge" id="chatClear" style="cursor:pointer" title="Vaciar conversación">🗑</button>
+      </div>
+
+      <div class="chatlog" id="chatLog"></div>
+
+      <div class="chips" id="chatChips">
+        <button class="chipq">¿Qué carreras y planes de estudio hay?</button>
+        <button class="chipq">¿Qué materias tiene la carrera de Desarrollo de Software y sus correlatividades?</button>
+        <button class="chipq">¿Qué mesas de examen hay agendadas?</button>
+        <button class="chipq">¿Cuál es mi historia académica y promedio?</button>
+        <button class="chipq">¿Cuál es mi porcentaje de asistencia?</button>
+        <button class="chipq">¿Puedo cursar Análisis y Diseño de Sistemas? (correlativas)</button>
+      </div>
+
+      <div class="chatin">
+        <textarea id="chatInput" placeholder="Escribí tu consulta… (Enter envía, Shift+Enter salto de línea)"></textarea>
+        <button class="btn primary" id="chatSend">Enviar</button>
+      </div>
+    </div>
+
+    <aside class="chatcfg" id="chatCfg">
+      <h5>Conexión</h5>
+      <div class="field">
+        <label for="chatProv">Modo</label>
+        <select id="chatProv">
+          <option value="local">Backend · RAG + BD institucional</option>
+          <option value="groq">Groq directo (solo contexto del documento)</option>
+        </select>
+      </div>
+
+      <div id="localBox">
+        <h5>Sesión (JWT + RBAC)</h5>
+        <div class="field">
+          <label for="chatEmail">Email institucional</label>
+          <input id="chatEmail" value="mdimatteo@alumno.isft189.edu.ar" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="chatPass">Contraseña</label>
+          <input id="chatPass" type="password" value="isft189.2026" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="chatApi">URL del backend (Swagger: <span id="chatDocsUrl">/docs</span>)</label>
+          <input id="chatApi" value="http://127.0.0.1:8000" autocomplete="off">
+        </div>
+        <button class="btn" id="chatLogin">🔑 Iniciar sesión</button>
+        <p class="note" id="chatUser" style="margin-top:7px">Sin sesión activa.</p>
+      </div>
+
+      <div id="groqBox" class="apioff">
+        <h5>Modo demo (Groq directo)</h5>
+        <div class="field">
+          <label for="chatModel">Modelo Groq</label>
+          <select id="chatModel">
+            <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (recomendado)</option>
+            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (más rápido)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="chatKey">API key Groq</label>
+          <input id="chatKey" type="password" placeholder="gsk_…" autocomplete="off">
+        </div>
+        <button class="btn" id="chatKeySave">💾 Guardar key en este navegador</button>
+      </div>
+
+      <p class="note" id="chatHint"></p>
+    </aside>
+  </div>
+</section>
 </main>
 
 <footer>ISFT 189 · Sistema Integral de Gestión Académica · Diagramas generados desde los archivos .puml del repositorio</footer>
 
 <script>
 const DATA = /*__UML_DATA__*/;
+const GROQ_KEY_DEFAULT = /*__GROQ_KEY__*/;
 /*__UML_JS__*/
 </script>
 </body>
