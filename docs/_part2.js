@@ -144,7 +144,35 @@ const FICHAS = [
  alt:`Si el usuario olvidó su contraseña, desde la misma pantalla puede invocar el <b>CU-02: Recuperar contraseña</b>,
  que reemplaza el paso de validación por un flujo de verificación por correo electrónico.`,
  exc:`Tras 5 intentos fallidos consecutivos, el sistema bloquea temporalmente la cuenta y notifica al
- Administrador/a para evitar ataques de fuerza bruta.`
+ Administrador/a para evitar ataques de fuerza bruta.`,
+ seq:{
+  lifelines:[
+   {id:'user',label:'Usuario',kind:'actor'},
+   {id:'ui',label:'Interfaz web',stereo:'«boundary»'},
+   {id:'api',label:'Servidor / API',stereo:'«control»'},
+   {id:'db',label:'Base de datos',stereo:'«entity»'}
+  ],
+  msgs:[
+   {k:'msg',from:'user',to:'ui',label:'Abrir "Iniciar sesión"',type:'sync'},
+   {k:'msg',from:'user',to:'ui',label:'Ingresar correo y contraseña',type:'sync'},
+   {k:'msg',from:'ui',to:'api',label:'POST /api/v1/auth/login',type:'sync'},
+   {k:'msg',from:'api',to:'db',label:'Buscar usuario por correo',type:'sync'},
+   {k:'alt',cond:'¿Credenciales válidas?',then:[
+     {k:'alt',cond:'¿Cuenta activa?',then:[
+       {k:'msg',from:'api',to:'api',label:'Generar token JWT firmado',type:'self'},
+       {k:'msg',from:'api',to:'db',label:'Registrar acceso (auditoría)',type:'sync'},
+       {k:'msg',from:'api',to:'ui',label:'200 · token JWT + rol',type:'reply'},
+       {k:'msg',from:'ui',to:'user',label:'Redirigir al panel del rol',type:'reply'}
+     ],else:[
+       {k:'msg',from:'api',to:'ui',label:'403 · "Cuenta inactiva"',type:'reply'},
+       {k:'msg',from:'ui',to:'user',label:'Derivar al Administrador/a',type:'reply'}
+     ]}
+   ],else:[
+     {k:'msg',from:'api',to:'ui',label:'401 · "Correo o contraseña incorrectos"',type:'reply'},
+     {k:'msg',from:'ui',to:'user',label:'Permanecer en la pantalla de acceso',type:'reply'}
+   ]}
+  ]
+ }
 },
 {
  id:'CU-11', title:'Registrar alumno/a', pkg:'PK-ALU', pkgName:'Gestión de Alumnos y Legajos',
@@ -175,6 +203,35 @@ const FICHAS = [
  el alta marcando el origen de la documentación en el campo de observaciones, sin alterar el flujo principal.`,
  exc:`Si el DNI ya existe, el sistema no duplica el registro: muestra el legajo existente y sugiere usar el
  <b>CU-12: Modificar datos de alumno/a</b> para actualizar la información.`,
+ seq:{
+  lifelines:[
+   {id:'pre',label:'Preceptor/a',kind:'actor'},
+   {id:'ui',label:'Interfaz web',stereo:'«boundary»'},
+   {id:'api',label:'Servidor / API',stereo:'«control»'},
+   {id:'db',label:'Base de datos',stereo:'«entity»'}
+  ],
+  msgs:[
+   {k:'msg',from:'pre',to:'ui',label:'Abrir módulo de legajos',type:'sync'},
+   {k:'msg',from:'pre',to:'ui',label:'Elegir «Registrar alumno/a»',type:'sync'},
+   {k:'msg',from:'pre',to:'ui',label:'Cargar DNI, nombre y contacto',type:'sync'},
+   {k:'alt',cond:'¿Datos completos y válidos?',then:[
+     {k:'msg',from:'ui',to:'api',label:'POST /alumnos',type:'sync'},
+     {k:'msg',from:'api',to:'db',label:'SELECT DNI en legajos',type:'sync'},
+     {k:'alt',cond:'¿DNI disponible?',then:[
+       {k:'msg',from:'api',to:'api',label:'Asignar legajo único',type:'self'},
+       {k:'msg',from:'api',to:'db',label:'INSERT alumno (ACTIVO)',type:'sync'},
+       {k:'msg',from:'api',to:'db',label:'INSERT usuario (bcrypt)',type:'sync'},
+       {k:'msg',from:'api',to:'ui',label:'200 · legajo asignado',type:'reply'},
+       {k:'msg',from:'ui',to:'pre',label:'Mostrar alta confirmada',type:'reply'}
+     ],else:[
+       {k:'msg',from:'api',to:'ui',label:'409 · "DNI ya registrado"',type:'reply'},
+       {k:'msg',from:'ui',to:'pre',label:'Ofrecer abrir legajo existente',type:'reply'}
+     ]}
+   ],else:[
+     {k:'msg',from:'ui',to:'pre',label:'Resaltar campos con error',type:'reply'}
+   ]}
+  ]
+ },
 },
 {
  id:'CU-24', title:'Inscribirse a cursada de materia', pkg:'PK-CURS', pkgName:'Cursadas, Asistencias y Calificaciones',
@@ -205,6 +262,38 @@ const FICHAS = [
  que saltea la restricción de período pero conserva la validación de correlatividades.`,
  exc:`Si la materia ya está aprobada o tiene una inscripción activa, el sistema bloquea la nueva inscripción
  y muestra la condición actual del/a alumno/a en esa unidad curricular.`,
+ seq:{
+  lifelines:[
+   {id:'alu',label:'Alumno/a',kind:'actor'},
+   {id:'ui',label:'Interfaz web',stereo:'«boundary»'},
+   {id:'api',label:'Servidor / API',stereo:'«control»'},
+   {id:'v26',label:'Validador CU-26',stereo:'«control»'},
+   {id:'db',label:'Base de datos',stereo:'«entity»'}
+  ],
+  msgs:[
+   {k:'msg',from:'alu',to:'ui',label:'Abrir módulo de inscripción a cursadas',type:'sync'},
+   {k:'msg',from:'alu',to:'ui',label:'Elegir materia del plan de estudios',type:'sync'},
+   {k:'alt',cond:'¿Período de inscripción vigente?',then:[
+     {k:'msg',from:'ui',to:'api',label:'POST /cursadas/inscribir',type:'sync'},
+     {k:'msg',from:'api',to:'v26',label:'«include» validar correlatividades',type:'sync'},
+     {k:'msg',from:'v26',to:'db',label:'SELECT correlativas del plan',type:'sync'},
+     {k:'alt',cond:'¿Cumple todas las correlativas?',then:[
+       {k:'msg',from:'v26',to:'api',label:'true · correlatividades OK',type:'reply'},
+       {k:'msg',from:'api',to:'db',label:'INSERT inscripción (CURSANDO)',type:'sync'},
+       {k:'msg',from:'api',to:'db',label:'UPDATE nómina de la cátedra',type:'sync'},
+       {k:'msg',from:'api',to:'ui',label:'200 · inscripción registrada',type:'reply'},
+       {k:'msg',from:'ui',to:'alu',label:'Mostrar "Inscripción a cursada confirmada"',type:'reply'}
+     ],else:[
+       {k:'msg',from:'v26',to:'api',label:'false · materias faltantes',type:'reply'},
+       {k:'msg',from:'api',to:'ui',label:'409 · listar correlativas pendientes',type:'reply'},
+       {k:'msg',from:'ui',to:'alu',label:'Mostrar faltantes y no inscribir',type:'reply'}
+     ]}
+   ],else:[
+     {k:'msg',from:'api',to:'ui',label:'423 · "Período cerrado"',type:'reply'},
+     {k:'msg',from:'ui',to:'alu',label:'Derivar al/a Preceptor/a (CU-25)',type:'reply'}
+   ]}
+  ]
+ },
 },
 {
  id:'CU-35', title:'Programar mesa de examen final', pkg:'PK-EXAM', pkgName:'Exámenes Finales y Actas Oficiales',
@@ -235,6 +324,35 @@ const FICHAS = [
  completar el tribunal luego con el <b>CU-19: Asignar docente a materia</b>.`,
  exc:`No puede programarse una mesa para una materia sin ciclo lectivo abierto: el sistema bloquea la
  operación y solicita aperturar el ciclo con el <b>CU-10</b>.`,
+ seq:{
+  lifelines:[
+   {id:'pre',label:'Preceptor/a',kind:'actor'},
+   {id:'ui',label:'Interfaz web',stereo:'«boundary»'},
+   {id:'api',label:'Servidor / API',stereo:'«control»'},
+   {id:'db',label:'Base de datos',stereo:'«entity»'}
+  ],
+  msgs:[
+   {k:'msg',from:'pre',to:'ui',label:'Abrir módulo de exámenes finales',type:'sync'},
+   {k:'msg',from:'pre',to:'ui',label:'Cargar materia, fecha, horario y ciclo',type:'sync'},
+   {k:'msg',from:'pre',to:'ui',label:'Designar docente titular y observador/a',type:'sync'},
+   {k:'alt',cond:'¿Son dos docentes distintos?',then:[
+     {k:'msg',from:'ui',to:'api',label:'POST /mesas',type:'sync'},
+     {k:'msg',from:'api',to:'db',label:'SELECT disponibilidad de fecha y horario',type:'sync'},
+     {k:'alt',cond:'¿Fecha sin conflicto?',then:[
+       {k:'msg',from:'api',to:'db',label:'INSERT mesa_examen (ABIERTA)',type:'sync'},
+       {k:'msg',from:'api',to:'db',label:'Abrir ventana de inscripción (CU-36)',type:'sync'},
+       {k:'msg',from:'api',to:'ui',label:'200 · mesa programada',type:'reply'},
+       {k:'msg',from:'ui',to:'pre',label:'Mostrar mesa confirmada',type:'reply'}
+     ],else:[
+       {k:'msg',from:'api',to:'ui',label:'409 · horarios ocupados',type:'reply'},
+       {k:'msg',from:'ui',to:'pre',label:'Solicitar otra fecha',type:'reply'}
+     ]}
+   ],else:[
+     {k:'msg',from:'ui',to:'pre',label:'Error: "El tribunal debe tener docentes distintos"',type:'reply'},
+     {k:'msg',from:'pre',to:'ui',label:'Volver a la designación',type:'sync'}
+   ]}
+  ]
+ },
 },
 {
  id:'CU-45', title:'Realizar consulta al asistente virtual', pkg:'PK-CHAT', pkgName:'Asistente Virtual / Chatbot',
@@ -264,7 +382,34 @@ const FICHAS = [
  alt:`Desde el <b>CU-48: Consultar correlatividades de una materia</b> se dispara este flujo mediante una
  <code>&lt;&lt;extend&gt;&gt;</code>, inyectando un parámetro de materia que acota la búsqueda.`,
  exc:`Si el proveedor LLM no responde, el sistema devuelve la información recuperada por similitud
- vectorial sin síntesis, dejando constancia del fallo en la auditoría.`
+ vectorial sin síntesis, dejando constancia del fallo en la auditoría.`,
+ seq:{
+  lifelines:[
+   {id:'user',label:'Usuario',kind:'actor'},
+   {id:'ui',label:'Interfaz web',stereo:'«boundary»'},
+   {id:'api',label:'Servidor / API',stereo:'«control»'},
+   {id:'db',label:'Base de datos',stereo:'«entity»'},
+   {id:'llm',label:'Proveedor LLM',stereo:'«control»'}
+  ],
+  msgs:[
+   {k:'msg',from:'user',to:'ui',label:'Escribir consulta en lenguaje natural',type:'sync'},
+   {k:'msg',from:'ui',to:'api',label:'POST /api/v1/chat/',type:'sync'},
+   {k:'msg',from:'api',to:'db',label:'«include» CU-46: validar rol y permisos',type:'sync'},
+   {k:'alt',cond:'¿Tiene permiso para esa información?',then:[
+     {k:'msg',from:'db',to:'api',label:'true · permisos OK',type:'reply'},
+     {k:'msg',from:'api',to:'db',label:'«include» CU-47: recuperar datos (RAG + tools)',type:'sync'},
+     {k:'msg',from:'db',to:'api',label:'contexto académico + fuentes',type:'reply'},
+     {k:'msg',from:'api',to:'llm',label:'Generar respuesta con el contexto',type:'sync'},
+     {k:'msg',from:'llm',to:'api',label:'respuesta sintetizada',type:'reply'},
+     {k:'msg',from:'api',to:'db',label:'«include» CU-49: registrar conversación',type:'sync'},
+     {k:'msg',from:'api',to:'ui',label:'200 · respuesta + fuentes',type:'reply'},
+     {k:'msg',from:'ui',to:'user',label:'Mostrar respuesta citando fuentes',type:'reply'}
+   ],else:[
+     {k:'msg',from:'api',to:'ui',label:'403 · "Sin permisos para esa información"',type:'reply'},
+     {k:'msg',from:'ui',to:'user',label:'Responder según el rol del usuario',type:'reply'}
+   ]}
+  ]
+ }
 }];
 
 /* ---------- render de fichas ---------- */
@@ -304,21 +449,21 @@ function renderFichas(){
       <h4 class="fh">Flujo de excepción</h4>
       <div class="exc"><b>Excepción:</b> ${f.exc}</div>
 
-      <h4 class="fh">Diagrama de flujo</h4>
+      <h4 class="fh">Diagrama de secuencia</h4>
       <div class="box" style="border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fbfcfe">
         <div class="vtoolbar" style="border-bottom:1px solid var(--line)">
           <span style="font-size:12px;color:var(--muted);font-weight:600">${f.id} — ${esc(f.title)}</span>
           <span class="hint" style="margin-left:auto;font-size:11.5px;color:var(--muted)">arrastrá el diagrama para desplazarlo · rueda = zoom</span>
           <button class="btn" data-flow="${f.id}" data-act="fit">⛶ Ajustar</button>
         </div>
-        <div class="stage" id="stage-${f.id}" style="height:430px;background-size:20px 20px">
+        <div class="stage" id="stage-${f.id}" style="height:470px;background-size:20px 20px">
           <div class="layer" id="layer-${f.id}"><svg class="canvas" id="svg-${f.id}" width="6000" height="4000"></svg></div>
         </div>
         <div class="legend">
-          <span><span class="pill p5">Inicio / Fin</span></span>
-          <span><span class="pill p1">Proceso</span></span>
-          <span><span class="pill p8">Decisión</span></span>
-          <span><span class="pill" style="background:#fdecea;color:#c62828">Excepción</span></span>
+          <span><span class="pill p1">Síncrono (llamada)</span></span>
+          <span><span class="pill p8">Respuesta</span></span>
+          <span><span class="pill p5">Marco alt / else</span></span>
+          <span><span class="pill" style="background:#e3f2fd;color:#1565c0">«boundary» «control» «entity»</span></span>
         </div>
       </div>
     </div>
@@ -326,99 +471,136 @@ function renderFichas(){
 }
 renderFichas();
 
-/* ---------- layout + render de flujos ---------- */
-const NODEH = s => s.t==='dec'?104 : (s.t==='start'||s.t==='end')?54 : (s.t==='err'?66 : 40 + wrap(s.text,38).length*17);
-
+/* ---------- layout + render de diagramas de secuencia ---------- */
 function wrap(text,max){
   const words=String(text).split(/\s+/); const lines=[]; let cur='';
   words.forEach(w=>{ if((cur+' '+w).trim().length>max){ if(cur)lines.push(cur); cur=w; } else cur=(cur+' '+w).trim(); });
   if(cur)lines.push(cur); return lines.length?lines:[''];
 }
 
-function layoutFlow(steps){
-  const pos={}; let y=0, i=0; const seen=new Set();
-  while(i!=null && !seen.has(i)){
-    seen.add(i); pos[i]={col:0,y,h:NODEH(steps[i])};
-    y += NODEH(steps[i]); i = steps[i].next!=null? steps[i].next : null;
-  }
-  let col=1;
-  steps.forEach((s,idx)=>{
-    if(s.no!=null && !seen.has(s.no)){
-      const c=col++; let j=s.no, by=(pos[idx]?pos[idx].y:0)+56; const s2=new Set();
-      while(j!=null && !s2.has(j)){
-        s2.add(j); pos[j]={col:c,y:by,h:NODEH(steps[j])};
-        by += NODEH(steps[j]); j = steps[j].next!=null? steps[j].next : null;
-      }
-    }
+/* quita los marcos alt: conserva solo la rama "then" del flujo normal */
+function stripAlts(msgs){
+  return (msgs||[]).flatMap(it=>{
+    if(it.k==='alt') return stripAlts(it.then||[]);
+    return [it];
   });
-  return pos;
 }
 
-function buildFlow(f){
-  const svg = document.getElementById('svg-'+f.id);
-  if(!svg) return null;
-  const steps=f.steps, pos=layoutFlow(steps), GAPX=330, GAP=64;
-  const COL = c => c*GAPX;
-  let minC=0,maxC=0; Object.values(pos).forEach(p=>{minC=Math.min(minC,p.col);maxC=Math.max(maxC,p.col);});
-  const totalH = Math.max(...Object.values(pos).map(p=>p.y+p.h)) + 40;
-  const totalW = (maxC-minC)*GAPX + 420;
-  const OX = 200 - minC*GAPX, OY = 60;
+function buildSeq(f, mode){
+  const svg=document.getElementById('svg-'+f.id);
+  if(!svg || !f.seq) return null;
+  const seq = mode==='normal' ? Object.assign({},f.seq,{msgs:stripAlts(f.seq.msgs)}) : f.seq;
+  const LL=seq.lifelines, n=LL.length;
+  const GAPX=230, PADX=110, RIGHT=290, TOP=80, ROW=36, SELF=48, FST=46, ELST=30;
+  const X=i=>PADX+i*GAPX;
+  const W=PADX+(n-1)*GAPX+RIGHT;
+  const li=x=>LL.findIndex(l=>l.id===x);
 
-  const P = i => ({x:COL(pos[i].col)+OX, y:pos[i].y+OY, h:pos[i].h});
-  const parts=[];
+  /* ---- pase 1: posiciones verticales (recursivo para marcos alt) ---- */
+  function walk(items,y){
+    const out=[]; let cy=y;
+    for(const it of items){
+      if(it.k==='msg'){ out.push({t:'msg',y:cy,it}); cy += it.type==='self'?SELF:ROW; }
+      else if(it.k==='alt'){
+        const th=walk(it.then||[], cy+FST);
+        let divY=null, els=[], el=null;
+        if(it.else && it.else.length){ divY=th.y; el=walk(it.else, divY+ELST); els=el.out; }
+        const bottom=(el?el.y:th.y)+12;
+        out.push({t:'alt',y:cy,h:bottom-cy,divY,then:th.out,else:els,it});
+        cy=bottom+20;
+      }
+    }
+    return {y:cy,out};
+  }
+  const res=walk(seq.msgs, TOP+24);
+  const H=Math.round(res.y+34);
 
-  /* --- aristas --- */
-  steps.forEach((s,i)=>{
-    if(s.next!=null && pos[s.next] && pos[s.next].col===0){
-      const a=P(i), b=P(s.next);
-      parts.push(`<path d="M${a.x},${a.y+a.h} L${b.x},${b.y-9}" stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#ar-${f.id})"/>`);
-      if(s.t==='dec') parts.push(`<text x="${a.x+9}" y="${a.y+a.h+20}" font-size="11.5" font-weight="700" fill="#2e7d32">Sí</text>`);
-    }
-    if(s.no!=null && pos[s.no] && pos[s.no].col!==0){
-      const a=P(i), b=P(s.no), bx=b.x;
-      const sy=a.y+a.h/2;
-      parts.push(`<path d="M${a.x+ (s.t==='dec'?132:135)},${sy} L${bx},${sy} L${bx},${b.y-9}" stroke="#c62828" stroke-width="2" fill="none" stroke-dasharray="6 4" marker-end="url(#arr-${f.id})"/>`);
-      parts.push(`<text x="${(a.x+132+bx)/2}" y="${sy-7}" font-size="11.5" font-weight="700" fill="#c62828" text-anchor="middle">No</text>`);
-    }
+  /* ---- activaciones ---- */
+  const act=LL.map(()=>({min:1e9,max:-1e9}));
+  (function each(nodes){ nodes.forEach(o=>{
+    if(o.t==='msg'){
+      const y1=o.it.type==='self'?o.y+SELF-16:o.y;
+      [li(o.it.from),li(o.it.to)].forEach(i=>{ if(i<0) return; act[i].min=Math.min(act[i].min,o.y); act[i].max=Math.max(act[i].max,y1); });
+    } else { each(o.then); each(o.else); }
+  }); })(res.out);
+
+  const P=[];
+
+  /* ---- líneas de vida ---- */
+  LL.forEach((l,i)=>P.push(`<line x1="${X(i)}" y1="76" x2="${X(i)}" y2="${H-18}" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="7 6"/>`));
+
+  /* ---- barras de activación ---- */
+  LL.forEach((l,i)=>{ if(act[i].max<0) return;
+    P.push(`<rect x="${X(i)-5}" y="${act[i].min-13}" width="10" height="${act[i].max-act[i].min+26}" rx="3" fill="#dbeafe" stroke="#1565c0" stroke-width="1.4"/>`);
   });
 
-  /* --- nodos --- */
-  steps.forEach((s,i)=>{
-    const p=P(i); const cx=p.x, cy=p.y+p.h/2; const lines=wrap(s.text, s.t==='dec'?26:38);
-    let g='';
-    if(s.t==='start'||s.t==='end'){
-      const col = s.t==='start'?'#2e7d32':'#1565c0';
-      g=`<rect x="${cx-115}" y="${p.y}" width="230" height="${p.h}" rx="27" fill="${col}"/>
-         <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13.5" font-weight="700" fill="#fff">${esc(s.text)}</text>`;
-    } else if(s.t==='dec'){
-      const w=270,h=p.h;
-      g=`<polygon points="${cx},${p.y} ${cx+w/2},${cy} ${cx},${p.y+h} ${cx-w/2},${cy}" fill="#fff8e1" stroke="#f9a825" stroke-width="2.2"/>`;
-      g+=`<text x="${cx}" y="${cy-(lines.length-1)*7+4}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5d4037">`+
-         lines.map((l,k)=>`<tspan x="${cx}" dy="${k?15:0}">${esc(l)}</tspan>`).join('')+`</text>`;
-    } else if(s.t==='err'){
-      const w=280;
-      g=`<rect x="${cx-w/2}" y="${p.y}" width="${w}" height="${p.h}" rx="9" fill="#fdecea" stroke="#c62828" stroke-width="2"/>`;
-      g+=`<text x="${cx}" y="${cy-(lines.length-1)*7+4}" text-anchor="middle" font-size="12" fill="#b71c1c">`+
-         lines.map((l,k)=>`<tspan x="${cx}" dy="${k?16:0}">${esc(l)}</tspan>`).join('')+`</text>`;
+  /* ---- marcos alt ---- */
+  const FL=PADX-72, FR=X(n-1)+72;
+  (function frames(nodes){ nodes.forEach(o=>{
+    if(o.t!=='alt') return;
+    const hdr='alt ['+o.it.cond+']', hw=Math.round(hdr.length*6.9+18);
+    P.push(`<rect x="${FL}" y="${o.y}" width="${FR-FL}" height="${o.h}" rx="7" fill="#fffdf7" fill-opacity=".8" stroke="#f9a825" stroke-width="1.8"/>`);
+    P.push(`<rect x="${FL+7}" y="${o.y+4}" width="${hw}" height="19" rx="4" fill="#fff8e1" stroke="#f9a825" stroke-width="1.4"/>`);
+    P.push(`<text x="${FL+7+hw/2}" y="${o.y+17.5}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5d4037">${esc(hdr)}</text>`);
+    if(o.divY!=null){
+      P.push(`<line x1="${FL}" y1="${o.divY}" x2="${FR}" y2="${o.divY}" stroke="#f9a825" stroke-width="1.5" stroke-dasharray="8 5"/>`);
+      P.push(`<rect x="${FL+6}" y="${o.divY-9}" width="40" height="18" rx="4" fill="#fff8e1" stroke="#f9a825" stroke-width="1.2"/>`);
+      P.push(`<text x="${FL+26}" y="${o.divY+4.5}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#e65100">else</text>`);
+    }
+    frames(o.then); frames(o.else);
+  }); })(res.out);
+
+  /* ---- mensajes ---- */
+  (function msgs(nodes){ nodes.forEach(o=>{
+    if(o.t==='alt'){ msgs(o.then); msgs(o.else); return; }
+    if(o.t!=='msg') return;
+    const it=o.it, a=li(it.from), b=li(it.to), ya=o.y;
+    if(a<0||b<0) return;
+    const lines=wrap(it.label,32);
+    if(it.type==='self'){
+      const x=X(a);
+      P.push(`<path d="M${x},${ya+6} h54 v22 h-48" fill="none" stroke="#0d47a1" stroke-width="1.9" marker-end="url(#sqA-${f.id})"/>`);
+      P.push(`<text x="${x+62}" y="${ya+22}" font-size="12" font-weight="600" fill="#0d47a1">${esc(it.label)}</text>`);
+      return;
+    }
+    const x1=X(a), x2=X(b), dir=x2>x1?1:-1;
+    const sx=x1+6*dir, ex=x2-6*dir, cx=(sx+ex)/2;
+    const reply=it.type==='reply';
+    P.push(`<line x1="${sx}" y1="${ya}" x2="${ex}" y2="${ya}" stroke="${reply?'#455a64':'#0d47a1'}" stroke-width="1.9" ${reply?'stroke-dasharray="7 5"':''} marker-end="url(#${reply?'sqR':'sqA'}-${f.id})"/>`);
+    const yTop=lines.length>1? ya-21 : ya-7;
+    P.push(`<text x="${cx}" y="${yTop}" text-anchor="middle" font-size="12" font-weight="600" fill="${reply?'#455a64':'#0d47a1'}">`+
+      lines.map((l,k)=>`<tspan x="${cx}" dy="${k*14}">${esc(l)}</tspan>`).join('')+`</text>`);
+  }); })(res.out);
+
+  /* ---- encabezados (actores y objetos) ---- */
+  LL.forEach((l,i)=>{
+    const x=X(i);
+    if(l.kind==='actor'){
+      P.push(`<g>
+        <circle cx="${x}" cy="18" r="8.5" fill="#fff" stroke="#0d47a1" stroke-width="2"/>
+        <line x1="${x}" y1="27" x2="${x}" y2="43" stroke="#0d47a1" stroke-width="2"/>
+        <line x1="${x-10}" y1="33" x2="${x+10}" y2="33" stroke="#0d47a1" stroke-width="2"/>
+        <line x1="${x}" y1="43" x2="${x-10}" y2="56" stroke="#0d47a1" stroke-width="2"/>
+        <line x1="${x}" y1="43" x2="${x+10}" y2="56" stroke="#0d47a1" stroke-width="2"/>
+        <text x="${x}" y="71" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0d47a1">${esc(l.label)}</text>
+      </g>`);
     } else {
-      const w=300;
-      g=`<rect x="${cx-w/2}" y="${p.y}" width="${w}" height="${p.h}" rx="9" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.8"/>`;
-      g+=`<text x="${cx}" y="${cy-(lines.length-1)*7+4}" text-anchor="middle" font-size="12.4" fill="#0d3270">`+
-         lines.map((l,k)=>`<tspan x="${cx}" dy="${k?16:0}">${esc(l)}</tspan>`).join('')+`</text>`;
+      P.push(`<g>
+        <rect x="${x-97}" y="10" width="194" height="48" rx="9" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.8"/>
+        <text x="${x}" y="28" text-anchor="middle" font-size="10.5" fill="#1565c0">${esc(l.stereo||'')}</text>
+        <text x="${x}" y="47" text-anchor="middle" font-size="13" font-weight="700" fill="#0d47a1">${esc(l.label)}</text>
+      </g>`);
     }
-    parts.push(`<g class="flownode hit" data-i="${i}" style="cursor:move">${g}</g>`);
   });
 
-  svg.innerHTML = `
-   <defs>
-     <marker id="ar-${f.id}" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
-       <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/></marker>
-     <marker id="arr-${f.id}" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
-       <path d="M0,0 L9,4.5 L0,9 z" fill="#c62828"/></marker>
-   </defs>
-   <g id="fg-${f.id}">${parts.join('')}</g>`;
-
-  return {w:totalW,h:totalH};
+  svg.setAttribute('width',W);
+  svg.setAttribute('height',H);
+  svg.innerHTML=`<defs>
+    <marker id="sqA-${f.id}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#0d47a1"/></marker>
+    <marker id="sqR-${f.id}" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0.5 L9,4 L0,7.5" fill="none" stroke="#455a64" stroke-width="1.6" stroke-linecap="round"/></marker>
+  </defs>
+  <g id="fg-${f.id}">${P.join('')}</g>`;
+  return {w:W,h:H};
 }
 
 /* ---------- visor genérico de flujos (pan/zoom) ---------- */
@@ -435,23 +617,14 @@ function attachFlowView(id){
     tx=mx-(mx-tx)*(nk/k); ty=my-(my-ty)*(nk/k); k=nk; apply();
   },{passive:false});
   stage.addEventListener('pointerdown',e=>{
-    const n=e.target.closest('.flownode');
-    drag={x:e.clientX,y:e.clientY,tx,ty,node:n,moved:false}; stage.setPointerCapture(e.pointerId);
+    drag={x:e.clientX,y:e.clientY,tx,ty}; stage.setPointerCapture(e.pointerId);
     stage.classList.add('grabbing');
-    if(n){ n.dataset.ox=0; }
   });
   stage.addEventListener('pointermove',e=>{
     if(!drag) return;
     const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
-    if(Math.abs(dx)+Math.abs(dy)>3){ drag.moved=true; userMoved=true; }
-    if(drag.node){
-      const g=drag.node.querySelector('g')||drag.node;
-      const cur=drag.node.getAttribute('transform')||'translate(0,0)';
-      const m=/translate\(([-\d.]+),([-\d.]+)\)/.exec(cur);
-      const ox=m?parseFloat(m[1]):0, oy=m?parseFloat(m[2]):0;
-      drag.node.setAttribute('transform',`translate(${ox+dx/k},${oy+dy/k})`);
-      drag.x=e.clientX; drag.y=e.clientY;
-    } else { tx=drag.tx+dx; ty=drag.ty+dy; apply(); }
+    if(Math.abs(dx)+Math.abs(dy)>3) userMoved=true;
+    tx=drag.tx+dx; ty=drag.ty+dy; apply();
   });
   const up=()=>{drag=null;stage.classList.remove('grabbing');};
   stage.addEventListener('pointerup',up); stage.addEventListener('pointercancel',up);
@@ -1081,9 +1254,16 @@ $$('button[data-act]').forEach(b=>{
 /* --- botones de los flujos (una vez renderizadas las fichas) --- */
 $$('button[data-flow]').forEach(b=>{ b.onclick=()=>{ const fv=FLOWVIEWS[b.dataset.flow]; if(fv) fv.fit(); }; });
 
-/* --- enlazar visores de flujo --- */
+/* --- enlazar visores de secuencia (con filtro normal / alternativas) --- */
 const FLOWVIEWS={};
-FICHAS.forEach(f=>{ const m=buildFlow(f); if(m) FLOWVIEWS[f.id]=attachFlowView(f.id); });
+let SEQMODE='full';
+function rebuildSeq(){
+  FICHAS.forEach(f=>{ buildSeq(f, SEQMODE); });
+  FICHAS.forEach(f=>{ const v=FLOWVIEWS[f.id]; if(v){ v.fit(); } else { FLOWVIEWS[f.id]=attachFlowView(f.id); FLOWVIEWS[f.id].fit(); } });
+}
+FICHAS.forEach(f=>{ if(buildSeq(f, SEQMODE)) FLOWVIEWS[f.id]=attachFlowView(f.id); });
+const seqSel=$('#seqMode');
+if(seqSel) seqSel.onchange=()=>{ SEQMODE=seqSel.value; rebuildSeq(); };
 requestAnimationFrame(()=>{ FICHAS.forEach(f=>{ const v=FLOWVIEWS[f.id]; if(v) v.fit(); }); vCU.fit(); vCL.fit(); });
 
 /* ============================================================

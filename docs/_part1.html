@@ -212,7 +212,7 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
 <!-- ==================== RESUMEN ==================== -->
 <section class="tab on" id="tab-resumen">
   <h2 class="sec">Documento interactivo de casos de uso y modelos UML</h2>
-  <p class="lead">Este informe reúne el catálogo completo de casos de del sistema, sus fichas descriptivas con diagramas de flujo
+  <p class="lead">Este informe reúne el catálogo completo de casos de del sistema, sus fichas descriptivas con diagramas de secuencia
   y los diagramas UML cargados directamente desde los archivos <code>.puml</code> del repositorio. Los diagramas son
   <b>interactivos</b>: se pueden arrastrar los elementos, hacer zoom, filtrar por paquete, actor o tipo de relación, y
   guardar la disposición personalizada (estilo dbdiagram).</p>
@@ -220,7 +220,7 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
   <div class="grid g4" style="margin-bottom:18px">
     <div class="stat"><b>49</b><span>Casos de uso (CU-01…CU-49)</span></div>
     <div class="stat g"><b>8</b><span>Paquetes funcionales</span></div>
-    <div class="stat t"><b>5</b><span>Fichas con diagrama de flujo</span></div>
+    <div class="stat t"><b>5</b><span>Fichas con diagrama de secuencia</span></div>
     <div class="stat a"><b>15</b><span>Diagramas UML navegables</span></div>
     <div class="stat p"><b>26</b><span>Clases documentadas</span></div>
     <div class="stat"><b>48</b><span>Requisitos funcionales</span></div>
@@ -237,7 +237,7 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
       <h4 class="fh" style="margin-top:0">Cómo usar este documento</h4>
       <ol class="flow" style="font-size:13.2px">
         <li><b>Casos de Uso</b> — tabla completa filtrable por paquete, actor o texto libre.</li>
-        <li><b>Fichas descriptivas</b> — 5 CU detallados con descripción, pre/postcondiciones, flujo paso a paso y su <b>diagrama de flujo</b> interactivo.</li>
+        <li><b>Fichas descriptivas</b> — 5 CU detallados con descripción, pre/postcondiciones, flujo paso a paso y su <b>diagrama de secuencia</b> interactivo.</li>
         <li><b>UML · Casos de Uso</b> — visor interactivo de los 8 diagramas: arrastrá los nodos, filtrá actores y relaciones.</li>
         <li><b>UML · Clases</b> — visor de los 9 diagramas por paquete + 26 clases individuales.</li>
       </ol>
@@ -275,7 +275,15 @@ footer{text-align:center;color:#94a3b8;font-size:11.5px;padding:22px 0 6px}
   <h2 class="sec">Fichas descriptivas de casos de uso</h2>
   <p class="lead">Los archivos del proyecto no incluían descripciones narrativas de los CU (solo tablas de identificación y diagramas),
   por lo que se redactaron <b>5 fichas</b> de los casos de uso principales, cada una con su descripción, condiciones,
-  flujo detallado y <b>diagrama de flujo</b> interactivo.</p>
+  flujo detallado y su <b>diagrama de secuencia</b> interactivo con filtro entre flujo normal y alternativas.</p>
+  <div class="filters" style="margin-bottom:14px">
+    <span style="font-size:13px;font-weight:600">Ver los diagramas de secuencia:</span>
+    <select id="seqMode" style="min-width:250px">
+      <option value="full">Con alternativas (marcos alt)</option>
+      <option value="normal">Solo flujo normal</option>
+    </select>
+    <span class="count">5 diagramas</span>
+  </div>
   <div id="fichas"></div>
 </section>
 
