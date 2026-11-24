@@ -1,0 +1,2677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISFT 189 — Arquitectura de Base de Datos &amp; Asistente RAG</title>
+<!-- Lucide Icons Library (CDN con fallback SVG inline) -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Motion Animation Engine -->
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.17/dist/motion.js"></script>
+<style>
+/* ==========================================================================
+   DESIGN TOKENS & RESET
+   ========================================================================== */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --bg-app: #0b0f19;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1f2937;
+  --bg-card: #151d2f;
+  --bg-card-hover: #1c263c;
+  
+  --border-subtle: #1e293b;
+  --border-strong: #334155;
+  --border-accent: #3b82f6;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-on-accent: #ffffff;
+  
+  --color-instituto: #3b82f6;
+  --color-instituto-glow: rgba(59, 130, 246, 0.15);
+  --color-isft189: #10b981;
+  --color-isft189-glow: rgba(16, 185, 129, 0.15);
+  --color-amber: #f59e0b;
+  --color-purple: #8b5cf6;
+  --color-rose: #f43f5e;
+  --color-cyan: #06b6d4;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+  
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-elastic: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   HEADER & NAVBAR
+   ========================================================================== */
+.app-header {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 0 24px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #1d4ed8, #0ea5e9);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 0 16px rgba(14, 165, 233, 0.35);
+}
+
+.brand-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-subtitle {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.badge-tag.instituto {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.badge-tag.isft189 {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.badge-tag.pgvector {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+}
+
+/* Barra de navegación de vistas (Tabs) */
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tab-btn.active {
+  color: #60a5fa;
+  border-bottom-color: #3b82f6;
+}
+
+.tab-btn .tab-count {
+  font-size: 11px;
+  background: var(--bg-surface-elevated);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   LAYOUT & CONTAINER
+   ========================================================================== */
+.main-content {
+  flex: 1;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+}
+
+.view-section {
+  display: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.view-section.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   DASHBOARD GENERAL (VISTA 1)
+   ========================================================================== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-fast);
+}
+
+.stat-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.stat-header .stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.stat-sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* Comparativa de Arquitectura */
+.arch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.arch-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.arch-card.instituto {
+  border-top: 4px solid var(--color-instituto);
+}
+
+.arch-card.isft189 {
+  border-top: 4px solid var(--color-isft189);
+}
+
+.arch-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.arch-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arch-card-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+
+
+/* Banner Cross-Schema Integration */
+.cross-banner {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.cross-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cross-banner-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background: rgba(59, 130, 246, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.cross-banner-text h4 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.cross-banner-text p {
+  font-size: 12.8px;
+  color: var(--text-secondary);
+}
+
+/* TableGroups Módulos Funcionales */
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.2px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.module-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.module-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+}
+
+.module-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.module-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  color: #93c5fd;
+}
+
+.module-card h4 {
+  font-size: 14.5px;
+  font-weight: 650;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.module-card p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.module-tables-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.table-mini-tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg-surface-elevated);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   DICCIONARIO DE DATOS (VISTA 2)
+   ========================================================================== */
+.dictionary-toolbar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 9px 12px 9px 38px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-size: 13.5px;
+  outline: none;
+  transition: var(--transition-fast);
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.search-kbd {
+  position: absolute;
+  right: 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  appearance: none;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-pill:hover {
+  border-color: var(--border-strong);
+  color: #fff;
+}
+
+.filter-pill.active {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.filter-select {
+  padding: 7px 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  border-color: #3b82f6;
+}
+
+.view-toggle {
+  display: flex;
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  margin-left: auto;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: var(--transition-fast);
+}
+
+.toggle-btn.active {
+  background: var(--bg-surface-elevated);
+  color: #fff;
+}
+
+.results-counter {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+
+/* Grid de Tarjetas de Tablas (con animación escalonada) */
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 18px;
+}
+
+@keyframes enterStagger {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-fast);
+  position: relative;
+  animation: enterStagger 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.table-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.table-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.table-title {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+
+.table-card-desc {
+  font-size: 12.8px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+.rf-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.rf-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.table-meta-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-inspect {
+  width: 100%;
+  padding: 9px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: var(--transition-fast);
+}
+
+.btn-inspect:hover {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+/* Vista Tabular Alternativa */
+.dictionary-table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.dict-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.dict-table th {
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dict-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.dict-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ==========================================================================
+   VENTANA MODAL FLOTANTE CENTRADA (FICHA TÉCNICA DE TABLA)
+   ========================================================================== */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  position: relative;
+  width: 1060px;
+  max-width: 95vw;
+  max-height: 88vh;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  box-shadow: 0 25px 70px -10px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.96) translateY(8px);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.drawer-backdrop.active .drawer-panel {
+  transform: scale(1) translateY(0);
+}
+
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: var(--bg-card);
+}
+
+.drawer-title-area {
+  flex: 1;
+}
+
+.drawer-schema-badge {
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.drawer-title {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.drawer-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.btn-close-drawer {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-close-drawer:hover {
+  background: var(--bg-surface-elevated);
+  color: #fff;
+}
+
+/* Pestañas dentro del Drawer */
+.drawer-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  padding: 0 24px;
+}
+
+.drawer-tab {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.drawer-tab:hover {
+  color: #fff;
+}
+
+.drawer-tab.active {
+  color: #60a5fa;
+  border-bottom-color: #3b82f6;
+}
+
+.drawer-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.drawer-tab-content {
+  display: none;
+}
+
+.drawer-tab-content.active {
+  display: block;
+}
+
+/* Tablas dentro del Drawer */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+}
+
+.detail-table th {
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.detail-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+  vertical-align: middle;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.detail-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.col-name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.col-type {
+  font-family: var(--font-mono);
+  color: #93c5fd;
+  font-size: 11.5px;
+}
+
+.pk-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.fk-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  padding: 1px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.fk-tag:hover {
+  text-decoration: underline;
+}
+
+.null-tag {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.req-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: #f87171;
+}
+
+/* Tarjetas de Constraints e Índices */
+.constraint-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.constraint-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.constraint-name {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.constraint-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.constraint-type-badge.PK { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.constraint-type-badge.FK { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.constraint-type-badge.UNIQUE { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+.constraint-type-badge.CHECK { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+
+.constraint-def {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+
+/* Bloque DDL SQL */
+.ddl-container {
+  position: relative;
+}
+
+.ddl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e293b;
+  padding: 8px 14px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+}
+
+.ddl-lang {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.btn-copy-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-copy-code:hover {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+.btn-copy-code.copied {
+  background: #059669;
+  border-color: #10b981;
+  color: #fff;
+}
+
+pre.sql-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 16px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* ==========================================================================
+   ARQUITECTURA RAG (VISTA 3) & COMPONENTES TÉCNICOS
+   ========================================================================== */
+.rag-header-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.rag-header-box h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rag-header-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 900px;
+  margin-bottom: 16px;
+}
+
+.rag-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rag-badge-group .meta-pill {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.rag-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1100px) {
+  .rag-pipeline-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rag-pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rag-step-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: var(--transition-fast);
+}
+
+.rag-step-card:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.rag-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.rag-step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rag-step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rag-step-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.rag-step-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  flex-grow: 1;
+  margin-bottom: 14px;
+}
+
+.rag-step-footer {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rag-tables-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.rag-tables-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rag-tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.rag-table-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: var(--transition-fast);
+}
+
+.rag-table-box:hover {
+  border-color: #3b82f6;
+}
+
+.rag-table-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rag-table-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.rag-table-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.rag-code-block {
+  background: #070b12;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+/* Botón Ver DDL & Metadatos de Tabla */
+.btn-ddl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-ddl:hover {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+}
+
+.table-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* ==========================================================================
+   RELACIONES & CONSULTAS DE VALIDACIÓN (VISTA 4)
+   ========================================================================== */
+.val-subnav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.val-view-toggle-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.val-view-toggle-btn.active {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+/* Layout de Consultas Q1 a Q8 */
+.queries-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+}
+
+.queries-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.query-nav-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
+}
+
+.query-nav-item:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-card-hover);
+}
+
+.query-nav-item.active {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: #3b82f6;
+}
+
+.query-nav-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #60a5fa;
+  margin-bottom: 2px;
+}
+
+.query-nav-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.query-detail-pane {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.query-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.query-detail-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.query-detail-curf {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.query-detail-desc {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.tech-explanation-box {
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 3px solid #3b82f6;
+  padding: 10px 14px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 12.5px;
+  color: #cbd5e1;
+  margin-bottom: 18px;
+}
+
+.query-result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 14px;
+}
+
+.query-result-table th {
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.query-result-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATION (FEEDBACK VISUAL)
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.25s var(--transition-elastic), opacity 0.25s ease;
+  pointer-events: auto;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-icon {
+  color: #10b981;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .queries-layout {
+    grid-template-columns: 1fr;
+  }
+  .arch-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ENCABEZADO Y NAVEGACIÓN PRINCIPAL -->
+<header class="app-header">
+  <div class="header-top">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <i data-lucide="database" style="width:20px;height:20px;"></i>
+      </div>
+      <div>
+        <div class="brand-title">
+          ISFT 189
+          <span style="font-weight:400;color:var(--text-muted);">/</span>
+          Documentación Técnica de Base de Datos
+        </div>
+        <div class="brand-subtitle">
+          Sistema Integral de Gestión Académica &amp; Asistente Virtual Inteligente (RAG)
+        </div>
+      </div>
+    </div>
+    
+    <div class="header-meta">
+      <div class="badge-tag instituto">
+        <i data-lucide="layers" style="width:13px;height:13px;"></i>
+        instituto (19 tablas)
+      </div>
+      <div class="badge-tag isft189">
+        <i data-lucide="cpu" style="width:13px;height:13px;"></i>
+        isft189 (4 tablas)
+      </div>
+      <div class="badge-tag pgvector">
+        <i data-lucide="sparkles" style="width:13px;height:13px;"></i>
+        pgvector (384-d HNSW)
+      </div>
+    </div>
+  </div>
+  
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchView('dashboard')">
+      <i data-lucide="layout-dashboard" style="width:16px;height:16px;"></i>
+      Dashboard General
+    </button>
+    <button class="tab-btn" onclick="switchView('dictionary')">
+      <i data-lucide="book-open" style="width:16px;height:16px;"></i>
+      Diccionario de Datos
+      <span class="tab-count">23</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('rag')">
+      <i data-lucide="cpu" style="width:16px;height:16px;"></i>
+      Arquitectura RAG
+    </button>
+    <button class="tab-btn" onclick="switchView('validation')">
+      <i data-lucide="terminal" style="width:16px;height:16px;"></i>
+      Consultas SQL &amp; Álgebra
+      <span class="tab-count">Q1-Q5</span>
+    </button>
+  </nav>
+</header>
+
+<!-- CONTENEDOR PRINCIPAL DE VISTAS -->
+<main class="main-content">
+
+  <!-- =========================================================================
+       VISTA 1: DASHBOARD GENERAL
+       ========================================================================= -->
+  <section id="view-dashboard" class="view-section active">
+    <!-- Tarjetas de Métricas Globales (KPIs) -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#60a5fa;">
+            <i data-lucide="table" style="width:18px;height:18px;"></i>
+          </div>
+          <span class="badge-tag">Dual Schema</span>
+        </div>
+        <div class="stat-value">23</div>
+        <div class="stat-label">Tablas Relacionales</div>
+        <div class="stat-sub">19 en 'instituto' + 4 en 'isft189'</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:rgba(16,185,129,0.15);color:#34d399;">
+            <i data-lucide="git-branch" style="width:18px;height:18px;"></i>
+          </div>
+          <span class="badge-tag">Integridad</span>
+        </div>
+        <div class="stat-value">30</div>
+        <div class="stat-label">Claves Foráneas (FK)</div>
+        <div class="stat-sub">Incluye 1 cross-schema referencial</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:rgba(139,92,246,0.15);color:#a78bfa;">
+            <i data-lucide="zap" style="width:18px;height:18px;"></i>
+          </div>
+          <span class="badge-tag">Rendimiento</span>
+        </div>
+        <div class="stat-value">28</div>
+        <div class="stat-label">Índices de Búsqueda</div>
+        <div class="stat-sub">B-Tree + HNSW Cosine + GIN JSONB</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon" style="background:rgba(245,158,11,0.15);color:#fbbf24;">
+            <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+          </div>
+          <span class="badge-tag">Dominios</span>
+        </div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">Tipos Enumerados (ENUM)</div>
+        <div class="stat-sub">Valores cerrados libres de tipografía errónea</div>
+      </div>
+    </div>
+
+    <!-- Comparativa de Arquitectura de Esquemas -->
+    <div class="arch-grid">
+      <div class="arch-card instituto">
+        <div class="arch-card-header">
+          <div class="arch-card-title">
+            <i data-lucide="database" style="color:var(--color-instituto);width:22px;height:22px;"></i>
+            Esquema Académico: instituto
+          </div>
+          <span class="badge-tag instituto">19 Tablas</span>
+        </div>
+        <div class="arch-card-desc">
+          Núcleo relacional del Sistema Integral de Gestión Académica. Modela la estructura formal de carreras, planes de estudio, regímenes de correlatividades, legajos patronímicos, cursadas regulares, presentismo clase por clase y actas oficiales de examen ministerial.
+        </div>
+
+      </div>
+
+      <div class="arch-card isft189">
+        <div class="arch-card-header">
+          <div class="arch-card-title">
+            <i data-lucide="cpu" style="color:var(--color-isft189);width:22px;height:22px;"></i>
+            Esquema Vectorial: isft189 (RAG)
+          </div>
+          <span class="badge-tag isft189">4 Tablas + Vector Search</span>
+        </div>
+        <div class="arch-card-desc">
+          Subsistema de Inteligencia Artificial para el Asistente Virtual RAG (Retrieval-Augmented Generation). Almacena documentos institucionales fragmentados (chunking) y representados semánticamente en vectores de 384 dimensiones generados con FastEmbed.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Banner de Integración Cross-Schema -->
+    <div class="cross-banner">
+      <div class="cross-banner-content">
+        <div class="cross-banner-icon">
+          <i data-lucide="link-2" style="width:22px;height:22px;"></i>
+        </div>
+        <div class="cross-banner-text">
+          <h4>Vínculo e Integración Cross-Schema</h4>
+          <p>La tabla <code>isft189.documentos_metadata</code> implementa una clave foránea formal hacia <code>instituto.carrera(id)</code> (ON DELETE RESTRICT ON UPDATE CASCADE). Esto permite al chatbot RAG contextualizar las respuestas semánticas en función estricta de la carrera técnica del estudiante.</p>
+        </div>
+      </div>
+      <button class="filter-pill" style="background:#2563eb;color:#fff;border-color:#3b82f6;" onclick="inspectTable('isft189.documentos_metadata')">
+        Ver Relación en Drawer
+      </button>
+    </div>
+
+    <!-- Módulos Funcionales (TableGroups) -->
+    <div class="section-title">
+      <i data-lucide="boxes" style="width:18px;height:18px;color:#60a5fa;"></i>
+      Paquetes Funcionales del Sistema
+    </div>
+    
+    <div class="modules-grid">
+      <div class="module-card" onclick="filterByModule('PK-SEC')">
+        <div class="module-card-top">
+          <span class="module-code">PK-SEC</span>
+          <span class="badge-tag">2 tablas</span>
+        </div>
+        <h4>Seguridad y Control de Acceso</h4>
+        <p>Autenticación RBAC, credenciales bcrypt y cartelera de avisos institucionales segmentados.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">usuario</span>
+          <span class="table-mini-tag">aviso</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('PK-CUR')">
+        <div class="module-card-top">
+          <span class="module-code">PK-CUR</span>
+          <span class="badge-tag">6 tablas</span>
+        </div>
+        <h4>Estructura Curricular</h4>
+        <p>Ofertas de carreras, resoluciones, materias, correlatividades (cursar/rendir) y ciclos lectivos.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">carrera</span>
+          <span class="table-mini-tag">plan_estudio</span>
+          <span class="table-mini-tag">materia</span>
+          <span class="table-mini-tag">correlatividad</span>
+          <span class="table-mini-tag">ciclo_lectivo</span>
+          <span class="table-mini-tag">periodo_inscripcion</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('PK-ALU')">
+        <div class="module-card-top">
+          <span class="module-code">PK-ALU</span>
+          <span class="badge-tag">2 tablas</span>
+        </div>
+        <h4>Alumnos y Legajos</h4>
+        <p>Legajos patronímicos, DNI unívoco y matriculación formal a carreras técnicas.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">alumno</span>
+          <span class="table-mini-tag">inscripcion_carrera</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('PK-DOC')">
+        <div class="module-card-top">
+          <span class="module-code">PK-DOC</span>
+          <span class="badge-tag">2 tablas</span>
+        </div>
+        <h4>Planta Docente</h4>
+        <p>Registro de profesores, número de CUIL y asignación de cátedras por ciclo lectivo.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">docente</span>
+          <span class="table-mini-tag">asignacion_materia</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('PK-CURS')">
+        <div class="module-card-top">
+          <span class="module-code">PK-CURS</span>
+          <span class="badge-tag">3 tablas</span>
+        </div>
+        <h4>Cursadas y Asistencias</h4>
+        <p>Inscripciones en aula, control de presentismo diario y registro de notas parciales/TPs.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">inscripcion_cursada</span>
+          <span class="table-mini-tag">asistencia</span>
+          <span class="table-mini-tag">calificacion_parcial</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('PK-EXAM')">
+        <div class="module-card-top">
+          <span class="module-code">PK-EXAM</span>
+          <span class="badge-tag">3 tablas</span>
+        </div>
+        <h4>Exámenes Finales y Actas</h4>
+        <p>Mesas evaluadoras, constitución de tribunal, actas oficiales cerradas y actas digitales.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">mesa_examen</span>
+          <span class="table-mini-tag">acta_examen</span>
+          <span class="table-mini-tag">inscripcion_examen</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('PK-DOCUM')">
+        <div class="module-card-top">
+          <span class="module-code">PK-DOCUM</span>
+          <span class="badge-tag">1 tabla</span>
+        </div>
+        <h4>Gestión Documental</h4>
+        <p>Repositorio de modelos descargables y plantillas oficiales en blanco.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">plantilla_documento</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="filterByModule('RAG-CORE')">
+        <div class="module-card-top">
+          <span class="module-code" style="color:#34d399;">RAG-CORE</span>
+          <span class="badge-tag isft189">4 tablas</span>
+        </div>
+        <h4>Asistente Virtual RAG</h4>
+        <p>Indexación documental semántica, vectores 384-d, índice HNSW y auditoría de chats.</p>
+        <div class="module-tables-list">
+          <span class="table-mini-tag">usuarios</span>
+          <span class="table-mini-tag">documentos_metadata</span>
+          <span class="table-mini-tag">documentos_vectoriales</span>
+          <span class="table-mini-tag">historial_consultas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VISTA 2: DICCIONARIO DE DATOS
+       ========================================================================= -->
+  <section id="view-dictionary" class="view-section">
+    <!-- Toolbar de Búsqueda y Filtros -->
+    <div class="dictionary-toolbar">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon" style="width:16px;height:16px;"></i>
+        <input type="text" id="fuzzySearchInput" class="search-input" placeholder="Buscar por tabla, columna, tipo o regla..." oninput="handleSearch()">
+        <span class="search-kbd">⌘K / /</span>
+      </div>
+
+      <div class="filter-group">
+        <button class="filter-pill active" id="filterSchemaAll" onclick="filterBySchema('ALL')">Todos (23)</button>
+        <button class="filter-pill" id="filterSchemaInstituto" onclick="filterBySchema('instituto')">instituto (19)</button>
+        <button class="filter-pill" id="filterSchemaIsft189" onclick="filterBySchema('isft189')">isft189 (4)</button>
+      </div>
+
+      <select id="moduleSelect" class="filter-select" onchange="handleModuleSelect(this.value)">
+        <option value="ALL">Todos los módulos</option>
+        <option value="PK-SEC">PK-SEC: Seguridad</option>
+        <option value="PK-CUR">PK-CUR: Curricular</option>
+        <option value="PK-ALU">PK-ALU: Alumnos</option>
+        <option value="PK-DOC">PK-DOC: Docentes</option>
+        <option value="PK-CURS">PK-CURS: Cursadas</option>
+        <option value="PK-EXAM">PK-EXAM: Exámenes</option>
+        <option value="PK-DOCUM">PK-DOCUM: Documental</option>
+        <option value="RAG-CORE">RAG-CORE: Asistente RAG</option>
+      </select>
+
+      <div class="view-toggle">
+        <button class="toggle-btn active" id="btnViewGrid" title="Vista en tarjetas" onclick="setViewMode('grid')">
+          <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
+        </button>
+        <button class="toggle-btn" id="btnViewTable" title="Vista tabular compacta" onclick="setViewMode('table')">
+          <i data-lucide="list" style="width:16px;height:16px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="results-counter" id="resultsCounter">Mostrando 23 de 23 tablas</div>
+
+    <!-- Contenedor de Tarjetas de Tablas -->
+    <div class="tables-grid" id="tablesGridContainer">
+      <!-- Inyectado dinámicamente vía JavaScript -->
+    </div>
+
+    <!-- Contenedor de Vista Tabular Alternativa -->
+    <div class="dictionary-table-container" id="tablesTableContainer" style="display:none;">
+      <table class="dict-table">
+        <thead>
+          <tr>
+            <th>Esquema</th>
+            <th>Tabla</th>
+            <th>Módulo</th>
+            <th>Descripción</th>
+            <th>Columnas</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="dictTableBody">
+          <!-- Inyectado dinámicamente vía JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VISTA 3: DIAGRAMAS ER & ARQUITECTURA RAG
+       ========================================================================= -->
+  <section id="view-rag" class="view-section">
+    <!-- Header / Contexto RAG -->
+    <div class="rag-header-box">
+      <h2>
+        <i data-lucide="cpu" style="width:22px;height:22px;color:#10b981;"></i>
+        Arquitectura del Asistente Virtual Inteligente (RAG) &amp; Motor Vectorial
+      </h2>
+      <p>
+        El módulo <code>isft189</code> implementa un pipeline completo de Generación Aumentada por Recuperación (RAG) 
+        integrado en <strong>PostgreSQL 16</strong> con la extensión <code>pgvector</code>. Almacena normativas institucionales, 
+        planes de estudio y resoluciones vectorizadas con un modelo denso de 384 dimensiones, indexadas con algoritmo HNSW para 
+        búsquedas semánticas sub-milisegundo mediante distancia de coseno.
+      </p>
+      <div class="rag-badge-group">
+        <span class="meta-pill"><i data-lucide="database" style="width:12px;height:12px;"></i> PostgreSQL 16 + pgvector 0.5+</span>
+        <span class="meta-pill"><i data-lucide="layers" style="width:12px;height:12px;"></i> Embedding: 384 dimensiones</span>
+        <span class="meta-pill"><i data-lucide="zap" style="width:12px;height:12px;"></i> Índice: HNSW (vector_cosine_ops)</span>
+        <span class="meta-pill"><i data-lucide="git-merge" style="width:12px;height:12px;"></i> Métrica: Similitud Coseno (&lt;=&gt;)</span>
+        <span class="meta-pill"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> Inmutabilidad y Auditoría</span>
+      </div>
+    </div>
+
+    <!-- Pipeline Secuencial en 4 Fases -->
+    <div class="rag-pipeline-grid">
+      <!-- Paso 1 -->
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">FASE 01</span>
+          <div class="rag-step-icon"><i data-lucide="file-text" style="width:16px;height:16px;"></i></div>
+        </div>
+        <div class="rag-step-title">Ingestión &amp; Chunking</div>
+        <div class="rag-step-desc">
+          Extracción de resoluciones, correlatividades y planes de estudio oficiales. Segmentación en chunks de 512 tokens con 50 tokens de solapamiento para preservar coherencia sintáctica.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="table" style="width:12px;height:12px;"></i>
+          isft189.documentos_metadata
+        </div>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">FASE 02</span>
+          <div class="rag-step-icon" style="background:rgba(16,185,129,0.1);color:#34d399;"><i data-lucide="cpu" style="width:16px;height:16px;"></i></div>
+        </div>
+        <div class="rag-step-title">Incrustación Vectorial</div>
+        <div class="rag-step-desc">
+          Generación de representaciones vectoriales densas &isin; &reals;<sup>384</sup> mediante modelos del estado del arte (all-MiniLM-L6-v2). Mapeo semántico que captura sinónimos institucionales.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="code" style="width:12px;height:12px;"></i>
+          all-MiniLM-L6-v2 (384d)
+        </div>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">FASE 03</span>
+          <div class="rag-step-icon" style="background:rgba(245,158,11,0.1);color:#fbbf24;"><i data-lucide="zap" style="width:16px;height:16px;"></i></div>
+        </div>
+        <div class="rag-step-title">Indexación HNSW</div>
+        <div class="rag-step-desc">
+          Construcción del grafo de búsqueda aproximada (HNSW: m=16, ef_construction=64) sobre la columna <code>embedding vector(384)</code> para consultas sub-10ms con operador <code>&lt;=&gt;</code>.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="database" style="width:12px;height:12px;"></i>
+          isft189.documentos_vectoriales
+        </div>
+      </div>
+
+      <!-- Paso 4 -->
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">FASE 04</span>
+          <div class="rag-step-icon" style="background:rgba(139,92,246,0.1);color:#a78bfa;"><i data-lucide="message-square" style="width:16px;height:16px;"></i></div>
+        </div>
+        <div class="rag-step-title">Aumento &amp; Inferencia</div>
+        <div class="rag-step-desc">
+          Recuperación top-k de fragmentos relevantes, inyección de contexto verificado en la ventana de contexto del LLM y registro de la interacción para auditoría y evaluación continua.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="history" style="width:12px;height:12px;"></i>
+          isft189.historial_consultas
+        </div>
+      </div>
+    </div>
+
+    <!-- Tablas del Módulo RAG -->
+    <div class="rag-tables-card">
+      <h3>
+        <i data-lucide="boxes" style="width:18px;height:18px;color:#3b82f6;"></i>
+        Tablas del Esquema Vectorial e Inteligente (isft189)
+      </h3>
+      <div class="rag-tables-grid">
+        <div class="rag-table-box">
+          <div class="rag-table-top">
+            <span class="rag-table-name">documentos_metadata</span>
+            <button class="btn-ddl" onclick="inspectTable('isft189.documentos_metadata')">
+              <i data-lucide="file-code" style="width:12px;height:12px;"></i> DDL
+            </button>
+          </div>
+          <div class="rag-table-desc">Registro central de archivos normativos, planes de estudio institucionales y validez académica.</div>
+          <div class="meta-pill"><i data-lucide="columns" style="width:11px;height:11px;"></i> 6 columnas &bull; 3 índices</div>
+        </div>
+
+        <div class="rag-table-box">
+          <div class="rag-table-top">
+            <span class="rag-table-name">documentos_vectoriales</span>
+            <button class="btn-ddl" onclick="inspectTable('isft189.documentos_vectoriales')">
+              <i data-lucide="file-code" style="width:12px;height:12px;"></i> DDL
+            </button>
+          </div>
+          <div class="rag-table-desc">Fragmentos de texto con columna vector(384), metadatos JSONB e índice HNSW para similitud de coseno.</div>
+          <div class="meta-pill" style="color:#10b981;"><i data-lucide="zap" style="width:11px;height:11px;"></i> HNSW vector(384) &bull; GIN jsonb</div>
+        </div>
+
+        <div class="rag-table-box">
+          <div class="rag-table-top">
+            <span class="rag-table-name">usuarios</span>
+            <button class="btn-ddl" onclick="inspectTable('isft189.usuarios')">
+              <i data-lucide="file-code" style="width:12px;height:12px;"></i> DDL
+            </button>
+          </div>
+          <div class="rag-table-desc">Identidades registradas para auditoría, personalización del diálogo y métricas de uso del asistente.</div>
+          <div class="meta-pill"><i data-lucide="users" style="width:11px;height:11px;"></i> 5 columnas &bull; RBAC</div>
+        </div>
+
+        <div class="rag-table-box">
+          <div class="rag-table-top">
+            <span class="rag-table-name">historial_consultas</span>
+            <button class="btn-ddl" onclick="inspectTable('isft189.historial_consultas')">
+              <i data-lucide="file-code" style="width:12px;height:12px;"></i> DDL
+            </button>
+          </div>
+          <div class="rag-table-desc">Bitácora completa de preguntas de usuarios, respuestas formuladas y marcas temporales de consulta.</div>
+          <div class="meta-pill"><i data-lucide="history" style="width:11px;height:11px;"></i> Telemetría &bull; 5 columnas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ejemplo de Consulta SQL de Búsqueda Vectorial -->
+    <div class="rag-tables-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h3 style="margin-bottom:0;">
+          <i data-lucide="terminal" style="width:18px;height:18px;color:#10b981;"></i>
+          Consulta Vectorial en Tiempo Real (Operador &lt;=&gt; de Coseno con pgvector)
+        </h3>
+        <button class="btn-ddl" onclick="switchView('validation'); renderQueryDetail('Q5');">
+          Ver en Matriz SQL <i data-lucide="arrow-right" style="width:12px;height:12px;"></i>
+        </button>
+      </div>
+      <div class="rag-code-block"><pre><code><span style="color:#60a5fa;">SELECT</span> 
+    d.titulo <span style="color:#60a5fa;">AS</span> documento_origen,
+    v.contenido <span style="color:#60a5fa;">AS</span> fragmento_recuperado,
+    <span style="color:#f59e0b;">ROUND</span>((<span style="color:#34d399;">1</span> - (v.embedding &lt;=&gt; <span style="color:#a78bfa;">'[0.042, -0.015, ..., 0.089]'</span>::<span style="color:#10b981;">vector</span>))::<span style="color:#60a5fa;">numeric</span>, <span style="color:#34d399;">4</span>) <span style="color:#60a5fa;">AS</span> similitud_coseno
+<span style="color:#60a5fa;">FROM</span> isft189.documentos_vectoriales v
+<span style="color:#60a5fa;">JOIN</span> isft189.documentos_metadata d <span style="color:#60a5fa;">ON</span> d.id = v.documento_id
+<span style="color:#60a5fa;">WHERE</span> d.activo = <span style="color:#34d399;">true</span>
+<span style="color:#60a5fa;">ORDER BY</span> v.embedding &lt;=&gt; <span style="color:#a78bfa;">'[0.042, -0.015, ..., 0.089]'</span>::<span style="color:#10b981;">vector</span>
+<span style="color:#60a5fa;">LIMIT</span> <span style="color:#34d399;">3</span>;</code></pre></div>
+    </div>
+  </section>
+
+  <section id="view-validation" class="view-section">
+    <div class="queries-layout">
+      <!-- Barra lateral de Consultas (Q1 - Q5) -->
+      <div class="queries-sidebar" id="queriesSidebar"></div>
+
+      <!-- Panel de Detalle de la Consulta Activa -->
+      <div class="query-detail-pane" id="queryDetailPane"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===========================================================================
+     DRAWER LATERAL DE ESPECIFICACIÓN TÉCNICA (SLIDE-OVER MODAL)
+     =========================================================================== -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer(event)">
+  <div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
+    <div class="drawer-header">
+      <div class="drawer-title-area">
+        <div class="drawer-schema-badge" id="drawerSchemaBadge"></div>
+        <div class="drawer-title" id="drawerTableName">instituto.usuario</div>
+        <div class="drawer-subtitle" id="drawerTableDesc">Descripción de la tabla...</div>
+      </div>
+      <button class="btn-close-drawer" onclick="closeDrawerDirect()" title="Cerrar (Esc)">
+        <i data-lucide="x" style="width:18px;height:18px;"></i>
+      </button>
+    </div>
+
+    <div class="drawer-nav">
+      <button class="drawer-tab active" id="drawerTabCols" onclick="switchDrawerTab('columns')">
+        Columnas (<span id="drawerColCount">0</span>)
+      </button>
+      <button class="drawer-tab" id="drawerTabConstraints" onclick="switchDrawerTab('constraints')">
+        Restricciones (<span id="drawerConstraintCount">0</span>)
+      </button>
+      <button class="drawer-tab" id="drawerTabIdx" onclick="switchDrawerTab('indexes')">
+        Índices (<span id="drawerIdxCount">0</span>)
+      </button>
+      <button class="drawer-tab" id="drawerTabDdl" onclick="switchDrawerTab('ddl')">
+        DDL PostgreSQL
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Pestaña 1: Columnas -->
+      <div class="drawer-tab-content active" id="drawerContentColumns">
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th style="width:19%;">Columna</th>
+              <th style="width:15%;">Tipo</th>
+              <th style="width:10%;">Nulo</th>
+              <th style="width:16%;">Clave / FK</th>
+              <th style="width:16%;">Por Defecto</th>
+              <th style="width:24%;">Descripción</th>
+            </tr>
+          </thead>
+          <tbody id="drawerColumnsTbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Pestaña 2: Restricciones -->
+      <div class="drawer-tab-content" id="drawerContentConstraints">
+        <div id="drawerConstraintsList"></div>
+      </div>
+
+      <!-- Pestaña 3: Índices -->
+      <div class="drawer-tab-content" id="drawerContentIndexes">
+        <div id="drawerIndexesList"></div>
+      </div>
+
+      <!-- Pestaña 4: DDL SQL -->
+      <div class="drawer-tab-content" id="drawerContentDdl">
+        <div class="ddl-container">
+          <div class="ddl-toolbar">
+            <span class="ddl-lang">PostgreSQL 16 DDL</span>
+            <button class="btn-copy-code" id="btnCopyDdl" onclick="copyCurrentDdl()">
+              <i data-lucide="copy" style="width:13px;height:13px;"></i>
+              Copiar DDL
+            </button>
+          </div>
+          <pre class="sql-code" id="drawerDdlCode"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===========================================================================
+     JAVASCRIPT APPLICATION ENGINE
+     =========================================================================== -->
+<script>
+// Base de datos inyectada
+const TABLES_DATA = [{"id": "instituto.usuario", "name": "usuario", "schema": "instituto", "module": "PK-SEC", "moduleName": "Seguridad y Control de Acceso", "description": "Cuentas institucionales con credenciales hash (bcrypt), estado y rol RBAC para autenticación unificada en el sistema académico.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador único secuencial de la cuenta institucional."}, {"name": "nombre", "type": "VARCHAR(100)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nombre y apellido completo del usuario registrado."}, {"name": "email", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Correo electrónico corporativo (@isft189.edu.ar o @alumno...)."}, {"name": "password_hash", "type": "VARCHAR(255)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Hash criptográfico de la contraseña computado mediante bcrypt."}, {"name": "rol", "type": "instituto.rol_usuario", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Rol RBAC: ALUMNO, DOCENTE, PRECEPTOR o ADMINISTRADOR."}, {"name": "fecha_alta", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Marca temporal de creación y activación de la cuenta."}, {"name": "activo", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "TRUE", "description": "Flag de habilitación lógica para bloqueo preventivo de accesos."}], "constraints": [{"name": "pk_usuario", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "uq_usuario_email", "type": "UNIQUE", "definition": "UNIQUE (email)"}, {"name": "ck_usuario_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_usuario_email_formato", "type": "CHECK", "definition": "CHECK (email ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')"}], "indexes": [{"name": "idx_usuario_rol", "type": "B-Tree", "columns": "rol", "notes": "Optimiza filtrado por roles RBAC en autenticación y listados."}, {"name": "idx_usuario_activo", "type": "B-Tree", "columns": "activo", "notes": "Acelera búsquedas de cuentas activas en queries de login."}], "ddl": "CREATE TABLE instituto.usuario (\n    id            BIGSERIAL             PRIMARY KEY,\n    nombre        VARCHAR(100)          NOT NULL,\n    email         VARCHAR(150)          NOT NULL,\n    password_hash VARCHAR(255)          NOT NULL,\n    rol           instituto.rol_usuario NOT NULL,\n    fecha_alta    TIMESTAMPTZ           NOT NULL DEFAULT now(),\n    activo        BOOLEAN               NOT NULL DEFAULT TRUE,\n\n    CONSTRAINT uq_usuario_email UNIQUE (email),\n    CONSTRAINT ck_usuario_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_usuario_email_formato CHECK (email ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')\n);\n\nCREATE INDEX idx_usuario_rol ON instituto.usuario (rol);\nCREATE INDEX idx_usuario_activo ON instituto.usuario (activo);"}, {"id": "instituto.aviso", "name": "aviso", "schema": "instituto", "module": "PK-SEC", "moduleName": "Seguridad y Control de Acceso", "description": "Comunicados y circulares oficiales emitidas por la administración para toda la comunidad o segmentadas por rol.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Clave primaria del comunicado institucional."}, {"name": "publicado_por_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.usuario.id", "defaultValue": "", "description": "Usuario emisor (generalmente administrador o directivo)."}, {"name": "titulo", "type": "VARCHAR(200)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Encabezado y asunto del aviso institucional."}, {"name": "cuerpo", "type": "TEXT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Contenido completo de la comunicación o resolución oficial."}, {"name": "fecha_publicacion", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Fecha y hora exacta de emisión para ordenamiento cronológico."}, {"name": "dirigido_a", "type": "instituto.rol_usuario", "nullable": true, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "NULL", "description": "Segmentación por rol. NULL representa difusión general a toda la institución."}], "constraints": [{"name": "pk_aviso", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_aviso_usuario", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (publicado_por_id) REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "ck_aviso_titulo_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(titulo)) > 0)"}, {"name": "ck_aviso_cuerpo_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(cuerpo)) > 0)"}], "indexes": [{"name": "idx_aviso_fecha", "type": "B-Tree", "columns": "fecha_publicacion DESC", "notes": "Acelera la cartelera digital cronológica descendente."}, {"name": "idx_aviso_dirigido", "type": "B-Tree", "columns": "dirigido_a", "notes": "Filtra avisos pertinentes según el rol de la sesión iniciada."}], "ddl": "CREATE TABLE instituto.aviso (\n    id                 BIGSERIAL             PRIMARY KEY,\n    publicado_por_id   BIGINT                NOT NULL,\n    titulo             VARCHAR(200)          NOT NULL,\n    cuerpo             TEXT                  NOT NULL,\n    fecha_publicacion  TIMESTAMPTZ           NOT NULL DEFAULT now(),\n    dirigido_a         instituto.rol_usuario NULL,\n\n    CONSTRAINT fk_aviso_usuario FOREIGN KEY (publicado_por_id)\n        REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_aviso_titulo_no_vacio CHECK (length(btrim(titulo)) > 0),\n    CONSTRAINT ck_aviso_cuerpo_no_vacio CHECK (length(btrim(cuerpo)) > 0)\n);\n\nCREATE INDEX idx_aviso_fecha ON instituto.aviso (fecha_publicacion DESC);\nCREATE INDEX idx_aviso_dirigido ON instituto.aviso (dirigido_a);"}, {"id": "instituto.carrera", "name": "carrera", "schema": "instituto", "module": "PK-CUR", "moduleName": "Estructura Curricular", "description": "Ofertas académicas y tecnicaturas superiores oficiales impartidas en el ISFT 189.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador numérico único de la carrera."}, {"name": "nombre", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Denominación oficial de la tecnicatura."}, {"name": "titulo_otorgado", "type": "VARCHAR(200)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Título habilitante otorgado por la Dirección General de Escuelas."}, {"name": "activa", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "TRUE", "description": "Estado de matriculación vigente de la oferta formativa."}], "constraints": [{"name": "pk_carrera", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "uq_carrera_nombre", "type": "UNIQUE", "definition": "UNIQUE (nombre)"}, {"name": "ck_carrera_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_carrera_titulo_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(titulo_otorgado)) > 0)"}], "indexes": [], "ddl": "CREATE TABLE instituto.carrera (\n    id              BIGSERIAL        PRIMARY KEY,\n    nombre          VARCHAR(150)     NOT NULL,\n    titulo_otorgado VARCHAR(200)     NOT NULL,\n    activa          BOOLEAN          NOT NULL DEFAULT TRUE,\n\n    CONSTRAINT uq_carrera_nombre UNIQUE (nombre),\n    CONSTRAINT ck_carrera_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_carrera_titulo_no_vacio CHECK (length(btrim(titulo_otorgado)) > 0)\n);"}, {"id": "instituto.plan_estudio", "name": "plan_estudio", "schema": "instituto", "module": "PK-CUR", "moduleName": "Estructura Curricular", "description": "Planes curriculares de una carrera asociados a resoluciones ministeriales y cohortes de validez.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador único de la resolución curricular."}, {"name": "carrera_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.carrera.id", "defaultValue": "", "description": "Carrera a la que pertenece la estructura de materias."}, {"name": "anio", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Año de aprobación ministerial del plan de estudio."}, {"name": "resolucion", "type": "VARCHAR(100)", "nullable": true, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "NULL", "description": "Número formal de resolución ministerial (ej. Res. 6175/03)."}, {"name": "vigente", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "TRUE", "description": "Indica si es el plan curricular abierto para nuevas inscripciones."}], "constraints": [{"name": "pk_plan_estudio", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_plan_estudio_carrera", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (carrera_id) REFERENCES instituto.carrera (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_plan_estudio_carrera_anio", "type": "UNIQUE", "definition": "UNIQUE (carrera_id, anio)"}, {"name": "ck_plan_estudio_anio_valido", "type": "CHECK", "definition": "CHECK (anio BETWEEN 1990 AND 2100)"}], "indexes": [{"name": "idx_plan_estudio_carrera", "type": "B-Tree", "columns": "carrera_id", "notes": "Acelera navegación jerárquica de carrera a sus planes."}], "ddl": "CREATE TABLE instituto.plan_estudio (\n    id          BIGSERIAL    PRIMARY KEY,\n    carrera_id  BIGINT       NOT NULL,\n    anio        INT          NOT NULL,\n    resolucion  VARCHAR(100),\n    vigente     BOOLEAN      NOT NULL DEFAULT TRUE,\n\n    CONSTRAINT fk_plan_estudio_carrera FOREIGN KEY (carrera_id)\n        REFERENCES instituto.carrera (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_plan_estudio_carrera_anio UNIQUE (carrera_id, anio),\n    CONSTRAINT ck_plan_estudio_anio_valido CHECK (anio BETWEEN 1990 AND 2100)\n);\n\nCREATE INDEX idx_plan_estudio_carrera ON instituto.plan_estudio (carrera_id);"}, {"id": "instituto.materia", "name": "materia", "schema": "instituto", "module": "PK-CUR", "moduleName": "Estructura Curricular", "description": "Unidades curriculares con asignación de año de cursada (1..5) y carga horaria semanal/anual.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador unívoco de la materia."}, {"name": "plan_estudio_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.plan_estudio.id", "defaultValue": "", "description": "Plan curricular al que pertenece la unidad formativa."}, {"name": "nombre", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nombre de la asignatura (ej. Base de Datos, Algoritmos)."}, {"name": "anio_en_plan", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Año de la carrera en el que se cursa (1 a 5)."}, {"name": "carga_horaria", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Total de horas cátedra reglamentarias."}], "constraints": [{"name": "pk_materia", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_materia_plan", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (plan_estudio_id) REFERENCES instituto.plan_estudio (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_materia_plan_nombre", "type": "UNIQUE", "definition": "UNIQUE (plan_estudio_id, nombre)"}, {"name": "ck_materia_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_materia_anio_en_plan", "type": "CHECK", "definition": "CHECK (anio_en_plan BETWEEN 1 AND 5)"}, {"name": "ck_materia_carga_horaria", "type": "CHECK", "definition": "CHECK (carga_horaria > 0)"}], "indexes": [{"name": "idx_materia_plan", "type": "B-Tree", "columns": "plan_estudio_id", "notes": "Permite listar materias de un plan rápidamente."}, {"name": "idx_materia_anio", "type": "B-Tree", "columns": "anio_en_plan", "notes": "Filtra materias por año formativo (1°, 2°, 3°)."}], "ddl": "CREATE TABLE instituto.materia (\n    id              BIGSERIAL    PRIMARY KEY,\n    plan_estudio_id BIGINT       NOT NULL,\n    nombre          VARCHAR(150) NOT NULL,\n    anio_en_plan    INT          NOT NULL,\n    carga_horaria   INT          NOT NULL,\n\n    CONSTRAINT fk_materia_plan FOREIGN KEY (plan_estudio_id)\n        REFERENCES instituto.plan_estudio (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_materia_plan_nombre UNIQUE (plan_estudio_id, nombre),\n    CONSTRAINT ck_materia_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_materia_anio_en_plan CHECK (anio_en_plan BETWEEN 1 AND 5),\n    CONSTRAINT ck_materia_carga_horaria CHECK (carga_horaria > 0)\n);\n\nCREATE INDEX idx_materia_plan ON instituto.materia (plan_estudio_id);\nCREATE INDEX idx_materia_anio ON instituto.materia (anio_en_plan);"}, {"id": "instituto.correlatividad", "name": "correlatividad", "schema": "instituto", "module": "PK-CUR", "moduleName": "Estructura Curricular", "description": "Régimen de prerrequisitos correlativos entre materias para cursar o rendir examen final.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la regla correlativa."}, {"name": "materia_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.materia.id", "defaultValue": "", "description": "Materia dependiente que exige el requisito."}, {"name": "materia_correlativa_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.materia.id", "defaultValue": "", "description": "Materia que actúa como requisito previo."}, {"name": "tipo", "type": "instituto.tipo_correlatividad", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Tipo de exigencia: PARA_CURSAR o PARA_RENDIR."}], "constraints": [{"name": "pk_correlatividad", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_correlatividad_materia", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (materia_id) REFERENCES instituto.materia (id) ON DELETE CASCADE ON UPDATE CASCADE"}, {"name": "fk_correlatividad_requisito", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (materia_correlativa_id) REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_correlatividad_tipo", "type": "UNIQUE", "definition": "UNIQUE (materia_id, materia_correlativa_id, tipo)"}, {"name": "ck_correlatividad_no_reflexiva", "type": "CHECK", "definition": "CHECK (materia_id <> materia_correlativa_id)"}], "indexes": [{"name": "idx_correlatividad_materia", "type": "B-Tree", "columns": "materia_id", "notes": "Acelera verificación de requisitos de una materia."}, {"name": "idx_correlatividad_requisito", "type": "B-Tree", "columns": "materia_correlativa_id", "notes": "Permite resolver dependencias inversas."}], "ddl": "CREATE TABLE instituto.correlatividad (\n    id                     BIGSERIAL    PRIMARY KEY,\n    materia_id             BIGINT       NOT NULL,\n    materia_correlativa_id BIGINT       NOT NULL,\n    tipo                   instituto.tipo_correlatividad NOT NULL,\n\n    CONSTRAINT fk_correlatividad_materia FOREIGN KEY (materia_id)\n        REFERENCES instituto.materia (id) ON DELETE CASCADE ON UPDATE CASCADE,\n    CONSTRAINT fk_correlatividad_requisito FOREIGN KEY (materia_correlativa_id)\n        REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_correlatividad_tipo UNIQUE (materia_id, materia_correlativa_id, tipo),\n    CONSTRAINT ck_correlatividad_no_reflexiva CHECK (materia_id <> materia_correlativa_id)\n);\n\nCREATE INDEX idx_correlatividad_materia ON instituto.correlatividad (materia_id);\nCREATE INDEX idx_correlatividad_requisito ON instituto.correlatividad (materia_correlativa_id);"}, {"id": "instituto.ciclo_lectivo", "name": "ciclo_lectivo", "schema": "instituto", "module": "PK-CUR", "moduleName": "Estructura Curricular", "description": "Períodos académicos anuales con control de estado (ABIERTO o CERRADO).", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador unívoco del ciclo lectivo."}, {"name": "anio", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Año calendario del ciclo académico (2000-2100)."}, {"name": "estado", "type": "instituto.estado_ciclo", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'ABIERTO'", "description": "Estado operativo: ABIERTO o CERRADO."}], "constraints": [{"name": "pk_ciclo_lectivo", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "uq_ciclo_lectivo_anio", "type": "UNIQUE", "definition": "UNIQUE (anio)"}, {"name": "ck_ciclo_lectivo_anio_valido", "type": "CHECK", "definition": "CHECK (anio BETWEEN 2000 AND 2100)"}], "indexes": [], "ddl": "CREATE TABLE instituto.ciclo_lectivo (\n    id     BIGSERIAL             PRIMARY KEY,\n    anio   INT                   NOT NULL UNIQUE,\n    estado instituto.estado_ciclo NOT NULL DEFAULT 'ABIERTO',\n\n    CONSTRAINT ck_ciclo_lectivo_anio_valido CHECK (anio BETWEEN 2000 AND 2100)\n);"}, {"id": "instituto.periodo_inscripcion", "name": "periodo_inscripcion", "schema": "instituto", "module": "PK-CUR", "moduleName": "Estructura Curricular", "description": "Ventanas temporales oficiales para matriculación ordinaria a cursadas y mesas de examen.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la ventana de inscripción."}, {"name": "ciclo_lectivo_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.ciclo_lectivo.id", "defaultValue": "", "description": "Ciclo lectivo sobre el cual rige la ventana."}, {"name": "tipo", "type": "instituto.tipo_periodo", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Tipo de período: CURSADA o EXAMEN."}, {"name": "fecha_inicio", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Fecha inicial de habilitación del formulario."}, {"name": "fecha_fin", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Fecha límite de cierre ordinario."}], "constraints": [{"name": "pk_periodo_inscripcion", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_periodo_inscripcion_ciclo", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (ciclo_lectivo_id) REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "ck_periodo_inscripcion_rango_fechas", "type": "CHECK", "definition": "CHECK (fecha_fin >= fecha_inicio)"}], "indexes": [{"name": "idx_periodo_inscripcion_ciclo", "type": "B-Tree", "columns": "ciclo_lectivo_id", "notes": "Filtra períodos por año académico vigente."}], "ddl": "CREATE TABLE instituto.periodo_inscripcion (\n    id               BIGSERIAL               PRIMARY KEY,\n    ciclo_lectivo_id BIGINT                  NOT NULL,\n    tipo             instituto.tipo_periodo  NOT NULL,\n    fecha_inicio     DATE                    NOT NULL,\n    fecha_fin        DATE                    NOT NULL,\n\n    CONSTRAINT fk_periodo_inscripcion_ciclo FOREIGN KEY (ciclo_lectivo_id)\n        REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_periodo_inscripcion_rango_fechas CHECK (fecha_fin >= fecha_inicio)\n);\n\nCREATE INDEX idx_periodo_inscripcion_ciclo ON instituto.periodo_inscripcion (ciclo_lectivo_id);"}, {"id": "instituto.alumno", "name": "alumno", "schema": "instituto", "module": "PK-ALU", "moduleName": "Alumnos y Legajos", "description": "Legajos de estudiantes, datos patronímicos, DNI único y vinculación con la cuenta de usuario.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador interno del alumno."}, {"name": "usuario_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.usuario.id", "defaultValue": "", "description": "Cuenta de autenticación vinculada 1:1."}, {"name": "legajo", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Número único oficial de legajo estudiantil."}, {"name": "nombre", "type": "VARCHAR(100)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nombres del alumno."}, {"name": "apellido", "type": "VARCHAR(100)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Apellidos del alumno."}, {"name": "dni", "type": "VARCHAR(20)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Documento nacional de identidad único."}, {"name": "fecha_nacimiento", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Fecha de nacimiento para cómputo de edad y trámites."}, {"name": "email", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Correo de contacto del estudiante."}, {"name": "telefono", "type": "VARCHAR(50)", "nullable": true, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "NULL", "description": "Teléfono particular o móvil."}, {"name": "estado", "type": "instituto.estado_alumno", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'ACTIVO'", "description": "Condición institucional: ACTIVO o BAJA."}], "constraints": [{"name": "pk_alumno", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_alumno_usuario", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (usuario_id) REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_alumno_usuario_id", "type": "UNIQUE", "definition": "UNIQUE (usuario_id)"}, {"name": "uq_alumno_legajo", "type": "UNIQUE", "definition": "UNIQUE (legajo)"}, {"name": "uq_alumno_dni", "type": "UNIQUE", "definition": "UNIQUE (dni)"}, {"name": "ck_alumno_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_alumno_apellido_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(apellido)) > 0)"}, {"name": "ck_alumno_dni_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(dni)) > 0)"}, {"name": "ck_alumno_email_formato", "type": "CHECK", "definition": "CHECK (email ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')"}], "indexes": [{"name": "idx_alumno_apellido_nombre", "type": "B-Tree", "columns": "apellido, nombre", "notes": "Ordenamiento rápido alfabético para padrones y actas."}, {"name": "idx_alumno_estado", "type": "B-Tree", "columns": "estado", "notes": "Filtro rápido de alumnos activos en inscripciones."}], "ddl": "CREATE TABLE instituto.alumno (\n    id               BIGSERIAL               PRIMARY KEY,\n    usuario_id       BIGINT                  NOT NULL UNIQUE,\n    legajo           INT                     NOT NULL UNIQUE,\n    nombre           VARCHAR(100)            NOT NULL,\n    apellido         VARCHAR(100)            NOT NULL,\n    dni              VARCHAR(20)             NOT NULL UNIQUE,\n    fecha_nacimiento DATE                    NOT NULL,\n    email            VARCHAR(150)            NOT NULL,\n    telefono         VARCHAR(50),\n    estado           instituto.estado_alumno NOT NULL DEFAULT 'ACTIVO',\n\n    CONSTRAINT fk_alumno_usuario FOREIGN KEY (usuario_id)\n        REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_alumno_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_alumno_apellido_no_vacio CHECK (length(btrim(apellido)) > 0),\n    CONSTRAINT ck_alumno_dni_no_vacio CHECK (length(btrim(dni)) > 0),\n    CONSTRAINT ck_alumno_email_formato CHECK (email ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')\n);\n\nCREATE INDEX idx_alumno_apellido_nombre ON instituto.alumno (apellido, nombre);\nCREATE INDEX idx_alumno_estado ON instituto.alumno (estado);"}, {"id": "instituto.inscripcion_carrera", "name": "inscripcion_carrera", "schema": "instituto", "module": "PK-ALU", "moduleName": "Alumnos y Legajos", "description": "Matriculación formal de un alumno en una tecnicatura superior.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la matrícula a carrera."}, {"name": "alumno_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.alumno.id", "defaultValue": "", "description": "Alumno matriculado en la institución."}, {"name": "carrera_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.carrera.id", "defaultValue": "", "description": "Carrera técnica elegida."}, {"name": "fecha_inscripcion", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "CURRENT_DATE", "description": "Fecha del acto administrativo de matrícula."}, {"name": "estado", "type": "instituto.estado_inscripcion_carrera", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'ACTIVA'", "description": "Estado de la matrícula: ACTIVA o BAJA."}], "constraints": [{"name": "pk_inscripcion_carrera", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_inscripcion_carrera_alumno", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (alumno_id) REFERENCES instituto.alumno (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_inscripcion_carrera_carrera", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (carrera_id) REFERENCES instituto.carrera (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_inscripcion_carrera_alumno_carrera", "type": "UNIQUE", "definition": "UNIQUE (alumno_id, carrera_id)"}], "indexes": [{"name": "idx_inscripcion_carrera_alumno", "type": "B-Tree", "columns": "alumno_id", "notes": "Recupera carreras cursadas por un alumno."}, {"name": "idx_inscripcion_carrera_carrera", "type": "B-Tree", "columns": "carrera_id", "notes": "Permite obtener la matrícula activa por carrera."}], "ddl": "CREATE TABLE instituto.inscripcion_carrera (\n    id                BIGSERIAL                            PRIMARY KEY,\n    alumno_id         BIGINT                               NOT NULL,\n    carrera_id        BIGINT                               NOT NULL,\n    fecha_inscripcion DATE                                 NOT NULL DEFAULT CURRENT_DATE,\n    estado            instituto.estado_inscripcion_carrera NOT NULL DEFAULT 'ACTIVA',\n\n    CONSTRAINT fk_inscripcion_carrera_alumno FOREIGN KEY (alumno_id)\n        REFERENCES instituto.alumno (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_inscripcion_carrera_carrera FOREIGN KEY (carrera_id)\n        REFERENCES instituto.carrera (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_inscripcion_carrera_alumno_carrera UNIQUE (alumno_id, carrera_id)\n);\n\nCREATE INDEX idx_inscripcion_carrera_alumno ON instituto.inscripcion_carrera (alumno_id);\nCREATE INDEX idx_inscripcion_carrera_carrera ON instituto.inscripcion_carrera (carrera_id);"}, {"id": "instituto.docente", "name": "docente", "schema": "instituto", "module": "PK-DOC", "moduleName": "Planta Docente", "description": "Legajos de profesores, número de CUIL oficial y vinculación con la cuenta institucional de usuario.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador único del profesor."}, {"name": "usuario_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.usuario.id", "defaultValue": "", "description": "Cuenta de acceso RBAC vinculada 1:1."}, {"name": "legajo", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Número de legajo docente institucional."}, {"name": "nombre", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nombre completo del docente."}, {"name": "cuil", "type": "VARCHAR(20)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Código Único de Identificación Laboral tributario."}, {"name": "email", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Correo institucional del docente."}, {"name": "activo", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "TRUE", "description": "Estado de actividad en planta funcional."}], "constraints": [{"name": "pk_docente", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_docente_usuario", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (usuario_id) REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_docente_usuario_id", "type": "UNIQUE", "definition": "UNIQUE (usuario_id)"}, {"name": "uq_docente_legajo", "type": "UNIQUE", "definition": "UNIQUE (legajo)"}, {"name": "uq_docente_cuil", "type": "UNIQUE", "definition": "UNIQUE (cuil)"}, {"name": "ck_docente_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_docente_cuil_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(cuil)) > 0)"}, {"name": "ck_docente_email_formato", "type": "CHECK", "definition": "CHECK (email ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')"}], "indexes": [{"name": "idx_docente_nombre", "type": "B-Tree", "columns": "nombre", "notes": "Búsqueda rápida por nombre de docente en asignaciones."}], "ddl": "CREATE TABLE instituto.docente (\n    id         BIGSERIAL    PRIMARY KEY,\n    usuario_id BIGINT       NOT NULL UNIQUE,\n    legajo     INT          NOT NULL UNIQUE,\n    nombre     VARCHAR(150) NOT NULL,\n    cuil       VARCHAR(20)  NOT NULL UNIQUE,\n    email      VARCHAR(150) NOT NULL,\n    activo     BOOLEAN      NOT NULL DEFAULT TRUE,\n\n    CONSTRAINT fk_docente_usuario FOREIGN KEY (usuario_id)\n        REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_docente_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_docente_cuil_no_vacio CHECK (length(btrim(cuil)) > 0),\n    CONSTRAINT ck_docente_email_formato CHECK (email ~* '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')\n);\n\nCREATE INDEX idx_docente_nombre ON instituto.docente (nombre);"}, {"id": "instituto.asignacion_materia", "name": "asignacion_materia", "schema": "instituto", "module": "PK-DOC", "moduleName": "Planta Docente", "description": "Designación formal de cátedras a docentes titulares u observadores por ciclo lectivo.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la designación académica."}, {"name": "docente_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.docente.id", "defaultValue": "", "description": "Docente a quien se le asigna la cátedra."}, {"name": "materia_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.materia.id", "defaultValue": "", "description": "Materia curricular asignada."}, {"name": "ciclo_lectivo_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.ciclo_lectivo.id", "defaultValue": "", "description": "Ciclo lectivo del ciclo lectivo correspondiente."}, {"name": "cargo", "type": "instituto.cargo_docente", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'TITULAR'", "description": "Cargo: TITULAR u OBSERVADOR."}], "constraints": [{"name": "pk_asignacion_materia", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_asignacion_materia_docente", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (docente_id) REFERENCES instituto.docente (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_asignacion_materia_materia", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (materia_id) REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_asignacion_materia_ciclo", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (ciclo_lectivo_id) REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_asignacion_materia_docente_materia_ciclo_cargo", "type": "UNIQUE", "definition": "UNIQUE (docente_id, materia_id, ciclo_lectivo_id, cargo)"}], "indexes": [{"name": "idx_asignacion_materia_docente", "type": "B-Tree", "columns": "docente_id", "notes": "Permite consultar nóminas de cátedras del docente."}, {"name": "idx_asignacion_materia_materia_ciclo", "type": "B-Tree", "columns": "materia_id, ciclo_lectivo_id", "notes": "Resuelve docentes a cargo de una materia en un ciclo."}], "ddl": "CREATE TABLE instituto.asignacion_materia (\n    id               BIGSERIAL                PRIMARY KEY,\n    docente_id       BIGINT                   NOT NULL,\n    materia_id       BIGINT                   NOT NULL,\n    ciclo_lectivo_id BIGINT                   NOT NULL,\n    cargo            instituto.cargo_docente  NOT NULL DEFAULT 'TITULAR',\n\n    CONSTRAINT fk_asignacion_materia_docente FOREIGN KEY (docente_id)\n        REFERENCES instituto.docente (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_asignacion_materia_materia FOREIGN KEY (materia_id)\n        REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_asignacion_materia_ciclo FOREIGN KEY (ciclo_lectivo_id)\n        REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_asignacion_materia_docente_materia_ciclo_cargo\n        UNIQUE (docente_id, materia_id, ciclo_lectivo_id, cargo)\n);\n\nCREATE INDEX idx_asignacion_materia_docente ON instituto.asignacion_materia (docente_id);\nCREATE INDEX idx_asignacion_materia_materia_ciclo ON instituto.asignacion_materia (materia_id, ciclo_lectivo_id);"}, {"id": "instituto.inscripcion_cursada", "name": "inscripcion_cursada", "schema": "instituto", "module": "PK-CURS", "moduleName": "Cursadas y Asistencias", "description": "Registro de cursado regular en aula, seguimiento de condición final y flags de matriculación.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la cursada del alumno."}, {"name": "materia_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.materia.id", "defaultValue": "", "description": "Materia curricular cursada."}, {"name": "alumno_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.alumno.id", "defaultValue": "", "description": "Estudiante matriculado en la cursada."}, {"name": "ciclo_lectivo_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.ciclo_lectivo.id", "defaultValue": "", "description": "Ciclo lectivo en el cual se cursa."}, {"name": "fecha", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "CURRENT_DATE", "description": "Fecha del alta de inscripción."}, {"name": "condicion", "type": "instituto.condicion_cursada", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'CURSANDO'", "description": "Condición académica: CURSANDO, REGULAR, PROMOCIONADO o LIBRE."}, {"name": "fuera_de_termino", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "FALSE", "description": "Flag de inscripción extemporánea autorizada por preceptoría."}], "constraints": [{"name": "pk_inscripcion_cursada", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_inscripcion_cursada_materia", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (materia_id) REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_inscripcion_cursada_alumno", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (alumno_id) REFERENCES instituto.alumno (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_inscripcion_cursada_ciclo", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (ciclo_lectivo_id) REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_inscripcion_cursada_alumno_materia_ciclo", "type": "UNIQUE", "definition": "UNIQUE (alumno_id, materia_id, ciclo_lectivo_id)"}], "indexes": [{"name": "idx_inscripcion_cursada_alumno", "type": "B-Tree", "columns": "alumno_id", "notes": "Consulta historial de cursadas del estudiante."}, {"name": "idx_inscripcion_cursada_materia_ciclo", "type": "B-Tree", "columns": "materia_id, ciclo_lectivo_id", "notes": "Generación de listas de cursada y planillas docentes."}, {"name": "idx_inscripcion_cursada_condicion", "type": "B-Tree", "columns": "condicion", "notes": "Filtro rápido por condición final obtenida."}], "ddl": "CREATE TABLE instituto.inscripcion_cursada (\n    id               BIGSERIAL                    PRIMARY KEY,\n    materia_id       BIGINT                       NOT NULL,\n    alumno_id        BIGINT                       NOT NULL,\n    ciclo_lectivo_id BIGINT                       NOT NULL,\n    fecha            DATE                         NOT NULL DEFAULT CURRENT_DATE,\n    condicion        instituto.condicion_cursada  NOT NULL DEFAULT 'CURSANDO',\n    fuera_de_termino BOOLEAN                      NOT NULL DEFAULT FALSE,\n\n    CONSTRAINT fk_inscripcion_cursada_materia FOREIGN KEY (materia_id)\n        REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_inscripcion_cursada_alumno FOREIGN KEY (alumno_id)\n        REFERENCES instituto.alumno (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_inscripcion_cursada_ciclo FOREIGN KEY (ciclo_lectivo_id)\n        REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_inscripcion_cursada_alumno_materia_ciclo\n        UNIQUE (alumno_id, materia_id, ciclo_lectivo_id)\n);\n\nCREATE INDEX idx_inscripcion_cursada_alumno ON instituto.inscripcion_cursada (alumno_id);\nCREATE INDEX idx_inscripcion_cursada_materia_ciclo ON instituto.inscripcion_cursada (materia_id, ciclo_lectivo_id);\nCREATE INDEX idx_inscripcion_cursada_condicion ON instituto.inscripcion_cursada (condicion);"}, {"id": "instituto.asistencia", "name": "asistencia", "schema": "instituto", "module": "PK-CURS", "moduleName": "Cursadas y Asistencias", "description": "Registro de presentismo clase por clase para cómputo de porcentaje de asistencia exigido.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador único de la toma de asistencia."}, {"name": "inscripcion_cursada_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.inscripcion_cursada.id", "defaultValue": "", "description": "Cursada a la que corresponde la clase."}, {"name": "fecha_clase", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Fecha del día lectivo de dictado de clase."}, {"name": "presente", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "TRUE si estuvo presente; FALSE en caso de inasistencia."}], "constraints": [{"name": "pk_asistencia", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_asistencia_cursada", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (inscripcion_cursada_id) REFERENCES instituto.inscripcion_cursada (id) ON DELETE CASCADE ON UPDATE CASCADE"}, {"name": "uq_asistencia_cursada_fecha", "type": "UNIQUE", "definition": "UNIQUE (inscripcion_cursada_id, fecha_clase)"}], "indexes": [{"name": "idx_asistencia_cursada", "type": "B-Tree", "columns": "inscripcion_cursada_id", "notes": "Cómputo instantáneo de porcentaje de asistencia (Q4)."}], "ddl": "CREATE TABLE instituto.asistencia (\n    id                     BIGSERIAL PRIMARY KEY,\n    inscripcion_cursada_id BIGINT    NOT NULL,\n    fecha_clase            DATE      NOT NULL,\n    presente               BOOLEAN   NOT NULL,\n\n    CONSTRAINT fk_asistencia_cursada FOREIGN KEY (inscripcion_cursada_id)\n        REFERENCES instituto.inscripcion_cursada (id) ON DELETE CASCADE ON UPDATE CASCADE,\n    CONSTRAINT uq_asistencia_cursada_fecha UNIQUE (inscripcion_cursada_id, fecha_clase)\n);\n\nCREATE INDEX idx_asistencia_cursada ON instituto.asistencia (inscripcion_cursada_id);"}, {"id": "instituto.calificacion_parcial", "name": "calificacion_parcial", "schema": "instituto", "module": "PK-CURS", "moduleName": "Cursadas y Asistencias", "description": "Calificaciones parciales (1 a 10) de exámenes parciales y trabajos prácticos en cursada.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la calificación parcial."}, {"name": "inscripcion_cursada_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.inscripcion_cursada.id", "defaultValue": "", "description": "Cursada del alumno evaluado."}, {"name": "instancia", "type": "instituto.instancia_evaluacion", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Tipo de instancia: PARCIAL o TRABAJO_PRACTICO."}, {"name": "numero_instancia", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "1", "description": "Número de evaluación (1° Parcial, 2° Parcial, Recuperatorio...)."}, {"name": "nota", "type": "NUMERIC(4,2)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nota numérica en escala 1.00 a 10.00."}, {"name": "fecha_carga", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "CURRENT_DATE", "description": "Fecha del registro de la nota."}], "constraints": [{"name": "pk_calificacion_parcial", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_calificacion_parcial_cursada", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (inscripcion_cursada_id) REFERENCES instituto.inscripcion_cursada (id) ON DELETE CASCADE ON UPDATE CASCADE"}, {"name": "uq_calificacion_parcial_instancia", "type": "UNIQUE", "definition": "UNIQUE (inscripcion_cursada_id, instancia, numero_instancia)"}, {"name": "ck_calificacion_parcial_nota_rango", "type": "CHECK", "definition": "CHECK (nota >= 1.00 AND nota <= 10.00)"}, {"name": "ck_calificacion_parcial_numero_positivo", "type": "CHECK", "definition": "CHECK (numero_instancia >= 1)"}], "indexes": [{"name": "idx_calificacion_parcial_cursada", "type": "B-Tree", "columns": "inscripcion_cursada_id", "notes": "Consolidación de notas parciales para planilla oficial (Q5)."}], "ddl": "CREATE TABLE instituto.calificacion_parcial (\n    id                     BIGSERIAL                      PRIMARY KEY,\n    inscripcion_cursada_id BIGINT                         NOT NULL,\n    instancia              instituto.instancia_evaluacion NOT NULL,\n    numero_instancia       INT                            NOT NULL DEFAULT 1,\n    nota                   NUMERIC(4,2)                   NOT NULL,\n    fecha_carga            DATE                           NOT NULL DEFAULT CURRENT_DATE,\n\n    CONSTRAINT fk_calificacion_parcial_cursada FOREIGN KEY (inscripcion_cursada_id)\n        REFERENCES instituto.inscripcion_cursada (id) ON DELETE CASCADE ON UPDATE CASCADE,\n    CONSTRAINT uq_calificacion_parcial_instancia\n        UNIQUE (inscripcion_cursada_id, instancia, numero_instancia),\n    CONSTRAINT ck_calificacion_parcial_nota_rango CHECK (nota >= 1.00 AND nota <= 10.00),\n    CONSTRAINT ck_calificacion_parcial_numero_positivo CHECK (numero_instancia >= 1)\n);\n\nCREATE INDEX idx_calificacion_parcial_cursada ON instituto.calificacion_parcial (inscripcion_cursada_id);"}, {"id": "instituto.mesa_examen", "name": "mesa_examen", "schema": "instituto", "module": "PK-EXAM", "moduleName": "Exámenes y Actas", "description": "Turnos de exámenes finales con conformación de tribunal evaluador (docente titular y observador).", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la mesa examinadora."}, {"name": "materia_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.materia.id", "defaultValue": "", "description": "Materia evaluada en el turno final."}, {"name": "ciclo_lectivo_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.ciclo_lectivo.id", "defaultValue": "", "description": "Ciclo lectivo del turno de examen."}, {"name": "fecha", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Día calendarizado del examen final."}, {"name": "hora", "type": "TIME", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Horario formal de constitución del tribunal."}, {"name": "docente_titular_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.docente.id", "defaultValue": "", "description": "Docente titular presidente de mesa."}, {"name": "docente_observador_id", "type": "BIGINT", "nullable": true, "isPk": false, "isFk": true, "fkTarget": "instituto.docente.id", "defaultValue": "NULL", "description": "Docente vocal u observador (opcional)."}], "constraints": [{"name": "pk_mesa_examen", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_mesa_examen_materia", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (materia_id) REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_mesa_examen_ciclo", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (ciclo_lectivo_id) REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_mesa_examen_docente_titular", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (docente_titular_id) REFERENCES instituto.docente (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_mesa_examen_docente_observador", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (docente_observador_id) REFERENCES instituto.docente (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "ck_mesa_examen_docentes_distintos", "type": "CHECK", "definition": "CHECK (docente_observador_id IS NULL OR docente_titular_id <> docente_observador_id)"}], "indexes": [{"name": "idx_mesa_examen_materia", "type": "B-Tree", "columns": "materia_id", "notes": "Filtra mesas por materia en turnos finales."}, {"name": "idx_mesa_examen_fecha", "type": "B-Tree", "columns": "fecha", "notes": "Orden cronológico de cronograma de exámenes."}, {"name": "idx_mesa_examen_titular", "type": "B-Tree", "columns": "docente_titular_id", "notes": "Consulta de mesas asignadas al titular (Q6)."}, {"name": "idx_mesa_examen_observador", "type": "B-Tree", "columns": "docente_observador_id", "notes": "Consulta de mesas donde es observador."}], "ddl": "CREATE TABLE instituto.mesa_examen (\n    id                    BIGSERIAL    PRIMARY KEY,\n    materia_id            BIGINT       NOT NULL,\n    ciclo_lectivo_id      BIGINT       NOT NULL,\n    fecha                 DATE         NOT NULL,\n    hora                  TIME         NOT NULL,\n    docente_titular_id    BIGINT       NOT NULL,\n    docente_observador_id BIGINT,\n\n    CONSTRAINT fk_mesa_examen_materia FOREIGN KEY (materia_id)\n        REFERENCES instituto.materia (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_mesa_examen_ciclo FOREIGN KEY (ciclo_lectivo_id)\n        REFERENCES instituto.ciclo_lectivo (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_mesa_examen_docente_titular FOREIGN KEY (docente_titular_id)\n        REFERENCES instituto.docente (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_mesa_examen_docente_observador FOREIGN KEY (docente_observador_id)\n        REFERENCES instituto.docente (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_mesa_examen_docentes_distintos CHECK (docente_observador_id IS NULL OR docente_titular_id <> docente_observador_id)\n);\n\nCREATE INDEX idx_mesa_examen_materia ON instituto.mesa_examen (materia_id);\nCREATE INDEX idx_mesa_examen_fecha ON instituto.mesa_examen (fecha);\nCREATE INDEX idx_mesa_examen_titular ON instituto.mesa_examen (docente_titular_id);\nCREATE INDEX idx_mesa_examen_observador ON instituto.mesa_examen (docente_observador_id);"}, {"id": "instituto.acta_examen", "name": "acta_examen", "schema": "instituto", "module": "PK-EXAM", "moduleName": "Exámenes y Actas", "description": "Actas oficiales de examen final con numeración correlativa única e inmutabilidad garantizada al cerrarse.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador del acta ministerial."}, {"name": "mesa_examen_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.mesa_examen.id", "defaultValue": "", "description": "Mesa de examen asociada unívocamente (1:1)."}, {"name": "numero", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Número de folio oficial del libro de actas."}, {"name": "estado", "type": "instituto.estado_acta", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'ABIERTA'", "description": "Estado: ABIERTA (edición) o CERRADA (bloqueada)."}, {"name": "fecha_cierre", "type": "TIMESTAMPTZ", "nullable": true, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "NULL", "description": "Sello de tiempo legal de clausura del acta."}], "constraints": [{"name": "pk_acta_examen", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_acta_examen_mesa", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (mesa_examen_id) REFERENCES instituto.mesa_examen (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_acta_examen_mesa_id", "type": "UNIQUE", "definition": "UNIQUE (mesa_examen_id)"}, {"name": "uq_acta_examen_numero", "type": "UNIQUE", "definition": "UNIQUE (numero)"}, {"name": "ck_acta_examen_cierre_coherente", "type": "CHECK", "definition": "CHECK ((estado = 'ABIERTA' AND fecha_cierre IS NULL) OR (estado = 'CERRADA' AND fecha_cierre IS NOT NULL))"}], "indexes": [], "ddl": "CREATE TABLE instituto.acta_examen (\n    id             BIGSERIAL             PRIMARY KEY,\n    mesa_examen_id BIGINT                NOT NULL UNIQUE,\n    numero         INT                   NOT NULL UNIQUE,\n    estado         instituto.estado_acta NOT NULL DEFAULT 'ABIERTA',\n    fecha_cierre   TIMESTAMPTZ,\n\n    CONSTRAINT fk_acta_examen_mesa FOREIGN KEY (mesa_examen_id)\n        REFERENCES instituto.mesa_examen (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_acta_examen_cierre_coherente CHECK ((estado = 'ABIERTA' AND fecha_cierre IS NULL) OR (estado = 'CERRADA' AND fecha_cierre IS NOT NULL))\n);"}, {"id": "instituto.inscripcion_examen", "name": "inscripcion_examen", "schema": "instituto", "module": "PK-EXAM", "moduleName": "Exámenes y Actas", "description": "Inscripción de alumnos al turno de examen, nota final asentada y condición en acta oficial.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la inscripción al examen."}, {"name": "mesa_examen_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.mesa_examen.id", "defaultValue": "", "description": "Mesa de examen final constituida."}, {"name": "alumno_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.alumno.id", "defaultValue": "", "description": "Alumno inscripto a rendir."}, {"name": "acta_examen_id", "type": "BIGINT", "nullable": true, "isPk": false, "isFk": true, "fkTarget": "instituto.acta_examen.id", "defaultValue": "NULL", "description": "Acta oficial donde se asienta la nota."}, {"name": "fecha", "type": "DATE", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "CURRENT_DATE", "description": "Fecha del registro de inscripción."}, {"name": "fuera_de_termino", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "FALSE", "description": "Flag de inscripción extemporánea autorizada."}, {"name": "nota_final", "type": "NUMERIC(4,2)", "nullable": true, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "NULL", "description": "Nota definitiva del examen (1.00 a 10.00; >= 4 aprueba)."}, {"name": "estado", "type": "instituto.estado_inscripcion_examen", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'INSCRIPTO'", "description": "Estado: INSCRIPTO o ANULADO."}], "constraints": [{"name": "pk_inscripcion_examen", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_inscripcion_examen_mesa", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (mesa_examen_id) REFERENCES instituto.mesa_examen (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_inscripcion_examen_alumno", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (alumno_id) REFERENCES instituto.alumno (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "fk_inscripcion_examen_acta", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (acta_examen_id) REFERENCES instituto.acta_examen (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "uq_inscripcion_examen_alumno_mesa", "type": "UNIQUE", "definition": "UNIQUE (alumno_id, mesa_examen_id)"}, {"name": "ck_inscripcion_examen_nota_rango", "type": "CHECK", "definition": "CHECK (nota_final IS NULL OR (nota_final >= 1.00 AND nota_final <= 10.00))"}], "indexes": [{"name": "idx_inscripcion_examen_alumno", "type": "B-Tree", "columns": "alumno_id", "notes": "Cálculo de historia académica y promedio (Q8)."}, {"name": "idx_inscripcion_examen_mesa", "type": "B-Tree", "columns": "mesa_examen_id", "notes": "Recuperación de inscriptos en una mesa."}, {"name": "idx_inscripcion_examen_acta", "type": "B-Tree", "columns": "acta_examen_id", "notes": "Listado de notas registradas en un acta (Q7)."}], "ddl": "CREATE TABLE instituto.inscripcion_examen (\n    id               BIGSERIAL                           PRIMARY KEY,\n    mesa_examen_id   BIGINT                              NOT NULL,\n    alumno_id        BIGINT                              NOT NULL,\n    acta_examen_id   BIGINT,\n    fecha            DATE                                NOT NULL DEFAULT CURRENT_DATE,\n    fuera_de_termino BOOLEAN                             NOT NULL DEFAULT FALSE,\n    nota_final       NUMERIC(4,2),\n    estado           instituto.estado_inscripcion_examen NOT NULL DEFAULT 'INSCRIPTO',\n\n    CONSTRAINT fk_inscripcion_examen_mesa FOREIGN KEY (mesa_examen_id)\n        REFERENCES instituto.mesa_examen (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_inscripcion_examen_alumno FOREIGN KEY (alumno_id)\n        REFERENCES instituto.alumno (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT fk_inscripcion_examen_acta FOREIGN KEY (acta_examen_id)\n        REFERENCES instituto.acta_examen (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT uq_inscripcion_examen_alumno_mesa UNIQUE (alumno_id, mesa_examen_id),\n    CONSTRAINT ck_inscripcion_examen_nota_rango CHECK (nota_final IS NULL OR (nota_final >= 1.00 AND nota_final <= 10.00))\n);\n\nCREATE INDEX idx_inscripcion_examen_alumno ON instituto.inscripcion_examen (alumno_id);\nCREATE INDEX idx_inscripcion_examen_mesa ON instituto.inscripcion_examen (mesa_examen_id);\nCREATE INDEX idx_inscripcion_examen_acta ON instituto.inscripcion_examen (acta_examen_id);"}, {"id": "instituto.plantilla_documento", "name": "plantilla_documento", "schema": "instituto", "module": "PK-DOCUM", "moduleName": "Gestión Documental", "description": "Repositorio institucional de modelos en blanco descargables (constancias, actas modelo, certificados).", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador de la plantilla oficial."}, {"name": "cargada_por_usuario_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "instituto.usuario.id", "defaultValue": "", "description": "Usuario responsable de la carga del documento."}, {"name": "nombre", "type": "VARCHAR(150)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nombre representativo del modelo."}, {"name": "tipo_acta", "type": "VARCHAR(100)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Clasificación formal del trámite."}, {"name": "archivo", "type": "VARCHAR(255)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Ruta o URI del archivo descargable (PDF/DOCX)."}, {"name": "version", "type": "INT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "1", "description": "Número secuencial de revisión documental."}, {"name": "fecha_carga", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Fecha y hora de actualización en el repositorio."}], "constraints": [{"name": "pk_plantilla_documento", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_plantilla_documento_usuario", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (cargada_por_usuario_id) REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "ck_plantilla_documento_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_plantilla_documento_archivo_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(archivo)) > 0)"}, {"name": "ck_plantilla_documento_version_positiva", "type": "CHECK", "definition": "CHECK (version >= 1)"}], "indexes": [{"name": "idx_plantilla_documento_tipo", "type": "B-Tree", "columns": "tipo_acta", "notes": "Filtro rápido de modelos por tipo de trámite."}], "ddl": "CREATE TABLE instituto.plantilla_documento (\n    id                     BIGSERIAL    PRIMARY KEY,\n    cargada_por_usuario_id BIGINT       NOT NULL,\n    nombre                 VARCHAR(150) NOT NULL,\n    tipo_acta              VARCHAR(100) NOT NULL,\n    archivo                VARCHAR(255) NOT NULL,\n    version                INT          NOT NULL DEFAULT 1,\n    fecha_carga            TIMESTAMPTZ  NOT NULL DEFAULT now(),\n\n    CONSTRAINT fk_plantilla_documento_usuario FOREIGN KEY (cargada_por_usuario_id)\n        REFERENCES instituto.usuario (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_plantilla_documento_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_plantilla_documento_archivo_no_vacio CHECK (length(btrim(archivo)) > 0),\n    CONSTRAINT ck_plantilla_documento_version_positiva CHECK (version >= 1)\n);\n\nCREATE INDEX idx_plantilla_documento_tipo ON instituto.plantilla_documento (tipo_acta);"}, {"id": "isft189.usuarios", "name": "usuarios", "schema": "isft189", "module": "RAG-CORE", "moduleName": "Asistente Virtual RAG", "description": "Usuarios identificados para control de acceso, trazabilidad y auditoría de consultas al chatbot RAG.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador único en el esquema RAG."}, {"name": "nombre", "type": "VARCHAR(100)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Nombre de la persona o perfil de prueba."}, {"name": "email", "type": "VARCHAR(100)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Email único de identificación."}, {"name": "rol", "type": "VARCHAR(20)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'ALUMNO'", "description": "Rol RBAC: ALUMNO, DOCENTE, PRECEPTOR, ADMINISTRADOR."}, {"name": "fecha_registro", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Fecha y hora de registro en el servicio de chat."}], "constraints": [{"name": "pk_usuarios_isft189", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "uq_usuarios_email_isft189", "type": "UNIQUE", "definition": "UNIQUE (email)"}, {"name": "ck_usuarios_nombre_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(nombre)) > 0)"}, {"name": "ck_usuarios_email_valido", "type": "CHECK", "definition": "CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')"}, {"name": "ck_usuarios_rol_valido", "type": "CHECK", "definition": "CHECK (rol IN ('ALUMNO', 'DOCENTE', 'PRECEPTOR', 'ADMINISTRADOR'))"}], "indexes": [{"name": "idx_usuarios_email", "type": "B-Tree", "columns": "email", "notes": "Búsqueda directa por email en middleware de autenticación."}], "ddl": "CREATE TABLE isft189.usuarios (\n    id             BIGSERIAL        PRIMARY KEY,\n    nombre         VARCHAR(100)     NOT NULL,\n    email          VARCHAR(100)     NOT NULL UNIQUE,\n    rol            VARCHAR(20)      NOT NULL DEFAULT 'ALUMNO',\n    fecha_registro TIMESTAMPTZ      NOT NULL DEFAULT now(),\n\n    CONSTRAINT ck_usuarios_nombre_no_vacio CHECK (length(btrim(nombre)) > 0),\n    CONSTRAINT ck_usuarios_email_valido CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'),\n    CONSTRAINT ck_usuarios_rol_valido CHECK (rol IN ('ALUMNO', 'DOCENTE', 'PRECEPTOR', 'ADMINISTRADOR'))\n);\n\nCREATE INDEX idx_usuarios_email ON isft189.usuarios (email);"}, {"id": "isft189.documentos_metadata", "name": "documentos_metadata", "schema": "isft189", "module": "RAG-CORE", "moduleName": "Asistente Virtual RAG", "description": "Registro estructurado de documentos institucionales (planes de estudio, reglamentos, resoluciones) con vínculo cross-schema a carrera.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador del documento indexado."}, {"name": "titulo", "type": "VARCHAR(200)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Título representativo del documento oficial."}, {"name": "tipo_documento", "type": "isft189.tipo_documento", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Categoría: plan_estudio, reglamento, correlatividades, resolucion, otro."}, {"name": "fecha_subida", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Momento de la ingesta en el almacén vectorial."}, {"name": "carrera_id", "type": "BIGINT", "nullable": true, "isPk": false, "isFk": true, "fkTarget": "instituto.carrera.id", "defaultValue": "NULL", "description": "Clave foránea cross-schema hacia instituto.carrera.id (NULL = transversal)."}, {"name": "activo", "type": "BOOLEAN", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "TRUE", "description": "Flag de disponibilidad para el retrieval del bot."}], "constraints": [{"name": "pk_documentos_metadata", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_documentos_carrera", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (carrera_id) REFERENCES instituto.carrera (id) ON DELETE RESTRICT ON UPDATE CASCADE"}, {"name": "ck_documentos_titulo_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(titulo)) > 0)"}], "indexes": [{"name": "idx_documentos_tipo", "type": "B-Tree", "columns": "tipo_documento", "notes": "Filtro preliminar de documentos por categoría."}, {"name": "idx_documentos_carrera", "type": "B-Tree", "columns": "carrera_id", "notes": "Filtra contexto documental según carrera del alumno."}, {"name": "idx_documentos_activo", "type": "B-Tree", "columns": "activo", "notes": "Excluye documentos obsoletos o archivados."}], "ddl": "CREATE TABLE isft189.documentos_metadata (\n    id             BIGSERIAL              PRIMARY KEY,\n    titulo         VARCHAR(200)           NOT NULL,\n    tipo_documento isft189.tipo_documento NOT NULL,\n    fecha_subida   TIMESTAMPTZ            NOT NULL DEFAULT now(),\n    carrera_id     BIGINT                 NULL,\n    activo         BOOLEAN                NOT NULL DEFAULT TRUE,\n\n    CONSTRAINT fk_documentos_carrera FOREIGN KEY (carrera_id)\n        REFERENCES instituto.carrera (id) ON DELETE RESTRICT ON UPDATE CASCADE,\n    CONSTRAINT ck_documentos_titulo_no_vacio CHECK (length(btrim(titulo)) > 0)\n);\n\nCREATE INDEX idx_documentos_tipo ON isft189.documentos_metadata (tipo_documento);\nCREATE INDEX idx_documentos_carrera ON isft189.documentos_metadata (carrera_id);\nCREATE INDEX idx_documentos_activo ON isft189.documentos_metadata (activo);"}, {"id": "isft189.documentos_vectoriales", "name": "documentos_vectoriales", "schema": "isft189", "module": "RAG-CORE", "moduleName": "Asistente Virtual RAG", "description": "Fragmentos textuales (chunks) de 384 dimensiones con metadatos JSONB e índice HNSW para búsqueda semántica por similitud de coseno.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador unívoco del chunk semántico."}, {"name": "documento_id", "type": "BIGINT", "nullable": false, "isPk": false, "isFk": true, "fkTarget": "isft189.documentos_metadata.id", "defaultValue": "", "description": "Documento padre al que pertenece el fragmento."}, {"name": "contenido", "type": "TEXT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Texto sinóptico extraído y chunked del documento original."}, {"name": "metadata", "type": "JSONB", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "'{}'::jsonb", "description": "Metadatos flexibles (página, sección, carrera_id, tokens)."}, {"name": "embedding", "type": "VECTOR(384)", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Vector flotante denso de 384 dimensiones generado por FastEmbed."}, {"name": "fecha_creacion", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Marca de tiempo de vectorización del fragmento."}], "constraints": [{"name": "pk_documentos_vectoriales", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_vectoriales_documento", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (documento_id) REFERENCES isft189.documentos_metadata (id) ON DELETE CASCADE ON UPDATE CASCADE"}, {"name": "ck_vectoriales_contenido_no_vacio", "type": "CHECK", "definition": "CHECK (length(btrim(contenido)) > 0)"}], "indexes": [{"name": "idx_vectoriales_hnsw", "type": "HNSW", "columns": "embedding vector_cosine_ops", "notes": "HNSW (m=16, ef_construction=64) para recuperación KNN ultra-rápida con distancia coseno (<=>)."}, {"name": "idx_vectoriales_metadata_gin", "type": "GIN", "columns": "metadata", "notes": "Acelera filtros relacionales sobre propiedades dinámicas JSONB."}, {"name": "idx_vectoriales_documento_id", "type": "B-Tree", "columns": "documento_id", "notes": "Borrado e indexación en cascada de chunks por documento."}], "ddl": "CREATE TABLE isft189.documentos_vectoriales (\n    id             BIGSERIAL        PRIMARY KEY,\n    documento_id   BIGINT           NOT NULL,\n    contenido      TEXT             NOT NULL,\n    metadata       JSONB            NOT NULL DEFAULT '{}'::jsonb,\n    embedding      VECTOR(384)      NOT NULL,\n    fecha_creacion TIMESTAMPTZ      NOT NULL DEFAULT now(),\n\n    CONSTRAINT fk_vectoriales_documento FOREIGN KEY (documento_id)\n        REFERENCES isft189.documentos_metadata (id) ON DELETE CASCADE ON UPDATE CASCADE,\n    CONSTRAINT ck_vectoriales_contenido_no_vacio CHECK (length(btrim(contenido)) > 0)\n);\n\n-- Indice HNSW optimizado para busquedas por similitud de coseno (<=>)\nCREATE INDEX idx_vectoriales_hnsw\n    ON isft189.documentos_vectoriales\n    USING hnsw (embedding vector_cosine_ops)\n    WITH (m = 16, ef_construction = 64);\n\n-- Indice GIN para acelerar filtros relacionales sobre metadatos JSONB\nCREATE INDEX idx_vectoriales_metadata_gin\n    ON isft189.documentos_vectoriales\n    USING gin (metadata);\n\nCREATE INDEX idx_vectoriales_documento_id\n    ON isft189.documentos_vectoriales (documento_id);"}, {"id": "isft189.historial_consultas", "name": "historial_consultas", "schema": "isft189", "module": "RAG-CORE", "moduleName": "Asistente Virtual RAG", "description": "Auditoría completa e historial de interacciones, preguntas formuladas y respuestas sintetizadas por el asistente RAG.", "columns": [{"name": "id", "type": "BIGSERIAL", "nullable": false, "isPk": true, "isFk": false, "fkTarget": "", "defaultValue": "nextval(...)", "description": "Identificador único de la interacción conversacional."}, {"name": "usuario_id", "type": "BIGINT", "nullable": true, "isPk": false, "isFk": true, "fkTarget": "isft189.usuarios.id", "defaultValue": "NULL", "description": "Usuario autenticado emisor de la consulta (NULL si fue pública)."}, {"name": "pregunta", "type": "TEXT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Prompt o pregunta formulada en lenguaje natural por el usuario."}, {"name": "respuesta", "type": "TEXT", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "", "description": "Respuesta sintetizada por el modelo LLM enriquecida con contexto RAG."}, {"name": "fecha_consulta", "type": "TIMESTAMPTZ", "nullable": false, "isPk": false, "isFk": false, "fkTarget": "", "defaultValue": "now()", "description": "Timestamp exacto de la respuesta generada."}], "constraints": [{"name": "pk_historial_consultas", "type": "PRIMARY KEY", "definition": "PRIMARY KEY (id)"}, {"name": "fk_historial_usuario", "type": "FOREIGN KEY", "definition": "FOREIGN KEY (usuario_id) REFERENCES isft189.usuarios (id) ON DELETE SET NULL ON UPDATE CASCADE"}, {"name": "ck_historial_pregunta_no_vacia", "type": "CHECK", "definition": "CHECK (length(btrim(pregunta)) > 0)"}, {"name": "ck_historial_respuesta_no_vacia", "type": "CHECK", "definition": "CHECK (length(btrim(respuesta)) > 0)"}], "indexes": [{"name": "idx_historial_usuario", "type": "B-Tree", "columns": "usuario_id", "notes": "Permite recuperar conversaciones pasadas del usuario."}, {"name": "idx_historial_fecha_consulta", "type": "B-Tree", "columns": "fecha_consulta DESC", "notes": "Auditoría cronológica de uso del asistente para preceptoría/admin."}], "ddl": "CREATE TABLE isft189.historial_consultas (\n    id             BIGSERIAL    PRIMARY KEY,\n    usuario_id     BIGINT       NULL,\n    pregunta       TEXT         NOT NULL,\n    respuesta      TEXT         NOT NULL,\n    fecha_consulta TIMESTAMPTZ  NOT NULL DEFAULT now(),\n\n    CONSTRAINT fk_historial_usuario FOREIGN KEY (usuario_id)\n        REFERENCES isft189.usuarios (id) ON DELETE SET NULL ON UPDATE CASCADE,\n    CONSTRAINT ck_historial_pregunta_no_vacia CHECK (length(btrim(pregunta)) > 0),\n    CONSTRAINT ck_historial_respuesta_no_vacia CHECK (length(btrim(respuesta)) > 0)\n);\n\nCREATE INDEX idx_historial_usuario ON isft189.historial_consultas (usuario_id);\nCREATE INDEX idx_historial_fecha_consulta ON isft189.historial_consultas (fecha_consulta DESC);"}];
+const VALIDATION_QUERIES = [{"id": "Q1", "name": "INNER JOIN — Estructura Curricular y Asignaturas Vigentes", "desc": "Cruza estrictamente carreras, planes de estudio vigentes y sus materias correspondientes con carga horaria y año de cursada.", "sql": "SELECT \n    c.nombre AS carrera,\n    p.anio AS anio_plan,\n    p.resolucion,\n    m.anio_en_plan AS anio_cursada,\n    m.nombre AS materia,\n    m.carga_horaria\nFROM instituto.carrera c\nINNER JOIN instituto.plan_estudio p ON p.carrera_id = c.id\nINNER JOIN instituto.materia m ON m.plan_estudio_id = p.id\nWHERE p.vigente = TRUE\nORDER BY c.nombre, m.anio_en_plan, m.nombre;", "columns": ["carrera", "anio_plan", "resolucion", "anio_cursada", "materia", "carga_horaria"], "rows": [["Tecnicatura Superior en Desarrollo de Software", 2019, "Res. 5847/19", 1, "Programación I", 128], ["Tecnicatura Superior en Desarrollo de Software", 2019, "Res. 5847/19", 1, "Sistemas de Procesamiento de Datos", 96], ["Tecnicatura Superior en Desarrollo de Software", 2019, "Res. 5847/19", 2, "Bases de Datos", 128], ["Tecnicatura Superior en Análisis, Desarrollo y Prog.", 2003, "Res. 6175-03", 1, "Algoritmos y Estructuras de Datos I", 128], ["Tecnicatura Superior en Análisis, Desarrollo y Prog.", 2003, "Res. 6175-03", 2, "Análisis de Sistemas", 128]], "category": "Estructura Curricular & JOIN Multitabla"}, {"id": "Q2", "name": "LEFT JOIN — Mesas de Examen y Postulantes Inscriptos", "desc": "Lista todas las mesas de examen programadas junto con sus inscriptos, preservando turnos que no posean postulantes matriculados (NULL).", "sql": "SELECT \n    me.id AS mesa_id,\n    m.nombre AS materia,\n    me.fecha AS fecha_mesa,\n    dt.nombre AS docente_titular,\n    a.legajo AS legajo_alumno,\n    COALESCE(a.apellido || ', ' || a.nombre, 'SIN_INSCRIPTOS') AS alumno,\n    ie.nota_final,\n    COALESCE(act.estado::text, 'SIN_ACTA') AS estado_acta\nFROM instituto.mesa_examen me\nINNER JOIN instituto.materia m ON m.id = me.materia_id\nINNER JOIN instituto.docente dt ON dt.id = me.docente_titular_id\nLEFT JOIN instituto.acta_examen act ON act.mesa_examen_id = me.id\nLEFT JOIN instituto.inscripcion_examen ie ON ie.mesa_examen_id = me.id\nLEFT JOIN instituto.alumno a ON a.id = ie.alumno_id\nORDER BY me.fecha DESC, m.nombre;", "columns": ["mesa_id", "materia", "fecha_mesa", "docente_titular", "legajo_alumno", "alumno", "nota_final", "estado_acta"], "rows": [[1, "Bases de Datos", "2024-12-10", "Gómez, Carlos", 1001, "Pérez, Juan", 8.0, "CERRADA"], [1, "Bases de Datos", "2024-12-10", "Gómez, Carlos", 1002, "Rodríguez, María", 7.5, "CERRADA"], [2, "Programación II", "2024-12-12", "López, Mariana", 1001, "Pérez, Juan", 9.0, "ABIERTA"], [3, "Redes y Comunicaciones", "2024-12-15", "Fernández, Roberto", "-", "SIN_INSCRIPTOS", "-", "ABIERTA"]], "category": "Mesas de Examen & Outer Joins"}, {"id": "Q3", "name": "RIGHT JOIN — Asignación de Cátedras vs Oferta Curricular", "desc": "Asocia docentes designados a cada materia mediante un RIGHT JOIN sobre la tabla curricular, revelando materias del ciclo lectivo que aún no poseen docente designado.", "sql": "SELECT \n    m.id AS materia_id,\n    m.nombre AS materia,\n    m.anio_en_plan,\n    am.ciclo_lectivo_id,\n    COALESCE(am.cargo::text, 'SIN_CARGO') AS cargo_docente,\n    COALESCE(d.nombre, 'VACANTE / SIN DOCENTE') AS docente_designado\nFROM instituto.asignacion_materia am\nINNER JOIN instituto.docente d ON d.id = am.docente_id\nRIGHT JOIN instituto.materia m ON m.id = am.materia_id AND am.ciclo_lectivo_id = 2\nORDER BY m.anio_en_plan, m.nombre;", "columns": ["materia_id", "materia", "anio_en_plan", "ciclo_lectivo_id", "cargo_docente", "docente_designado"], "rows": [[1, "Algoritmos y Estructuras de Datos I", 1, 2, "TITULAR", "Alvarez, Patricia"], [2, "Sistemas y Organizaciones", 1, 2, "TITULAR", "Benítez, Marcos"], [3, "Arquitectura de Computadores", 1, 2, "SIN_CARGO", "VACANTE / SIN DOCENTE"], [13, "Bases de Datos", 2, 2, "TITULAR", "Gómez, Carlos"]], "category": "Asignación de Cátedras & Cobertura Docente"}, {"id": "Q4", "name": "DIVISIÓN RELACIONAL — Alumnos que Regularizaron Todo 1° Año", "desc": "Operación algebraica de división relacional (R ÷ S): identifica a los estudiantes que han cursado y obtenido condición REGULAR o PROMOCIONADO en la totalidad de las materias del 1° año de su plan.", "sql": "SELECT \n    a.id AS alumno_id,\n    a.legajo,\n    a.apellido || ', ' || a.nombre AS alumno,\n    c.nombre AS carrera\nFROM instituto.alumno a\nINNER JOIN instituto.inscripcion_carrera ic_car ON ic_car.alumno_id = a.id\nINNER JOIN instituto.carrera c ON c.id = ic_car.carrera_id\nINNER JOIN instituto.plan_estudio pe ON pe.carrera_id = c.id AND pe.vigente = TRUE\nWHERE NOT EXISTS (\n    -- Materias de 1° año del plan que el estudiante NO ha regularizado\n    SELECT m.id \n    FROM instituto.materia m\n    WHERE m.plan_estudio_id = pe.id\n      AND m.anio_en_plan = 1\n      AND NOT EXISTS (\n          SELECT 1 \n          FROM instituto.inscripcion_cursada ic\n          WHERE ic.alumno_id = a.id\n            AND ic.materia_id = m.id\n            AND ic.condicion IN ('REGULAR', 'PROMOCIONADO')\n      )\n);", "columns": ["alumno_id", "legajo", "alumno", "carrera"], "rows": [[1, 1001, "Pérez, Juan", "Tecnicatura Superior en Desarrollo de Software"], [2, 1002, "Rodríguez, María", "Tecnicatura Superior en Desarrollo de Software"]], "category": "Álgebra Relacional — División & Regularidad"}, {"id": "Q5", "name": "USO DE ÍNDICE — Búsqueda Semántica con Índice HNSW (Coseno <=>)", "desc": "Recuperación vectorial de fragmentos documentales por similitud semántica forzando Index Scan sobre el índice HNSW 'idx_vectoriales_hnsw' (distancia coseno <=>).", "sql": "-- Forzado de uso de índice HNSW multidimensional para similitud coseno (<=>)\nSET enable_seqscan = OFF;\n\nSELECT \n    dv.id AS vector_id,\n    dm.titulo AS documento_origen,\n    dm.tipo_documento,\n    ROUND((1 - (dv.embedding <=> '[0.012,-0.045,0.089,...]'::vector(384)))::numeric, 4) AS similitud_coseno,\n    LEFT(dv.contenido, 160) || '...' AS fragmento_recuperado\nFROM isft189.documentos_vectoriales dv\nINNER JOIN isft189.documentos_metadata dm ON dm.id = dv.documento_id\nWHERE dm.activo = TRUE\nORDER BY dv.embedding <=> '[0.012,-0.045,0.089,...]'::vector(384)\nLIMIT 5;", "columns": ["vector_id", "documento_origen", "tipo_documento", "similitud_coseno", "fragmento_recuperado"], "rows": [[101, "Plan de Estudios Res. 5847/19 - Desarrollo de Software", "plan_estudio", 0.8942, "El egresado de la Tecnicatura Superior en Desarrollo de Software estará capacitado para diseñar, construir y verificar artefactos de software complejos..."], [104, "Régimen Académico Institucional 2024", "reglamento", 0.8415, "Las condiciones de acreditación final requieren un mínimo del 75% de asistencia a las clases presenciales y aprobación de evaluaciones parciales..."], [118, "Plan de Estudios Res. 6175-03 - Análisis de Sistemas", "plan_estudio", 0.793, "Estructura de correlatividades: Para cursar Análisis de Sistemas se requiere tener regularizada la unidad curricular Algoritmos y Estructuras de Datos I..."]], "category": "Búsqueda Semántica Vectorial con pgvector HNSW"}];
+const FOREIGN_KEYS_MATRIX = [{"source": "instituto.aviso", "sourceCol": "publicado_por_id", "target": "instituto.usuario", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Integridad de autoría del comunicado institucional."}, {"source": "instituto.plan_estudio", "sourceCol": "carrera_id", "target": "instituto.carrera", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Una carrera preserva sus planes oficiales históricos."}, {"source": "instituto.materia", "sourceCol": "plan_estudio_id", "target": "instituto.plan_estudio", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Inmutabilidad de unidades curriculares asignadas al plan."}, {"source": "instituto.correlatividad", "sourceCol": "materia_id", "target": "instituto.materia", "targetCol": "id", "onDelete": "CASCADE", "onUpdate": "CASCADE", "cross": false, "rule": "Al suprimir una materia se eliminan sus dependencias activas."}, {"source": "instituto.correlatividad", "sourceCol": "materia_correlativa_id", "target": "instituto.materia", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "No se permite borrar materias que sean requisito de otras."}, {"source": "instituto.periodo_inscripcion", "sourceCol": "ciclo_lectivo_id", "target": "instituto.ciclo_lectivo", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Las ventanas de calendario dependen del ciclo lectivo."}, {"source": "instituto.alumno", "sourceCol": "usuario_id", "target": "instituto.usuario", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Vínculo 1:1 entre legajo físico de estudiante y cuenta de usuario."}, {"source": "instituto.inscripcion_carrera", "sourceCol": "alumno_id", "target": "instituto.alumno", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Preservación histórica de la matrícula del estudiante."}, {"source": "instituto.inscripcion_carrera", "sourceCol": "carrera_id", "target": "instituto.carrera", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "No se puede eliminar una carrera con estudiantes inscriptos."}, {"source": "instituto.docente", "sourceCol": "usuario_id", "target": "instituto.usuario", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Vínculo 1:1 entre legajo docente y credenciales institucionales."}, {"source": "instituto.asignacion_materia", "sourceCol": "docente_id", "target": "instituto.docente", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Auditoría de designaciones docentes en cátedras."}, {"source": "instituto.asignacion_materia", "sourceCol": "materia_id", "target": "instituto.materia", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "No se permite suprimir materias con docentes designados."}, {"source": "instituto.asignacion_materia", "sourceCol": "ciclo_lectivo_id", "target": "instituto.ciclo_lectivo", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Asignación contextualizada por año lectivo."}, {"source": "instituto.inscripcion_cursada", "sourceCol": "materia_id", "target": "instituto.materia", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Seguridad histórica del plan de cursadas."}, {"source": "instituto.inscripcion_cursada", "sourceCol": "alumno_id", "target": "instituto.alumno", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "El legajo de cursada no se destruye para preservar actas."}, {"source": "instituto.inscripcion_cursada", "sourceCol": "ciclo_lectivo_id", "target": "instituto.ciclo_lectivo", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Ciclo académico de la cursada."}, {"source": "instituto.asistencia", "sourceCol": "inscripcion_cursada_id", "target": "instituto.inscripcion_cursada", "targetCol": "id", "onDelete": "CASCADE", "onUpdate": "CASCADE", "cross": false, "rule": "Eliminación subordinada en cascada del presentismo."}, {"source": "instituto.calificacion_parcial", "sourceCol": "inscripcion_cursada_id", "target": "instituto.inscripcion_cursada", "targetCol": "id", "onDelete": "CASCADE", "onUpdate": "CASCADE", "cross": false, "rule": "Eliminación subordinada en cascada de parciales."}, {"source": "instituto.mesa_examen", "sourceCol": "materia_id", "target": "instituto.materia", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "La mesa examinadora certifica una materia oficial."}, {"source": "instituto.mesa_examen", "sourceCol": "ciclo_lectivo_id", "target": "instituto.ciclo_lectivo", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Ciclo lectivo del turno evaluador."}, {"source": "instituto.mesa_examen", "sourceCol": "docente_titular_id", "target": "instituto.docente", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Presidente del tribunal de examen final."}, {"source": "instituto.mesa_examen", "sourceCol": "docente_observador_id", "target": "instituto.docente", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Vocal u observador del tribunal examinador."}, {"source": "instituto.acta_examen", "sourceCol": "mesa_examen_id", "target": "instituto.mesa_examen", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Vínculo 1:1 único e inmutable entre mesa y acta digital."}, {"source": "instituto.inscripcion_examen", "sourceCol": "mesa_examen_id", "target": "instituto.mesa_examen", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Turno en el cual se inscribió el postulante."}, {"source": "instituto.inscripcion_examen", "sourceCol": "alumno_id", "target": "instituto.alumno", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Estudiante evaluado en examen final."}, {"source": "instituto.inscripcion_examen", "sourceCol": "acta_examen_id", "target": "instituto.acta_examen", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Asentamiento obligatorio en el acta formal definitiva."}, {"source": "instituto.plantilla_documento", "sourceCol": "cargada_por_usuario_id", "target": "instituto.usuario", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": false, "rule": "Trazabilidad del responsable de subida del modelo oficial."}, {"source": "isft189.documentos_metadata", "sourceCol": "carrera_id", "target": "instituto.carrera", "targetCol": "id", "onDelete": "RESTRICT", "onUpdate": "CASCADE", "cross": true, "rule": "Clave foránea cross-schema: vincula documentos RAG con la carrera del esquema académico."}, {"source": "isft189.documentos_vectoriales", "sourceCol": "documento_id", "target": "isft189.documentos_metadata", "targetCol": "id", "onDelete": "CASCADE", "onUpdate": "CASCADE", "cross": false, "rule": "Cascada completa: eliminar un documento remueve todos sus chunks y vectores HNSW asociados."}, {"source": "isft189.historial_consultas", "sourceCol": "usuario_id", "target": "isft189.usuarios", "targetCol": "id", "onDelete": "SET NULL", "onUpdate": "CASCADE", "cross": false, "rule": "Preservación de auditoría: si un usuario es borrado, se conserva la pregunta/respuesta con usuario NULL."}];
+
+
+// Motion Animation Engine (Sin parpadeos, integración fluida con CSS acelerado)
+const MotionEngine = {
+  animateView(el) {
+    if (window.Motion && Motion.animate && el) {
+      Motion.animate(el, { opacity: [0, 1], y: [8, 0] }, { duration: 0.22, easing: [0.16, 1, 0.3, 1] });
+    }
+  },
+  animateCards() {
+    if (window.Motion && Motion.animate) {
+      Motion.animate('.table-card', 
+        { opacity: [0, 1], y: [14, 0] },
+        { delay: Motion.stagger(0.02, { start: 0.02 }), duration: 0.25, easing: [0.16, 1, 0.3, 1] }
+      );
+    }
+  },
+  animateDrawerOpen(backdrop, panel) {
+    if (!backdrop) return;
+    backdrop.classList.add('active');
+  },
+  animateDrawerClose(backdrop, panel) {
+    if (!backdrop) return;
+    backdrop.classList.remove('active');
+  },
+  animateBounce(el) {
+    if (window.Motion && Motion.animate && el) {
+      Motion.animate(el, { transform: ['scale(1)', 'scale(0.92)', 'scale(1.04)', 'scale(1)'] }, { duration: 0.24 });
+    }
+  },
+  animateToast(toast) {
+    if (window.Motion && Motion.animate && toast) {
+      Motion.animate(toast, { opacity: [0, 1], y: [16, 0], scale: [0.96, 1] }, { duration: 0.22, easing: [0.16, 1, 0.3, 1] });
+    }
+  }
+};
+
+// Estado reactivo de la aplicación
+const AppState = {
+  currentView: 'dashboard',
+  schemaFilter: 'ALL',
+  moduleFilter: 'ALL',
+  searchTerm: '',
+  viewMode: 'grid',
+  activeDrawerTable: null,
+  activeQueryId: 'Q1'
+};
+
+// Inicialización de la aplicación
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+
+  renderDictionary();
+  renderQueriesNav();
+  renderQueryDetail('Q1');
+  setupKeyboardShortcuts();
+});
+
+// Atajos de teclado
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      switchView('dictionary');
+      const input = document.getElementById('fuzzySearchInput');
+      if (input) input.focus();
+    } else if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      switchView('dictionary');
+      const input = document.getElementById('fuzzySearchInput');
+      if (input) input.focus();
+    } else if (e.key === 'Escape') {
+      closeDrawerDirect();
+    }
+  });
+}
+
+// Cambio de Vistas Principales
+function switchView(viewName) {
+  AppState.currentView = viewName;
+  const views = ['dashboard', 'dictionary', 'rag', 'validation'];
+  const buttons = document.querySelectorAll('.nav-tabs .tab-btn');
+  buttons.forEach((btn, idx) => {
+    btn.classList.toggle('active', views[idx] === viewName);
+  });
+  
+  const sections = document.querySelectorAll('.view-section');
+  sections.forEach(sec => sec.classList.remove('active'));
+  
+  const targetId = (viewName === 'rag' || viewName === 'diagrams') ? 'view-rag' : `view-${viewName}`;
+  const target = document.getElementById(targetId);
+  if (target) {
+    target.classList.add('active');
+    MotionEngine.animateView(target);
+  }
+  
+  if (window.lucide) lucide.createIcons();
+}
+
+// Filtrado de Diccionario de Datos
+function handleSearch() {
+  const val = document.getElementById('fuzzySearchInput').value.trim().toLowerCase();
+  AppState.searchTerm = val;
+  renderDictionary();
+}
+
+function filterBySchema(schema) {
+  AppState.schemaFilter = schema;
+  document.getElementById('filterSchemaAll').classList.toggle('active', schema === 'ALL');
+  document.getElementById('filterSchemaInstituto').classList.toggle('active', schema === 'instituto');
+  document.getElementById('filterSchemaIsft189').classList.toggle('active', schema === 'isft189');
+  renderDictionary();
+}
+
+function filterByModule(moduleCode) {
+  AppState.moduleFilter = moduleCode;
+  const select = document.getElementById('moduleSelect');
+  if (select) select.value = moduleCode;
+  switchView('dictionary');
+  renderDictionary();
+}
+
+function handleModuleSelect(val) {
+  AppState.moduleFilter = val;
+  renderDictionary();
+}
+
+function setViewMode(mode) {
+  AppState.viewMode = mode;
+  document.getElementById('btnViewGrid').classList.toggle('active', mode === 'grid');
+  document.getElementById('btnViewTable').classList.toggle('active', mode === 'table');
+  
+  document.getElementById('tablesGridContainer').style.display = (mode === 'grid') ? 'grid' : 'none';
+  document.getElementById('tablesTableContainer').style.display = (mode === 'table') ? 'block' : 'none';
+}
+
+// Renderizado reactivo del Diccionario
+function renderDictionary() {
+  const grid = document.getElementById('tablesGridContainer');
+  const tbody = document.getElementById('dictTableBody');
+  const counter = document.getElementById('resultsCounter');
+  
+  const term = AppState.searchTerm.toLowerCase();
+  
+  const filtered = TABLES_DATA.filter(t => {
+    // Filtro por esquema
+    if (AppState.schemaFilter !== 'ALL' && t.schema !== AppState.schemaFilter) {
+      return false;
+    }
+    // Filtro por módulo
+    if (AppState.moduleFilter !== 'ALL' && t.module !== AppState.moduleFilter) {
+      return false;
+    }
+    // Búsqueda fuzzy / multi-campo
+    if (term) {
+      const matchName = t.name.toLowerCase().includes(term);
+      const matchDesc = t.description.toLowerCase().includes(term);
+      const matchSchema = t.schema.toLowerCase().includes(term);
+      const matchCols = t.columns.some(c => c.name.toLowerCase().includes(term) || c.type.toLowerCase().includes(term));
+      return matchName || matchDesc || matchSchema || matchCols;
+    }
+    return true;
+  });
+  
+  counter.textContent = `Mostrando ${filtered.length} de ${TABLES_DATA.length} tablas`;
+  
+  // Render Tarjetas
+  grid.innerHTML = filtered.map((t, idx) => {
+    const schemaClass = t.schema === 'instituto' ? 'instituto' : 'isft189';
+    const pkCol = t.columns.find(c => c.isPk)?.name || 'id';
+    const fkCount = t.columns.filter(c => c.isFk).length;
+    
+    return `
+      <div class="table-card" style="--i:${idx}">
+        <div class="table-card-top">
+          <span class="badge-tag ${schemaClass}">${t.schema}</span>
+          <span class="module-code">${t.module}</span>
+        </div>
+        
+        <div class="table-title">${t.name}</div>
+        <div class="table-card-desc">${t.description}</div>
+        
+        <div class="table-card-meta">
+          <span class="meta-pill"><i data-lucide="columns" style="width:11px;height:11px;"></i> ${t.columns.length} cols</span>
+          <span class="meta-pill"><i data-lucide="key" style="width:11px;height:11px;color:#fbbf24;"></i> PK: ${pkCol}</span>
+          <span class="meta-pill"><i data-lucide="link" style="width:11px;height:11px;color:#60a5fa;"></i> ${fkCount} FKs</span>
+          <span class="meta-pill"><i data-lucide="shield" style="width:11px;height:11px;"></i> ${t.constraints.length} constr</span>
+        </div>
+        
+        <div class="table-meta-bar">
+          <div class="meta-item">
+            <i data-lucide="columns" style="width:13px;height:13px;"></i>
+            ${t.columns.length} cols
+          </div>
+          <div class="meta-item">
+            <i data-lucide="key" style="width:13px;height:13px;color:#fbbf24;"></i>
+            PK: ${pkCol}
+          </div>
+          <div class="meta-item">
+            <i data-lucide="link" style="width:13px;height:13px;color:#60a5fa;"></i>
+            ${fkCount} FKs
+          </div>
+          <div class="meta-item" style="margin-left:auto;">
+            ${t.indexes.length} idx
+          </div>
+        </div>
+        
+        <button class="btn-inspect" onclick="inspectTable('${t.id}')">
+          <i data-lucide="file-code" style="width:14px;height:14px;"></i>
+          Examinar Esquema &amp; DDL
+        </button>
+      </div>
+    `;
+  }).join('');
+  
+  // Render Tabla Compacta
+  tbody.innerHTML = filtered.map(t => `
+    <tr>
+      <td><span class="badge-tag ${t.schema === 'instituto' ? 'instituto' : 'isft189'}">${t.schema}</span></td>
+      <td style="font-family:var(--font-mono);font-weight:700;color:#fff;">${t.name}</td>
+      <td><span class="module-code">${t.module}</span></td>
+      <td style="max-width:340px;font-size:12px;">${t.description}</td>
+      <td style="font-family:var(--font-mono);">${t.columns.length}</td>
+      <td>
+        <button class="btn-ddl" onclick="inspectTable('${t.id}')">
+          <i data-lucide="file-code" style="width:13px;height:13px;"></i>
+          Ver DDL
+        </button>
+      </td>
+    </tr>
+  `).join('');
+  
+  if (window.lucide) lucide.createIcons();
+  
+  // Animación Motion escalonada de tarjetas
+  MotionEngine.animateCards();
+}
+
+// Apertura y Gestión del Drawer Lateral
+function inspectTable(tableId) {
+  const table = TABLES_DATA.find(t => t.id === tableId || t.name === tableId);
+  if (!table) return;
+  
+  AppState.activeDrawerTable = table;
+  
+  // Llenar cabecera
+  const schemaBadge = document.getElementById('drawerSchemaBadge');
+  schemaBadge.className = `badge-tag ${table.schema === 'instituto' ? 'instituto' : 'isft189'}`;
+  schemaBadge.textContent = `${table.schema} · ${table.module}`;
+  
+  document.getElementById('drawerTableName').textContent = `${table.schema}.${table.name}`;
+  document.getElementById('drawerTableDesc').textContent = table.description;
+  
+  document.getElementById('drawerColCount').textContent = table.columns.length;
+  document.getElementById('drawerConstraintCount').textContent = table.constraints.length;
+  document.getElementById('drawerIdxCount').textContent = table.indexes.length;
+  
+  // Llenar Columnas con alto contraste y legibilidad óptima
+  const tbodyCols = document.getElementById('drawerColumnsTbody');
+  tbodyCols.innerHTML = table.columns.map(col => `
+    <tr>
+      <td>
+        <div class="col-name">
+          ${col.name}
+          ${col.isPk ? '<span class="pk-tag">PK</span>' : ''}
+          ${col.isFk ? `<span class="fk-tag" title="FK hacia ${col.fkTarget}" onclick="inspectTable('${col.fkTarget.split('.')[0] + '.' + col.fkTarget.split('.')[1]}')">FK</span>` : ''}
+        </div>
+      </td>
+      <td><span class="col-type">${col.type}</span></td>
+      <td>${col.nullable ? '<span class="null-tag">NULL</span>' : '<span class="req-tag">NOT NULL</span>'}</td>
+      <td>${col.isFk ? `<span style="font-size:12px;color:#60a5fa;font-family:var(--font-mono);font-weight:600;">${col.fkTarget}</span>` : (col.isPk ? '<span style="color:#fbbf24;font-weight:600;font-size:12px;">PRIMARY</span>' : '<span style="color:#64748b;">-</span>')}</td>
+      <td style="font-family:var(--font-mono);font-size:11.5px;color:#cbd5e1;white-space:nowrap;">${col.defaultValue || '<span style="color:#64748b;">-</span>'}</td>
+      <td style="font-size:13px;color:#f8fafc;line-height:1.45;font-weight:450;">${col.description}</td>
+    </tr>
+  `).join('');
+  
+  // Llenar Restricciones
+  const constraintsList = document.getElementById('drawerConstraintsList');
+  constraintsList.innerHTML = table.constraints.map(c => `
+    <div class="constraint-card">
+      <div class="constraint-card-header">
+        <span class="constraint-name">${c.name}</span>
+        <span class="constraint-type-badge ${c.type}">${c.type}</span>
+      </div>
+      <div class="constraint-def">${c.definition}</div>
+    </div>
+  `).join('');
+  
+  // Llenar Índices
+  const idxList = document.getElementById('drawerIndexesList');
+  if (table.indexes.length === 0) {
+    idxList.innerHTML = `<div style="font-size:13px;color:var(--text-muted);padding:14px 0;">Esta tabla utiliza los índices por defecto generados para la clave primaria.</div>`;
+  } else {
+    idxList.innerHTML = table.indexes.map(idx => `
+      <div class="constraint-card">
+        <div class="constraint-card-header">
+          <span class="constraint-name">${idx.name}</span>
+          <span class="badge-tag" style="background:rgba(139,92,246,0.15);color:#a78bfa;">${idx.type}</span>
+        </div>
+        <div class="constraint-def" style="margin-bottom:6px;">COLUMNAS: ${idx.columns}</div>
+        <div style="font-size:12px;color:var(--text-secondary);">${idx.notes}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Llenar DDL
+  document.getElementById('drawerDdlCode').textContent = table.ddl;
+  
+  // Reset botón copy
+  const btnCopy = document.getElementById('btnCopyDdl');
+  btnCopy.classList.remove('copied');
+  btnCopy.innerHTML = `<i data-lucide="copy" style="width:13px;height:13px;"></i> Copiar DDL`;
+  
+  // Mostrar backdrop y ventana flotante centrada
+  const backdrop = document.getElementById('drawerBackdrop');
+  const panel = document.getElementById('drawerPanel');
+  MotionEngine.animateDrawerOpen(backdrop, panel);
+  switchDrawerTab('columns');
+  
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeDrawerDirect() {
+  const backdrop = document.getElementById('drawerBackdrop');
+  const panel = document.getElementById('drawerPanel');
+  MotionEngine.animateDrawerClose(backdrop, panel);
+}
+
+function closeDrawer(e) {
+  if (e.target.id === 'drawerBackdrop') {
+    closeDrawerDirect();
+  }
+}
+
+function switchDrawerTab(tabId) {
+  const tabs = ['columns', 'constraints', 'indexes', 'ddl'];
+  const tabButtons = [
+    document.getElementById('drawerTabCols'),
+    document.getElementById('drawerTabConstraints'),
+    document.getElementById('drawerTabIdx'),
+    document.getElementById('drawerTabDdl')
+  ];
+  const tabContents = [
+    document.getElementById('drawerContentColumns'),
+    document.getElementById('drawerContentConstraints'),
+    document.getElementById('drawerContentIndexes'),
+    document.getElementById('drawerContentDdl')
+  ];
+  
+  tabs.forEach((name, idx) => {
+    const active = (name === tabId);
+    if (tabButtons[idx]) tabButtons[idx].classList.toggle('active', active);
+    if (tabContents[idx]) tabContents[idx].classList.toggle('active', active);
+  });
+}
+
+function copyCurrentDdl() {
+  if (!AppState.activeDrawerTable) return;
+  const btn = document.getElementById('btnCopyDdl');
+  MotionEngine.animateBounce(btn);
+  navigator.clipboard.writeText(AppState.activeDrawerTable.ddl).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = `<i data-lucide="check" style="width:13px;height:13px;"></i> Copiado`;
+    showToast(`DDL de ${AppState.activeDrawerTable.name} copiado al portapapeles.`);
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+// Diagramas Sub-tabs
+function switchDiagramTab(subtab) {
+  AppState.diagramSubtab = subtab;
+  const btnEr = document.getElementById('btnSubtabER');
+  const btnRag = document.getElementById('btnSubtabRAG');
+
+  if (btnEr) btnEr.classList.toggle('active', subtab === 'er');
+  if (btnRag) btnRag.classList.toggle('active', subtab === 'rag');
+  
+  const erCont = document.getElementById('subtab-er-container');
+  const ragCont = document.getElementById('subtab-rag-container');
+
+  if (erCont) erCont.style.display = (subtab === 'er') ? 'block' : 'none';
+  if (ragCont) ragCont.style.display = (subtab === 'rag') ? 'block' : 'none';
+  
+  if (subtab === 'er') {
+    MotionEngine.animateView(erCont);
+    requestAnimationFrame(() => {
+      setTimeout(fitCompiledSvg, 30);
+    });
+  } else if (subtab === 'rag') {
+    MotionEngine.animateView(ragCont);
+  }
+  if (window.lucide) lucide.createIcons();
+}
+
+// Render Sidebar de Consultas de Validación
+function renderQueriesNav() {
+  const sidebar = document.getElementById('queriesSidebar');
+  sidebar.innerHTML = VALIDATION_QUERIES.map(q => `
+    <div class="query-nav-item ${q.id === AppState.activeQueryId ? 'active' : ''}" onclick="selectQuery('${q.id}')">
+      <div class="query-nav-id">${q.id} · ${q.category}</div>
+      <div class="query-nav-title">${q.name}</div>
+    </div>
+  `).join('');
+}
+
+function selectQuery(queryId) {
+  AppState.activeQueryId = queryId;
+  renderQueriesNav();
+  renderQueryDetail(queryId);
+}
+
+function renderQueryDetail(queryId) {
+  const q = VALIDATION_QUERIES.find(item => item.id === queryId);
+  if (!q) return;
+  
+  const pane = document.getElementById('queryDetailPane');
+  pane.innerHTML = `
+    <div class="query-detail-header">
+      <div>
+        <div class="query-detail-title">${q.id}: ${q.name}</div>
+        <span class="query-detail-curf">${q.category}</span>
+      </div>
+      <button class="btn-copy-code" id="btnCopyQuerySql" onclick="copyQueryCode('${q.id}')">
+        <i data-lucide="copy" style="width:13px;height:13px;"></i>
+        Copiar Consulta SQL
+      </button>
+    </div>
+    
+    <div class="query-detail-desc">${q.desc}</div>
+    
+    <div class="ddl-container" style="margin-bottom:20px;">
+      <pre class="sql-code">${q.sql}</pre>
+    </div>
+    
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;">
+      Resultado de Ejecución de Muestra
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="query-result-table">
+        <thead>
+          <tr>
+            ${q.columns.map(col => `<th>${col}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${q.rows.map(row => `
+            <tr>
+              ${row.map(val => `<td>${val}</td>`).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  if (window.lucide) lucide.createIcons();
+}
+
+function copyQueryCode(queryId) {
+  const q = VALIDATION_QUERIES.find(item => item.id === queryId);
+  if (!q) return;
+  
+  navigator.clipboard.writeText(q.sql).then(() => {
+    const btn = document.getElementById('btnCopyQuerySql');
+    btn.classList.add('copied');
+    btn.innerHTML = `<i data-lucide="check" style="width:13px;height:13px;"></i> Copiado`;
+    showToast(`Consulta ${q.id} copiada al portapapeles.`);
+    if (window.lucide) lucide.createIcons();
+  });
+}
+
+// Render Matriz de Claves Foráneas
+
+
+// Helper de Toast Notifications
+function showToast(message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <i data-lucide="check-circle" class="toast-icon" style="width:18px;height:18px;"></i>
+    <span>${message}</span>
+  `;
+  container.appendChild(toast);
+  
+  if (window.lucide) lucide.createIcons();
+  
+  toast.classList.add('show');
+  MotionEngine.animateToast(toast);
+  
+  setTimeout(() => {
+    if (window.Motion && Motion.animate) {
+      Motion.animate(toast, { opacity: [1, 0], y: [0, 16], scale: [1, 0.95] }, { duration: 0.22 }).then(() => toast.remove());
+    } else {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 250);
+    }
+  }, 3500);
+}
+</script>
+</body>
+</html>

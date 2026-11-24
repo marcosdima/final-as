@@ -1,0 +1,746 @@
+/**
+ * ISFT 189 — Sistema de Diseño para Documentación Técnica de Base de Datos
+ * Arquitectura Visual: Slate / Corporate Navy de Alta Densidad Técnica
+ * Tipografía: Inter / Segoe UI (UI) + JetBrains Mono / Fira Code (DDL/SQL)
+ * Iconografía: Lucide Icons (Zero-Emoji Policy)
+ * Animación: Motion / Motion One / Spring Physics (Hardware Accelerated)
+ */
+
+/* ==========================================================================
+   1. TOKENS DE DISEÑO & PALETA DE COLORES (DUAL THEME: LIGHT & DARK SLATE)
+   ========================================================================== */
+
+:root {
+  /* --- Fondos & Superficies (Slate Neutrals - Light Mode) --- */
+  --bg-app: #f1f5f9;              /* Slate 100: Lienzo principal */
+  --bg-canvas: #f8fafc;           /* Slate 50: Fondos de paneles */
+  --surface-0: #ffffff;           /* Blanco puro: Tarjetas elevadas */
+  --surface-1: #f8fafc;           /* Slate 50: Filas alternas y contenedores secundarios */
+  --surface-2: #f1f5f9;           /* Slate 100: Cabeceras de tabla, toolbars */
+  --surface-3: #e2e8f0;           /* Slate 200: Estados hover, chips neutros */
+  --surface-code: #0f172a;        /* Slate 900: Bloques de código DDL/SQL */
+  --surface-overlay: rgba(15, 23, 42, 0.45); /* Backdrop modal/drawer */
+
+  /* --- Bordes & Separadores de Alta Definición --- */
+  --border-subtle: #e2e8f0;       /* Slate 200: Delimitadores de celdas */
+  --border-default: #cbd5e1;      /* Slate 300: Bordes de tarjeta y tabla */
+  --border-strong: #94a3b8;       /* Slate 400: Bordes de inputs e inspectores */
+  --border-focus: #2563eb;        /* Blue 600: Foco accesible */
+
+  /* --- Tipografía & Escala de Contraste --- */
+  --text-primary: #0f172a;        /* Slate 900: Títulos y valores clave */
+  --text-secondary: #334155;      /* Slate 700: Cuerpo de texto, atributos */
+  --text-muted: #64748b;          /* Slate 500: Metadatos, constraints, subtítulos */
+  --text-disabled: #94a3b8;       /* Slate 400: Estados deshabilitados */
+  --text-inverse: #ffffff;        /* Blanco para contrastes oscuros */
+  --text-code: #e2e8f0;           /* Slate 200 para código en bloques oscuros */
+
+  /* --- Acentos Institucionales & Técnicos --- */
+  --accent-sapphire: #1d4ed8;     /* Azul Zafiro Institucional: Navegación, acciones primarias */
+  --accent-sapphire-hover: #1e40af;
+  --accent-sapphire-bg: #eff6ff;  /* Blue 50 */
+  --accent-sapphire-border: #bfdbfe;
+
+  --accent-teal: #0f766e;         /* Teal Técnico: Módulo IA, RAG, pgvector */
+  --accent-teal-hover: #115e59;
+  --accent-teal-bg: #f0fdfa;      /* Teal 50 */
+  --accent-teal-border: #99f6e4;
+
+  --accent-indigo: #4338ca;       /* Índigo Relacional: Esquema Instituto, llaves y relaciones */
+  --accent-indigo-hover: #3730a3;
+  --accent-indigo-bg: #eef2ff;    /* Indigo 50 */
+  --accent-indigo-border: #c7d2fe;
+
+  /* --- Badges Semánticos de Metadatos de Base de Datos --- */
+  /* PK - Clave Primaria: Dorado / Ámbar Técnico */
+  --badge-pk-bg: #fef3c7;
+  --badge-pk-text: #92400e;
+  --badge-pk-border: #fcd34d;
+
+  /* FK - Clave Foránea: Índigo Relacional */
+  --badge-fk-bg: #e0e7ff;
+  --badge-fk-text: #3730a3;
+  --badge-fk-border: #a5b4fc;
+
+  /* UK - Clave Única: Esmeralda / Verificación */
+  --badge-uk-bg: #dcfce7;
+  --badge-uk-text: #166534;
+  --badge-uk-border: #86efac;
+
+  /* ENUM - Tipos Enumerados: Púrpura Estructurado */
+  --badge-enum-bg: #f3e8ff;
+  --badge-enum-text: #6b21a8;
+  --badge-enum-border: #d8b4fe;
+
+  /* VECTOR - pgvector / Embeddings: Cian Eléctrico / Neón Técnico */
+  --badge-vector-bg: #ecfeff;
+  --badge-vector-text: #155e75;
+  --badge-vector-border: #67e8f9;
+
+  /* NN - Not Null / Obligatorio: Slate Neutro Compacto */
+  --badge-nn-bg: #f1f5f9;
+  --badge-nn-text: #475569;
+  --badge-nn-border: #cbd5e1;
+
+  /* --- Sombras de Elevación Técnica (Sharp & Subtle) --- */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+  --shadow-drawer: -4px 0 24px rgba(15, 23, 42, 0.15);
+
+  /* --- Radios de Curvatura (Technical Density Radius) --- */
+  --radius-xs: 3px;               /* Badges micro */
+  --radius-sm: 4px;               /* Badges estándar, tags */
+  --radius-md: 6px;               /* Botones, inputs, celdas interactivas */
+  --radius-lg: 8px;               /* Tarjetas, paneles, contenedores de tabla */
+  --radius-xl: 12px;              /* Modales, drawers */
+
+  /* --- Tipografía Stacks & Escalas --- */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+
+  /* --- Motion Tokens & Curvas Cúbicas (Motion Specs) --- */
+  --ease-out-quad: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-quad: cubic-bezier(0.5, 0, 0.75, 0);
+  --ease-spring-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-layout: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --duration-instant: 100ms;
+  --duration-fast: 160ms;
+  --duration-normal: 220ms;
+  --duration-slow: 320ms;
+}
+
+/* ==========================================================================
+   2. TEMA OSCURO (SLATE / DEEP NAVY PARA DESARROLLO TÉCNICO)
+   ========================================================================== */
+
+[data-theme="dark"],
+.dark {
+  --bg-app: #090d16;              /* Navy muy profundo / pizarra casi negra */
+  --bg-canvas: #0f172a;           /* Slate 900: Fondo de áreas de trabajo */
+  --surface-0: #111827;           /* Slate 900 tintado: Tarjetas */
+  --surface-1: #1e293b;           /* Slate 800: Cabeceras y filas secundarias */
+  --surface-2: #243248;           /* Slate 800 light: Toolbars, inspectores */
+  --surface-3: #334155;           /* Slate 700: Estados hover y chips activos */
+  --surface-code: #070b12;        /* Negro técnico con tinte azul pizarra */
+  --surface-overlay: rgba(3, 7, 18, 0.75);
+
+  --border-subtle: #1e293b;       /* Slate 800 */
+  --border-default: #334155;      /* Slate 700 */
+  --border-strong: #475569;       /* Slate 600 */
+  --border-focus: #3b82f6;        /* Blue 500 */
+
+  --text-primary: #f8fafc;        /* Slate 50 */
+  --text-secondary: #cbd5e1;      /* Slate 300 */
+  --text-muted: #94a3b8;          /* Slate 400 */
+  --text-disabled: #64748b;       /* Slate 500 */
+  --text-inverse: #0f172a;
+  --text-code: #f1f5f9;
+
+  --accent-sapphire: #3b82f6;     /* Blue 500 vibrante en fondo oscuro */
+  --accent-sapphire-hover: #60a5fa;
+  --accent-sapphire-bg: rgba(59, 130, 246, 0.12);
+  --accent-sapphire-border: rgba(59, 130, 246, 0.35);
+
+  --accent-teal: #14b8a6;         /* Teal 500 */
+  --accent-teal-hover: #2dd4bf;
+  --accent-teal-bg: rgba(20, 184, 166, 0.12);
+  --accent-teal-border: rgba(20, 184, 166, 0.35);
+
+  --accent-indigo: #6366f1;       /* Indigo 500 */
+  --accent-indigo-hover: #818cf8;
+  --accent-indigo-bg: rgba(99, 102, 241, 0.12);
+  --accent-indigo-border: rgba(99, 102, 241, 0.35);
+
+  /* Badges en Dark Mode (Alta luminancia legible sobre fondo oscuro) */
+  --badge-pk-bg: rgba(245, 158, 11, 0.15);
+  --badge-pk-text: #fbbf24;
+  --badge-pk-border: rgba(245, 158, 11, 0.35);
+
+  --badge-fk-bg: rgba(99, 102, 241, 0.15);
+  --badge-fk-text: #a5b4fc;
+  --badge-fk-border: rgba(99, 102, 241, 0.35);
+
+  --badge-uk-bg: rgba(34, 197, 94, 0.15);
+  --badge-uk-text: #4ade80;
+  --badge-uk-border: rgba(34, 197, 94, 0.35);
+
+  --badge-enum-bg: rgba(168, 85, 247, 0.15);
+  --badge-enum-text: #c084fc;
+  --badge-enum-border: rgba(168, 85, 247, 0.35);
+
+  --badge-vector-bg: rgba(6, 182, 212, 0.15);
+  --badge-vector-text: #67e8f9;
+  --badge-vector-border: rgba(6, 182, 212, 0.35);
+
+  --badge-nn-bg: rgba(148, 163, 184, 0.12);
+  --badge-nn-text: #cbd5e1;
+  --badge-nn-border: rgba(148, 163, 184, 0.25);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-drawer: -4px 0 24px rgba(0, 0, 0, 0.7);
+}
+
+/* ==========================================================================
+   3. BASE RESET & TIPOGRAFÍA TÉCNICA
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* OpenType features para máxima legibilidad técnica */
+.font-sans, body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.font-mono, code, pre, .code-snippet, .sql-text {
+  font-family: var(--font-mono);
+  font-feature-settings: "calt" 1, "zero" 1;
+}
+
+/* ==========================================================================
+   4. BADGES DE METADATOS DE BASE DE DATOS (HIGH-DENSITY BADGES)
+   ========================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2.5px 5.5px;
+  border-radius: var(--radius-xs);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.badge svg.lucide {
+  width: 10.5px;
+  height: 10.5px;
+  stroke-width: 2.2px;
+}
+
+/* PK - Clave Primaria */
+.badge-pk {
+  background-color: var(--badge-pk-bg);
+  color: var(--badge-pk-text);
+  border-color: var(--badge-pk-border);
+}
+
+/* FK - Clave Foránea */
+.badge-fk {
+  background-color: var(--badge-fk-bg);
+  color: var(--badge-fk-text);
+  border-color: var(--badge-fk-border);
+}
+
+/* UK - Clave Única */
+.badge-uk {
+  background-color: var(--badge-uk-bg);
+  color: var(--badge-uk-text);
+  border-color: var(--badge-uk-border);
+}
+
+/* ENUM - Tipos Enumerados */
+.badge-enum {
+  background-color: var(--badge-enum-bg);
+  color: var(--badge-enum-text);
+  border-color: var(--badge-enum-border);
+}
+
+/* VECTOR - pgvector / Embeddings */
+.badge-vector {
+  background-color: var(--badge-vector-bg);
+  color: var(--badge-vector-text);
+  border-color: var(--badge-vector-border);
+}
+
+/* NN - Not Null */
+.badge-nn {
+  background-color: var(--badge-nn-bg);
+  color: var(--badge-nn-text);
+  border-color: var(--badge-nn-border);
+  font-size: 9.5px;
+  padding: 2px 4px;
+}
+
+/* ==========================================================================
+   5. COMPONENTES DE TABLA DE BASE DE DATOS DE ALTA DENSIDAD
+   ========================================================================== */
+
+.db-card {
+  background-color: var(--surface-0);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 16px;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.db-card:hover {
+  border-color: var(--border-strong);
+}
+
+.db-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--surface-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.db-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.db-card-title svg.lucide {
+  color: var(--accent-indigo);
+  width: 16px;
+  height: 16px;
+}
+
+.db-table-compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.db-table-compact th {
+  background-color: var(--surface-2);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border-default);
+  user-select: none;
+}
+
+.db-table-compact td {
+  padding: 6.5px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.db-table-compact tr:last-child td {
+  border-bottom: none;
+}
+
+.db-table-compact tbody tr {
+  transition: background-color var(--duration-instant) ease;
+}
+
+.db-table-compact tbody tr:hover {
+  background-color: var(--surface-1);
+}
+
+.col-name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.col-type {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   6. PANELES LATERALES (DRAWER INSPECTOR) Y MODALES TÉCNICOS
+   ========================================================================== */
+
+.db-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--surface-overlay);
+  backdrop-filter: blur(2px);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-out-quad);
+}
+
+.db-drawer-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.db-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  max-width: 90vw;
+  background-color: var(--surface-0);
+  border-left: 1px solid var(--border-default);
+  box-shadow: var(--shadow-drawer);
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--duration-normal) var(--ease-spring-snappy);
+}
+
+.db-drawer.is-open {
+  transform: translateX(0);
+}
+
+.db-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface-1);
+}
+
+.db-drawer-body {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ==========================================================================
+   7. BLOQUES DE CÓDIGO DDL / SQL CON SYNTAX HIGHLIGHTING TÉCNICO
+   ========================================================================== */
+
+.code-container {
+  background-color: var(--surface-code);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-code);
+}
+
+.code-container pre {
+  margin: 0;
+}
+
+/* Clases de resaltado SQL puro */
+.sql-keyword { color: #93c5fd; font-weight: 600; }  /* Azul celeste */
+.sql-type    { color: #67e8f9; }                    /* Cian técnico */
+.sql-string  { color: #86efac; }                    /* Verde menta */
+.sql-number  { color: #fde047; }                    /* Amarillo suave */
+.sql-comment { color: #64748b; font-style: italic; }/* Slate 500 */
+.sql-func    { color: #d8b4fe; }                    /* Púrpura */
+
+/* ==========================================================================
+   8. ESPECIFICACIONES MOTION: HARDWARE-ACCELERATED TRANSITIONS & KEYFRAMES
+   ========================================================================== */
+
+/* Entrada suave de tabla o contenedor */
+@keyframes motionEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.motion-enter {
+  animation: motionEnter var(--duration-normal) var(--ease-spring-snappy) forwards;
+}
+
+/* Transición de vistas / pestañas */
+@keyframes motionTabFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.motion-tab-active {
+  animation: motionTabFade var(--duration-fast) var(--ease-out-quad) forwards;
+}
+
+/* ==========================================================================
+   9. ARQUITECTURA RAG (VISTA 3) & COMPONENTES TÉCNICOS
+   ========================================================================== */
+.rag-header-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.rag-header-box h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rag-header-box p {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 900px;
+  margin-bottom: 16px;
+}
+
+.rag-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rag-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1100px) {
+  .rag-pipeline-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rag-pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rag-step-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: var(--transition-fast);
+}
+
+.rag-step-card:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.rag-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.rag-step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rag-step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rag-step-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.rag-step-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  flex-grow: 1;
+  margin-bottom: 14px;
+}
+
+.rag-step-footer {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rag-tables-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.rag-tables-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rag-tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.rag-table-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: var(--transition-fast);
+}
+
+.rag-table-box:hover {
+  border-color: #3b82f6;
+}
+
+.rag-table-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.rag-table-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.rag-table-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.rag-code-block {
+  background: #070b12;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+/* Botón Ver DDL & Metadatos de Tabla */
+.btn-ddl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-ddl:hover {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+}
+
+.table-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
