@@ -13,6 +13,7 @@
 | [`modelo.dbml`](modelo.dbml) | Especificación del modelo físico relacional en **DBML**: tipos enumerados, tablas, restricciones de clave primaria/foránea, índices de rendimiento y agrupación por módulos funcionales (`TableGroup`). Permite generar y visualizar el esquema en herramientas como [dbdocs.io](https://dbdocs.io) o [dbdiagram.io](https://dbdiagram.io). |
 | [`01_ddl.sql`](01_ddl.sql) | Script **DDL** idempotente para PostgreSQL 16+: creación del esquema `instituto`, 11 tipos `ENUM`, 19 tablas con restricciones de integridad (`PRIMARY KEY`, `FOREIGN KEY`, `UNIQUE`, `CHECK`), índices B-Tree y comentarios explicativos (`COMMENT ON`). |
 | [`02_dml.sql`](02_dml.sql) | Script **DML** transaccional con datos de prueba realistas basados en los diseños curriculares oficiales (*Tecnicatura Superior en Análisis, Desarrollo y Programación de Aplicaciones* y *Tecnicatura Superior en Desarrollo de Software*) + **8 consultas SQL de validación** que comprueban la resolución de los Casos de Uso del sistema. |
+| [`03_trigger_procedure_log.sql`](03_trigger_procedure_log.sql) | Script de **automatización en el motor**: tabla de **log de eventos**, **trigger** que audita cambios de nota final y **procedure** que cierra un acta de examen con validaciones. Se ejecuta después de `01_ddl.sql` y `02_dml.sql`. |
 
 ---
 
@@ -130,12 +131,16 @@ psql -d postgres -v ON_ERROR_STOP=1 -f db/instituto/01_ddl.sql
 
 # 2. Cargar datos de prueba y ejecutar las 8 consultas de validación
 psql -d postgres -v ON_ERROR_STOP=1 -f db/instituto/02_dml.sql
+
+# 3. Crear log de eventos, trigger de auditoría y procedure de cierre de acta
+psql -d postgres -v ON_ERROR_STOP=1 -f db/instituto/03_trigger_procedure_log.sql
 ```
 
 ### Opción B: Mediante Docker
 ```bash
 docker exec -i pg-isft189 psql -U postgres -v ON_ERROR_STOP=1 < db/instituto/01_ddl.sql
 docker exec -i pg-isft189 psql -U postgres -v ON_ERROR_STOP=1 < db/instituto/02_dml.sql
+docker exec -i pg-isft189 psql -U postgres -v ON_ERROR_STOP=1 < db/instituto/03_trigger_procedure_log.sql
 ```
 
 ---
@@ -150,3 +155,36 @@ docker exec -i pg-isft189 psql -U postgres -v ON_ERROR_STOP=1 < db/instituto/02_
 6. **Q6 — Cronograma de Mesas Asignadas (CU-23 / RF-017)**: Mesas de examen final con tribunal asignado e inscriptos.
 7. **Q7 — Acta Oficial de Examen (CU-40 a CU-42 / RF-034 a RF-036)**: Detalle del acta cerrada con notas finales asentadas.
 8. **Q8 — Historia Académica del Alumno (CU-16 / RF-038)**: Materias aprobadas y promedio general calculado mediante funciones de ventana.
+
+---
+
+## Automatización en el motor: log, trigger y procedure (`03_trigger_procedure_log.sql`)
+
+### 1. Log de eventos
+- Tabla **`instituto.log_eventos`**: `id`, `fecha`, `nivel` (`INFO`/`WARN`/`ERROR`), `origen`, `mensaje`, `detalle` (JSONB) y `usuario_bd`.
+- Función **`instituto.fn_log(nivel, origen, mensaje, detalle)`**: inserta un evento y devuelve su `id`. Cualquier rutina lo usa con `PERFORM instituto.fn_log(...)`.
+- Es *append-only*: no se actualiza ni se borra; sirve como bitácora del sistema.
+
+### 2. Trigger de auditoría de notas
+- **`trg_log_nota_final`** se dispara `AFTER UPDATE OF nota_final` sobre `instituto.inscripcion_examen`, una vez por fila.
+- La función **`fn_log_nota_final()`** compara `OLD.nota_final` con `NEW.nota_final` usando `IS DISTINCT FROM`; si no cambió, no escribe nada.
+- Cuando cambia, registra en el log el `inscripcion_examen_id`, `alumno_id`, `mesa_examen_id`, la nota anterior y la nueva.
+
+### 3. Procedure de cierre de acta
+- **`instituto.sp_cerrar_acta(p_acta_id)`** se invoca con `CALL instituto.sp_cerrar_acta(4);`.
+- Bloquea la fila (`FOR UPDATE`), valida que el acta exista y que esté `ABIERTA`, cuenta inscriptos y notas cargadas, actualiza `estado = 'CERRADA'` y `fecha_cierre = now()`, y deja un evento `INFO` en el log.
+- Si el acta ya estaba cerrada, es **idempotente**: registra un `WARN` y retorna sin modificar nada (un `RAISE EXCEPTION` habría revertido también el log).
+
+### Ejemplos de uso
+```sql
+CALL instituto.sp_cerrar_acta(4);
+
+UPDATE instituto.inscripcion_examen
+   SET nota_final = 9.25
+ WHERE id = 1;
+
+SELECT id, fecha, nivel, origen, mensaje, detalle
+  FROM instituto.log_eventos
+ ORDER BY id DESC
+ LIMIT 10;
+```

@@ -649,6 +649,24 @@ function attachFlowView(id){
    ============================================================ */
 const COLORS = {actor:'#5c6bc0',uc:'#1e88e5',class:'#1e88e5',enum:'#8e24aa',note:'#f9a825'};
 
+/* --- medición real de texto (canvas) para que las cajas UML ajusten exacto --- */
+let _umlCtx=null;
+function umlTextW(text,font){
+  if(!_umlCtx) _umlCtx=document.createElement('canvas').getContext('2d');
+  _umlCtx.font=font;
+  return _umlCtx.measureText(String(text)).width;
+}
+const UML_FONT='11.3px Consolas, "Courier New", monospace';
+const UML_FONT_B='700 12.6px system-ui, -apple-system, "Segoe UI", sans-serif';
+const attrText=a=>{
+  const vis=(a.vis&&a.vis.trim())?a.vis.trim():'';
+  return (vis?vis+' ':'')+a.name+(a.type?' : '+a.type:'');
+};
+const methText=m=>{
+  const vis=(m.vis&&m.vis.trim())?m.vis.trim():'+';
+  return vis+' '+m.name+'('+(m.params||'')+')'+(m.ret?': '+m.ret:'');
+};
+
 class Viewer{
   constructor(o){
     Object.assign(this,o);
@@ -692,19 +710,34 @@ class Viewer{
   }
 
   /* ---------- geometría ---------- */
+  /* filas internas de una clase/enum: misma geometría para medir y dibujar */
+  classLayout(n){
+    const showA=this.flags.attrs!==false, showM=this.flags.methods!==false;
+    const HEAD=30, ROW=15.5, PADX=12, SEC_TOP=7, SEC_BOT=4;
+    let yy=HEAD, rows=[], sepA=null, sepM=null;
+    if(showA && n.attrs.length){
+      sepA=yy; yy+=SEC_TOP;
+      n.attrs.forEach(a=>{ rows.push({t:attrText(a),y:yy+11,kind:'a'}); yy+=ROW; });
+      yy+=SEC_BOT;
+    }
+    if(showM && n.methods.length){
+      sepM=yy; yy+=SEC_TOP;
+      n.methods.forEach(m=>{ rows.push({t:methText(m),y:yy+11,kind:'m'}); yy+=ROW; });
+      yy+=SEC_BOT;
+    }
+    return {h:Math.max(46,yy+6),rows,sepA,sepM,HEAD,PADX};
+  }
+
   measure(){
     this.nodes.forEach(n=>{
       if(n.kind==='actor'){ n.w=112; n.h=92; return; }
       if(n.kind==='uc'){ n.w=Math.max(180,Math.min(250,Math.ceil(n.name.length*6.6)+34)); n.h=76; return; }
       if(n.kind==='note'){ n.w=264; n.h=Math.max(72,26+wrap(n.name,34).length*15); return; }
-      const showA=this.flags.attrs!==false, showM=this.flags.methods!==false;
-      const aw=Math.max(...n.attrs.map(a=>(a.name+' : '+(a.type||'')).length),10);
-      const mw=Math.max(...n.methods.map(m=>(m.name+'('+m.params+')'+(m.ret?': '+m.ret:'')).length),10);
-      n.w=Math.max(210,Math.ceil(Math.max(aw,mw)*6.35)+30);
-      let h=34;
-      if(showA) h+=n.attrs.length*15.5+6;
-      if(showM) h+=n.methods.length*15.5+6;
-      n.h=Math.max(46,h);
+      const L=this.classLayout(n);
+      const nameW=umlTextW(n.name,UML_FONT_B)+(n.kind==='enum'?50:0);
+      const lineW=Math.max(0,...L.rows.map(r=>umlTextW(r.t,UML_FONT)));
+      n.w=Math.max(210,Math.ceil(Math.max(nameW+26,lineW+L.PADX*2)));
+      n.h=L.h;
     });
   }
 
@@ -725,7 +758,7 @@ class Viewer{
       const cols=Math.max(2,Math.ceil(Math.sqrt(cs.length)));
       cs.forEach((c,i)=>{ c.x=(i%cols)*320; c.y=Math.floor(i/cols)*230; });
       nt.forEach((n,i)=>{ const t=this.nodes.find(x=>x.id===n.target);
-        if(t){ n.x=t.x+30; n.y=t.y+t.h+18; } else { n.x=(i%cols)*320+40; n.y=520+i*40; } });
+        if(t){ n.x=t.x+t.w/2+38+n.w/2; n.y=t.y; } else { n.x=(i%cols)*320+40; n.y=520+i*40; } });
     } else {
       this.layoutHier();
     }
@@ -805,25 +838,33 @@ class Viewer{
     let cursor=0;
     roots.forEach(r=>{ place(r,cursor); cursor+=width.get(r)+170; });
 
-    /* y por niveles, con hueco extra cuando cuelga una nota */
+    /* y por niveles */
     const rows=[];
     cs.forEach(c=>{ const l=level.get(c.id); (rows[l]=rows[l]||[]).push(c); });
-    const noteOf=new Map();
-    nt.forEach(n=>{ if(n.target&&byId[n.target]) noteOf.set(n.target,n); });
-    let y=0, prevH=0, prevExtra=0;
+    let y=0, prevH=0;
     rows.forEach((arr,l)=>{
       const h=Math.max(...arr.map(n=>n.h));
-      if(l===0) y=h/2; else y+=prevH/2+prevExtra+115+h/2;
+      if(l===0) y=h/2; else y+=prevH/2+130+h/2;
       arr.forEach(n=>n.y=y);
       prevH=h;
-      prevExtra=Math.max(0,...arr.map(n=>{ const t=noteOf.get(n.id); return t?t.h+22:0; }));
     });
 
-    /* notas debajo de su clase */
+    /* notas: a un costado de su clase, sin tapar cajas ni otras notas */
+    const placed=[];
+    const hits=(r,list)=>list.some(b=>!(r.x+r.w/2<=b.x-b.w/2||r.x-r.w/2>=b.x+b.w/2||r.y+r.h/2<=b.y-b.h/2||r.y-r.h/2>=b.y+b.h/2));
+    const classBoxes=cs.map(c=>({x:c.x,y:c.y,w:c.w,h:c.h}));
     nt.forEach(n=>{
       const t=n.target?byId[n.target]:null;
-      if(t){ n.x=t.x; n.y=t.y+t.h/2+16+n.h/2; }
-      else { n.x=0; n.y=y+260; }
+      if(!t){ n.x=0; n.y=y+260; placed.push({x:n.x,y:n.y,w:n.w,h:n.h}); return; }
+      const gap=38;
+      const right=t.x+t.w/2+gap+n.w/2;
+      const left =t.x-t.w/2-gap-n.w/2;
+      const below=t.y+t.h/2+gap+n.h/2;
+      const cands=[{x:right,y:t.y},{x:left,y:t.y},{x:right,y:below},{x:left,y:below},{x:t.x,y:below}];
+      const others=classBoxes.concat(placed);
+      const pos=cands.find(c=>!hits({x:c.x,y:c.y,w:n.w,h:n.h},others))||cands[0];
+      n.x=pos.x; n.y=pos.y;
+      placed.push({x:n.x,y:n.y,w:n.w,h:n.h});
     });
 
     /* centrar todo en x=0 */
@@ -994,14 +1035,23 @@ class Viewer{
       eg.insertAdjacentHTML('beforeend',s);
     });
 
+    /* --- conector punteado nota → clase --- */
+    this.nodes.forEach(n=>{
+      if(n.kind!=='note'||!n.target||!this.visible(n)) return;
+      const t=byId[n.target];
+      if(!t||!this.visible(t)) return;
+      const A=this.anchor(n,t), B=this.anchor(t,n);
+      eg.insertAdjacentHTML('beforeend',`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#f9a825" stroke-width="1.3" stroke-dasharray="5 4" opacity=".85"/>`);
+    });
+
     /* --- nodos --- */
     this.nodes.forEach(n=>{
       if(!this.visible(n)) return;
       ng.insertAdjacentHTML('beforeend',this.nodeSVG(n));
     });
 
-    /* --- drag de nodos --- */
-    $$('g.uml-node',ng).forEach(g=>{
+    /* --- drag de nodos (solo si el diseño no es fijo) --- */
+    if(!this.static) $$('g.uml-node',ng).forEach(g=>{
       g.addEventListener('pointerdown',ev=>{
         ev.stopPropagation();
         const n=this.nodes.find(x=>x.id===g.dataset.id); if(!n) return;
@@ -1058,48 +1108,36 @@ class Viewer{
   nodeSVG(n){
     const x=n.x,y=n.y;
     if(n.kind==='actor'){
-      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" ${this.static?'':'style="cursor:move"'}>
         <circle cx="0" cy="-24" r="12" fill="#e8eaf6" stroke="${COLORS.actor}" stroke-width="2.4"/>
         <path d="M0,-12 L0,14 M-17,0 L17,0 M0,14 L-15,38 M0,14 L15,38" stroke="${COLORS.actor}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
         <text x="0" y="58" text-anchor="middle" font-size="12.4" font-weight="700" fill="#283593">${esc(n.name)}</text></g>`;
     }
     if(n.kind==='uc'){
-      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" ${this.static?'':'style="cursor:move"'}>
         <ellipse cx="0" cy="0" rx="${n.w/2}" ry="${n.h/2}" fill="#e3f2fd" stroke="${COLORS.uc}" stroke-width="2.2"/>
         <text x="0" y="${n.name.length>30?-2:4}" text-anchor="middle" font-size="11.8" fill="#0d3270" font-weight="600">${
           wrap(n.name,30).map((l,i)=>`<tspan x="0" dy="${i?14:0}">${esc(l)}</tspan>`).join('')}</text></g>`;
     }
     if(n.kind==='note'){
       const lines=wrap(n.name,34);
-      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+      return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" ${this.static?'':'style="cursor:move"'}>
         <g transform="translate(${-n.w/2},${-n.h/2})">
         <path d="M0,0 H${n.w-14} L${n.w},14 V${n.h} H0 Z" fill="#fffde7" stroke="#f9a825" stroke-width="1.6"/>
         <path d="M${n.w-14},0 V14 H${n.w}" fill="none" stroke="#f9a825" stroke-width="1.6"/>
         <text x="12" y="24" font-size="11.2" fill="#5d4037">${lines.map((l,i)=>`<tspan x="12" dy="${i?15:0}">${esc(l)}</tspan>`).join('')}</text></g></g>`;
     }
     /* clase / enum */
-    const showA=this.flags.attrs!==false, showM=this.flags.methods!==false;
     const isEnum=n.kind==='enum';
     const head=isEnum?'#8e24aa':(n.color||'#1e88e5');
-    let yy=34, rows='';
-    if(showA){
-      rows+=`<line x1="0" y1="${yy-8}" x2="${n.w}" y2="${yy-8}" stroke="#cfd8dc" stroke-width="1"/>`;
-      n.attrs.forEach(a=>{
-        const t=(a.vis&&a.vis.trim()?a.vis:'')+' '+a.name+(a.type?' : '+a.type:'');
-        rows+=`<text x="11" y="${yy+4}" font-size="11.3" fill="#37474f" font-family="Consolas,monospace">${esc(t.trim())}</text>`;
-        yy+=15.5;
-      });
-    }
-    if(showM && n.methods.length){
-      yy+=6;
-      rows+=`<line x1="0" y1="${yy-8}" x2="${n.w}" y2="${yy-8}" stroke="#cfd8dc" stroke-width="1"/>`;
-      n.methods.forEach(m=>{
-        const t=(m.vis||'+')+' '+m.name+'('+(m.params||'')+')'+(m.ret?': '+m.ret:'');
-        rows+=`<text x="11" y="${yy+4}" font-size="11.3" fill="#1b5e20" font-family="Consolas,monospace">${esc(t)}</text>`;
-        yy+=15.5;
-      });
-    }
-    return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" style="cursor:move">
+    const L=this.classLayout(n);
+    let rows='';
+    if(L.sepA!=null) rows+=`<line x1="0" y1="${L.sepA}" x2="${n.w}" y2="${L.sepA}" stroke="#cfd8dc" stroke-width="1"/>`;
+    if(L.sepM!=null) rows+=`<line x1="0" y1="${L.sepM}" x2="${n.w}" y2="${L.sepM}" stroke="#cfd8dc" stroke-width="1"/>`;
+    L.rows.forEach(r=>{
+      rows+=`<text x="${L.PADX}" y="${r.y}" font-size="11.3" fill="${r.kind==='a'?'#37474f':'#1b5e20'}" font-family="Consolas, 'Courier New', monospace">${esc(r.t)}</text>`;
+    });
+    return `<g class="uml-node hit" data-id="${n.id}" transform="translate(${x},${y})" ${this.static?'':'style="cursor:move"'}>
       <g transform="translate(${-n.w/2},${-n.h/2})">
       <rect x="0" y="0" width="${n.w}" height="${n.h}" rx="7" fill="#fff" stroke="${head}" stroke-width="2"/>
       <rect x="0" y="0" width="${n.w}" height="30" rx="7" fill="${head}"/>
