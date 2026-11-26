@@ -167,6 +167,7 @@ body {
 /* Barra de navegación de vistas (Tabs) */
 .nav-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding-top: 4px;
 }
@@ -1551,6 +1552,118 @@ pre.sql-code {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   AUTOMATIZACIÓN SQL (VISTA 5): trigger, procedure y log
+   ========================================================================== */
+.auto-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1100px) {
+  .auto-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .auto-grid-3 { grid-template-columns: 1fr; }
+}
+
+.auto-sql-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.auto-steps {
+  counter-reset: step;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+}
+
+.auto-steps li {
+  counter-increment: step;
+  position: relative;
+  padding: 12px 14px 12px 48px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 12.8px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.auto-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 13px;
+  top: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auto-steps li b {
+  color: #fff;
+}
+
+.auto-steps li code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.auto-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 14px;
+  line-height: 1.55;
+}
+
+.auto-demo-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 12px;
+}
+
+.auto-demo-table th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.auto-demo-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.auto-demo-table td code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #93c5fd;
+}
 </style>
 </head>
 <body>
@@ -1608,6 +1721,11 @@ pre.sql-code {
       <i data-lucide="terminal" style="width:16px;height:16px;"></i>
       Consultas SQL &amp; Álgebra
       <span class="tab-count">Q1-Q5</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('automation')">
+      <i data-lucide="workflow" style="width:16px;height:16px;"></i>
+      Automatización SQL
+      <span class="tab-count">3</span>
     </button>
   </nav>
 </header>
@@ -2082,6 +2200,296 @@ pre.sql-code {
     </div>
   </section>
 
+  <!-- =========================================================================
+       VISTA 5: AUTOMATIZACIÓN SQL (LOG + TRIGGER + PROCEDURE)
+       ========================================================================= -->
+  <section id="view-automation" class="view-section">
+    <div class="rag-header-box">
+      <h2>
+        <i data-lucide="workflow" style="width:22px;height:22px;color:#60a5fa;"></i>
+        Automatización en el Motor: Log, Trigger y Procedure
+      </h2>
+      <p>
+        Además de las tablas y restricciones, el esquema <code>instituto</code> incorpora una capa de
+        automatización en <strong>PL/pgSQL</strong> definida en el script
+        <code>db/instituto/03_trigger_procedure_log.sql</code>. Tres piezas trabajan juntas: una tabla de
+        <strong>log de eventos</strong>, un <strong>trigger</strong> que audita los cambios de nota final y un
+        <strong>procedure</strong> que cierra un acta de examen con validaciones y registro automático.
+      </p>
+      <div class="rag-badge-group">
+        <span class="meta-pill"><i data-lucide="database" style="width:12px;height:12px;"></i> PostgreSQL 16 · PL/pgSQL</span>
+        <span class="meta-pill"><i data-lucide="zap" style="width:12px;height:12px;"></i> 1 trigger AFTER UPDATE</span>
+        <span class="meta-pill"><i data-lucide="terminal" style="width:12px;height:12px;"></i> 1 procedure CALL</span>
+        <span class="meta-pill"><i data-lucide="scroll-text" style="width:12px;height:12px;"></i> Log append-only con JSONB</span>
+      </div>
+    </div>
+
+    <!-- Las tres piezas -->
+    <div class="auto-grid-3">
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">PIEZA 01</span>
+          <div class="rag-step-icon"><i data-lucide="scroll-text" style="width:16px;height:16px;"></i></div>
+        </div>
+        <div class="rag-step-title">Log de eventos</div>
+        <div class="rag-step-desc">
+          Tabla <code>instituto.log_eventos</code> append-only con nivel (<code>INFO</code>/<code>WARN</code>/<code>ERROR</code>),
+          origen, mensaje, detalle JSONB y usuario de base. La función <code>fn_log()</code> centraliza la escritura:
+          cualquier rutina registra un evento con una sola llamada.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="table" style="width:12px;height:12px;"></i>
+          log_eventos · fn_log()
+        </div>
+      </div>
+
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">PIEZA 02</span>
+          <div class="rag-step-icon" style="background:rgba(245,158,11,0.1);color:#fbbf24;">
+            <i data-lucide="zap" style="width:16px;height:16px;"></i>
+          </div>
+        </div>
+        <div class="rag-step-title">Trigger de auditoría</div>
+        <div class="rag-step-desc">
+          <code>trg_log_nota_final</code> se dispara <code>AFTER UPDATE OF nota_final</code> sobre
+          <code>inscripcion_examen</code>. Compara <code>OLD</code> y <code>NEW</code> con
+          <code>IS DISTINCT FROM</code> y solo escribe si la nota cambió, guardando el valor anterior y el nuevo.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="shield-check" style="width:12px;height:12px;"></i>
+          inscripcion_examen · fn_log_nota_final()
+        </div>
+      </div>
+
+      <div class="rag-step-card">
+        <div class="rag-step-header">
+          <span class="rag-step-num">PIEZA 03</span>
+          <div class="rag-step-icon" style="background:rgba(139,92,246,0.1);color:#a78bfa;">
+            <i data-lucide="terminal" style="width:16px;height:16px;"></i>
+          </div>
+        </div>
+        <div class="rag-step-title">Procedure de cierre</div>
+        <div class="rag-step-desc">
+          <code>sp_cerrar_acta(p_acta_id)</code> bloquea el acta con <code>FOR UPDATE</code>, valida su estado,
+          cuenta inscriptos y notas cargadas, la marca <code>CERRADA</code> con fecha de cierre y deja el evento
+          en el log. Si ya estaba cerrada, registra un <code>WARN</code> y no modifica nada.
+        </div>
+        <div class="rag-step-footer">
+          <i data-lucide="check-circle" style="width:12px;height:12px;"></i>
+          CALL sp_cerrar_acta(id)
+        </div>
+      </div>
+    </div>
+
+    <!-- Flujo del procedure -->
+    <div class="rag-tables-card">
+      <h3>
+        <i data-lucide="list-checks" style="width:18px;height:18px;color:#60a5fa;"></i>
+        Flujo interno de <code>sp_cerrar_acta</code>
+      </h3>
+      <ol class="auto-steps">
+        <li><b>Bloquea la fila:</b> <code>SELECT estado, numero ... FOR UPDATE</code> evita cierres simultáneos.</li>
+        <li><b>Valida existencia:</b> si no hay fila, lanza <code>RAISE EXCEPTION</code>.</li>
+        <li><b>Cierre idempotente:</b> si el acta ya está <code>CERRADA</code>, escribe un <code>WARN</code> y retorna sin tocarla.</li>
+        <li><b>Mide:</b> cuenta inscriptos y cuántos tienen <code>nota_final</code> cargada.</li>
+        <li><b>Actualiza:</b> <code>estado = 'CERRADA'</code> y <code>fecha_cierre = now()</code> en un solo UPDATE.</li>
+        <li><b>Registra:</b> inserta un evento <code>INFO</code> en <code>log_eventos</code> con las métricas.</li>
+        <li><b>Informa:</b> emite un <code>RAISE NOTICE</code> con el resumen del cierre.</li>
+      </ol>
+      <p class="auto-note">
+        El procedure corre dentro de la transacción del llamador: si este hace <code>ROLLBACK</code>, se revierten
+        tanto el cierre como el log. No ejecuta <code>COMMIT</code> por su cuenta.
+      </p>
+    </div>
+
+    <!-- Definiciones SQL -->
+    <div class="rag-tables-card">
+      <h3>
+        <i data-lucide="file-code" style="width:18px;height:18px;color:#60a5fa;"></i>
+        Definiciones SQL
+      </h3>
+      <div class="auto-sql-grid">
+        <div class="ddl-container">
+          <div class="ddl-toolbar">
+            <span class="ddl-lang">01 · log_eventos + fn_log()</span>
+          </div>
+          <pre class="sql-code">CREATE TABLE instituto.log_eventos (
+    id          BIGSERIAL    PRIMARY KEY,
+    fecha       TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    nivel       VARCHAR(10)  NOT NULL DEFAULT 'INFO',  -- INFO | WARN | ERROR
+    origen      VARCHAR(60)  NOT NULL,                -- componente que emite el evento
+    mensaje     TEXT         NOT NULL,
+    detalle     JSONB        NOT NULL DEFAULT '{}'::jsonb,
+    usuario_bd  TEXT         NOT NULL DEFAULT current_user,
+    CONSTRAINT ck_log_eventos_nivel
+        CHECK (nivel IN ('INFO', 'WARN', 'ERROR'))
+);
+
+CREATE OR REPLACE FUNCTION instituto.fn_log(
+    p_nivel VARCHAR, p_origen VARCHAR, p_mensaje TEXT,
+    p_detalle JSONB DEFAULT '{}'::jsonb
+) RETURNS BIGINT LANGUAGE plpgsql AS $$
+DECLARE v_id BIGINT;
+BEGIN
+    INSERT INTO instituto.log_eventos (nivel, origen, mensaje, detalle)
+    VALUES (p_nivel, p_origen, p_mensaje, COALESCE(p_detalle, '{}'::jsonb))
+    RETURNING id INTO v_id;
+    RETURN v_id;
+END;
+$$;</pre>
+        </div>
+
+        <div class="ddl-container">
+          <div class="ddl-toolbar">
+            <span class="ddl-lang">02 · trigger de auditoría de nota final</span>
+          </div>
+          <pre class="sql-code">CREATE OR REPLACE FUNCTION instituto.fn_log_nota_final()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    IF NEW.nota_final IS DISTINCT FROM OLD.nota_final THEN
+        PERFORM instituto.fn_log(
+            'INFO', 'trg_nota_final', 'Nota final modificada',
+            jsonb_build_object(
+                'inscripcion_examen_id', NEW.id,
+                'alumno_id',             NEW.alumno_id,
+                'mesa_examen_id',        NEW.mesa_examen_id,
+                'nota_anterior',         OLD.nota_final,
+                'nota_nueva',            NEW.nota_final
+            )
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_log_nota_final
+AFTER UPDATE OF nota_final ON instituto.inscripcion_examen
+FOR EACH ROW EXECUTE FUNCTION instituto.fn_log_nota_final();</pre>
+        </div>
+
+        <div class="ddl-container">
+          <div class="ddl-toolbar">
+            <span class="ddl-lang">03 · procedure de cierre de acta</span>
+          </div>
+          <pre class="sql-code">CREATE OR REPLACE PROCEDURE instituto.sp_cerrar_acta(p_acta_id BIGINT)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_estado instituto.estado_acta;
+    v_numero INT; v_total INT; v_cargadas INT;
+BEGIN
+    SELECT estado, numero INTO v_estado, v_numero
+      FROM instituto.acta_examen
+     WHERE id = p_acta_id
+       FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'El acta % no existe', p_acta_id;
+    END IF;
+
+    IF v_estado = 'CERRADA' THEN
+        PERFORM instituto.fn_log('WARN', 'sp_cerrar_acta',
+            'Intento de cerrar un acta ya cerrada',
+            jsonb_build_object('acta_id', p_acta_id, 'numero', v_numero));
+        RAISE NOTICE 'El acta % ya estaba cerrada; no se modificó.', p_acta_id;
+        RETURN;
+    END IF;
+
+    SELECT count(*), count(nota_final) INTO v_total, v_cargadas
+      FROM instituto.inscripcion_examen
+     WHERE acta_examen_id = p_acta_id;
+
+    UPDATE instituto.acta_examen
+       SET estado = 'CERRADA', fecha_cierre = now()
+     WHERE id = p_acta_id;
+
+    PERFORM instituto.fn_log('INFO', 'sp_cerrar_acta', 'Acta cerrada',
+        jsonb_build_object('acta_id', p_acta_id, 'numero', v_numero,
+                           'inscriptos', v_total, 'con_nota', v_cargadas));
+
+    RAISE NOTICE 'Acta % (N° %) cerrada: % inscriptos, % con nota final.',
+        p_acta_id, v_numero, v_total, v_cargadas;
+END;
+$$;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prueba real -->
+    <div class="rag-tables-card">
+      <h3>
+        <i data-lucide="play-circle" style="width:18px;height:18px;color:#34d399;"></i>
+        Prueba real ejecutada sobre la base
+      </h3>
+      <pre class="sql-code">BEGIN;
+  UPDATE instituto.inscripcion_examen SET nota_final = 9.25 WHERE id = 1;
+  CALL instituto.sp_cerrar_acta(4);
+  CALL instituto.sp_cerrar_acta(1);   -- ya estaba cerrada
+  SELECT * FROM instituto.log_eventos ORDER BY id DESC;
+ROLLBACK;</pre>
+      <table class="auto-demo-table">
+        <thead>
+          <tr>
+            <th>Nivel</th>
+            <th>Origen</th>
+            <th>Mensaje</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>WARN</code></td>
+            <td><code>sp_cerrar_acta</code></td>
+            <td>Intento de cerrar un acta ya cerrada</td>
+            <td><code>{"acta_id": 1, "numero": 501}</code></td>
+          </tr>
+          <tr>
+            <td><code>INFO</code></td>
+            <td><code>sp_cerrar_acta</code></td>
+            <td>Acta cerrada</td>
+            <td><code>{"acta_id": 4, "numero": 504, "inscriptos": 2, "con_nota": 0}</code></td>
+          </tr>
+          <tr>
+            <td><code>INFO</code></td>
+            <td><code>trg_nota_final</code></td>
+            <td>Nota final modificada</td>
+            <td><code>{"nota_anterior": 8.00, "nota_nueva": 9.25, "alumno_id": 1}</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="auto-note">
+        La prueba se ejecutó dentro de <code>BEGIN ... ROLLBACK</code> para no alterar los datos de demostración:
+        los tres eventos se generaron y luego se revirtieron junto con el cierre del acta.
+      </p>
+    </div>
+
+    <!-- Cómo ejecutar -->
+    <div class="rag-tables-card">
+      <h3>
+        <i data-lucide="book-open" style="width:18px;height:18px;color:#60a5fa;"></i>
+        Cómo ejecutarlo
+      </h3>
+      <pre class="sql-code">-- 1) Crear los objetos (después de 01_ddl.sql y 02_dml.sql)
+psql -U tpi -d isft189 -v ON_ERROR_STOP=1 -f db/instituto/03_trigger_procedure_log.sql
+
+-- 2) Usar el procedure
+CALL instituto.sp_cerrar_acta(4);
+
+-- 3) Modificar una nota: el trigger registra solo
+UPDATE instituto.inscripcion_examen SET nota_final = 9.25 WHERE id = 1;
+
+-- 4) Consultar la bitácora
+SELECT id, fecha, nivel, origen, mensaje, detalle
+  FROM instituto.log_eventos
+ ORDER BY id DESC LIMIT 10;</pre>
+      <p class="auto-note">
+        Si se vuelve a ejecutar <code>01_ddl.sql</code>, el <code>DROP SCHEMA instituto CASCADE</code> elimina estos
+        objetos y hay que reejecutar el script 03. La tabla de log crece de forma indefinida: a futuro conviene una
+        política de retención o particionado mensual.
+      </p>
+    </div>
+  </section>
+
 </main>
 
 <!-- ===========================================================================
@@ -2253,7 +2661,7 @@ function setupKeyboardShortcuts() {
 // Cambio de Vistas Principales
 function switchView(viewName) {
   AppState.currentView = viewName;
-  const views = ['dashboard', 'dictionary', 'rag', 'validation'];
+  const views = ['dashboard', 'dictionary', 'rag', 'validation', 'automation'];
   const buttons = document.querySelectorAll('.nav-tabs .tab-btn');
   buttons.forEach((btn, idx) => {
     btn.classList.toggle('active', views[idx] === viewName);

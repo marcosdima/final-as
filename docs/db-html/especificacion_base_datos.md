@@ -736,3 +736,62 @@ JOIN instituto.materia m ON m.id = me.materia_id
 WHERE a.legajo = 1001 AND ie.nota_final >= 4.00
 ORDER BY m.anio_en_plan, m.nombre;
 ```
+
+---
+
+### 7. AUTOMATIZACIÓN EN EL MOTOR: LOG DE EVENTOS, TRIGGER Y PROCEDURE
+
+Los objetos de automatización se definen en `db/instituto/03_trigger_procedure_log.sql`, que se ejecuta después de `01_ddl.sql` y `02_dml.sql`.
+
+#### 7.1 Tabla de log: `instituto.log_eventos`
+
+| Columna | Tipo | Descripción |
+|---|---|---|
+| `id` | `BIGSERIAL` | Identificador del evento |
+| `fecha` | `TIMESTAMPTZ` | Momento del evento (`now()` por defecto) |
+| `nivel` | `VARCHAR(10)` | `INFO`, `WARN` o `ERROR` (validado por `CHECK`) |
+| `origen` | `VARCHAR(60)` | Componente que emite el evento (`trg_nota_final`, `sp_cerrar_acta`, etc.) |
+| `mensaje` | `TEXT` | Descripción legible, no vacía (`CHECK`) |
+| `detalle` | `JSONB` | Datos variables del evento |
+| `usuario_bd` | `TEXT` | Rol de PostgreSQL que ejecutó la operación (`current_user`) |
+
+Es una tabla *append-only*: solo recibe `INSERT`. La función `instituto.fn_log(nivel, origen, mensaje, detalle)` centraliza la escritura y devuelve el `id` del evento.
+
+#### 7.2 Trigger `trg_log_nota_final`
+
+```sql
+CREATE TRIGGER trg_log_nota_final
+AFTER UPDATE OF nota_final ON instituto.inscripcion_examen
+FOR EACH ROW EXECUTE FUNCTION instituto.fn_log_nota_final();
+```
+
+- Se dispara **después** del `UPDATE` y solo cuando la columna `nota_final` aparece en el `SET`.
+- La función compara `NEW.nota_final IS DISTINCT FROM OLD.nota_final`: si el valor no cambió, no escribe nada.
+- Cuando cambia, registra `inscripcion_examen_id`, `alumno_id`, `mesa_examen_id`, la nota anterior y la nueva.
+
+#### 7.3 Procedure `sp_cerrar_acta(p_acta_id BIGINT)`
+
+Se invoca con `CALL instituto.sp_cerrar_acta(4);`. Flujo:
+
+1. `SELECT ... FOR UPDATE` bloquea la fila del acta (evita cierres concurrentes).
+2. Si el acta no existe, `RAISE EXCEPTION`.
+3. Si ya está `CERRADA`, registra un `WARN` y retorna sin modificarla (idempotente).
+4. Cuenta inscriptos y cuántos tienen `nota_final` cargada.
+5. `UPDATE acta_examen SET estado = 'CERRADA', fecha_cierre = now()`.
+6. Inserta un evento `INFO` en `log_eventos` con las métricas.
+7. Emite un `RAISE NOTICE` con el resumen.
+
+Corre dentro de la transacción del llamador: un `ROLLBACK` revierte tanto el cierre como el log.
+
+#### 7.4 Verificación ejecutada
+
+```sql
+BEGIN;
+  UPDATE instituto.inscripcion_examen SET nota_final = 9.25 WHERE id = 1;
+  CALL instituto.sp_cerrar_acta(4);
+  CALL instituto.sp_cerrar_acta(1);   -- ya estaba cerrada
+  SELECT * FROM instituto.log_eventos ORDER BY id DESC;
+ROLLBACK;
+```
+
+Genera tres eventos (`trg_nota_final` INFO con nota anterior/nueva, `sp_cerrar_acta` INFO de cierre y `sp_cerrar_acta` WARN de acta ya cerrada) que se revierten con el `ROLLBACK`, dejando los datos de demostración intactos.
